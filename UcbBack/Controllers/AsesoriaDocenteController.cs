@@ -37,33 +37,7 @@ namespace UcbBack.Controllers
             B1 = B1Connection.Instance();
             auth = new ValidateAuth();
         }
-        // convertir a mes literal
-        public List<AsesoriaDocenteViewModel> mesLiteral(string query)
-        {
-            string[] _months = {
-                        "ENE",
-                        "FEB",
-                        "MAR",
-                        "ABR",
-                        "MAY",
-                        "JUN",
-                        "JUL",
-                        "AGO",
-                        "SEP",
-                        "OCT",
-                        "NOV",
-                        "DIC"
-                    };
-            //Mes a literal
-            var rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(query).ToList();
-            List<AsesoriaDocenteViewModel> list = new List<AsesoriaDocenteViewModel>();
-            foreach (var element in rawresult)
-            {
-                element.MesLiteral = _months[element.Mes - 1];
-                list.Add(element);
-            };
-            return list;
-        }
+        
 
         //registro por Id
         [HttpGet]
