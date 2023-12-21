@@ -1,0 +1,1134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="UcbBack.BundleConfig" Collapsed="true">
+    <Position X="43.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>App_Start\BundleConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.FilterConfig" Collapsed="true">
+    <Position X="43.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAA=</HashCode>
+      <FileName>App_Start\FilterConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.ApplicationUserManager" Collapsed="true">
+    <Position X="50.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>App_Start\IdentityConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.RouteConfig" Collapsed="true">
+    <Position X="45" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>App_Start\RouteConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Startup" Collapsed="true">
+    <Position X="48.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAIAAAAAAAAAAAAEAgIAAAAAAAAA=</HashCode>
+      <FileName>App_Start\Startup.Auth.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.WebApiConfig" Collapsed="true">
+    <Position X="34.5" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>App_Start\WebApiConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.WebApiApplication" Collapsed="true">
+    <Position X="32.75" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Global.asax.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ApiDescriptionExtensions" Collapsed="true">
+    <Position X="43.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ApiDescriptionExtensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.HelpPageConfig" Collapsed="true">
+    <Position X="39.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\App_Start\HelpPageConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.HelpPageAreaRegistration" Collapsed="true">
+    <Position X="38" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\HelpPageAreaRegistration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.HelpPageConfigurationExtensions" Collapsed="true">
+    <Position X="41.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAABAICACACEAACGSCAAAADABAAAEMAAAAAIEA=</HashCode>
+      <FileName>Areas\HelpPage\HelpPageConfigurationExtensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.HelpPageSampleGenerator" Collapsed="true">
+    <Position X="43.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAYAARQAQAAEAJgAAAQAAgAAEAgFAAAAABCAAAI=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\HelpPageSampleGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.HelpPageSampleKey" Collapsed="true">
+    <Position X="45" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAABAAAgAgAAAAAAAAAAAAICQAAAEAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\HelpPageSampleKey.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ImageSample" Collapsed="true">
+    <Position X="48.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgAAAAAAAAAAAAIAAAAIAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\ImageSample.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.InvalidSample" Collapsed="true">
+    <Position X="50.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAAAAAAAAAAEgAAAAAAAAAAAAIAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\InvalidSample.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ObjectGenerator" Collapsed="true">
+    <Position X="50.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAABDAoAAAAAACAEAICAAAYAAACAAAAAAgCAgAAAAIA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\ObjectGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.TextSample" Collapsed="true">
+    <Position X="36.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEgAAAAAAAAAAAAIAAAAAACAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\TextSample.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.XmlDocumentationProvider" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="36.25" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QIEAAAAIBAEAQAAABIAAAAAAAAAAAAAAAAAAAAAAAkg=</HashCode>
+      <FileName>Areas\HelpPage\XmlDocumentationProvider.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.Controllers.HelpController" Collapsed="true">
+    <Position X="34.5" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAABAABAAAAAAAAAAAAAAAAAAAAAAAgAEAAAAgAAA=</HashCode>
+      <FileName>Areas\HelpPage\Controllers\HelpController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.CollectionModelDescription" Collapsed="true">
+    <Position X="2.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\CollectionModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ComplexTypeModelDescription" Collapsed="true">
+    <Position X="7.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ComplexTypeModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.DictionaryModelDescription" Collapsed="true">
+    <Position X="0.5" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\DictionaryModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.EnumTypeModelDescription" Collapsed="true">
+    <Position X="9.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\EnumTypeModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.EnumValueDescription" Collapsed="true">
+    <Position X="38" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\EnumValueDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.KeyValuePairModelDescription" Collapsed="true">
+    <Position X="0.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\KeyValuePairModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ModelDescription" Collapsed="true">
+    <Position X="5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAEAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ModelDescriptionGenerator" Collapsed="true">
+    <Position X="38" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAGQBAAJAABAAACBAgAAAAASBAAAAAAAAAEAACAQAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ModelDescriptionGenerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ModelNameAttribute" Collapsed="true">
+    <Position X="39.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ModelNameAttribute.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ModelNameHelper" Collapsed="true">
+    <Position X="41.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ModelNameHelper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ParameterAnnotation" Collapsed="true">
+    <Position X="34.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ParameterAnnotation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.ParameterDescription" Collapsed="true">
+    <Position X="36.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAAAAAAAAAAAAAAAQAQAAEAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\ParameterDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.ModelDescriptions.SimpleTypeModelDescription" Collapsed="true">
+    <Position X="5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\SimpleTypeModelDescription.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Areas.HelpPage.Models.HelpPageApiModel" Collapsed="true">
+    <Position X="36.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAGBAAAAAAAAAAAAAgAAAAAAAUBAAAAAQAQAg=</HashCode>
+      <FileName>Areas\HelpPage\Models\HelpPageApiModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.AccessController" Collapsed="true">
+    <Position X="32.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAIAAAAg=</HashCode>
+      <FileName>Controllers\AccessController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.AccountController" Collapsed="true">
+    <Position X="36.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAFACAACAAgQAAEAARAgIAABABEBAAAAAAgAAAAQA=</HashCode>
+      <FileName>Controllers\AccountController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.AltasContratosController" Collapsed="true">
+    <Position X="41.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAIBAAAAEAAACBAAACAAAAAAAAAAAAA=</HashCode>
+      <FileName>Controllers\AltasContratosController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.AuthController" Collapsed="true">
+    <Position X="31" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAQAAABAgAAAAAAAIAAAAAAAAAAAAgAIAAAQA=</HashCode>
+      <FileName>Controllers\AuthController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.B1Controller" Collapsed="true">
+    <Position X="34.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAABABAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Controllers\B1Controller.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.BranchesController" Collapsed="true">
+    <Position X="39.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAEAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\BranchesController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.CauseOfMovementController" Collapsed="true">
+    <Position X="46.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABAAAAAAABAAAAAAAAAAAEAAAAAAABAA=</HashCode>
+      <FileName>Controllers\CauseOfMovementController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.CivilController" Collapsed="true">
+    <Position X="34.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABIBAAAEAAAAACAEAAAAAMAAAAAAAAAA=</HashCode>
+      <FileName>Controllers\CivilController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.ContractController" Collapsed="true">
+    <Position X="41.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAERMBAAAAAAAAACAkAACAAEAAAECgAAAw=</HashCode>
+      <FileName>Controllers\ContractController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.CostCentersController" Collapsed="true">
+    <Position X="46.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACSAAAQAAABCAAAAAAAAAAgQAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>Controllers\CostCentersController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.CuentasContablesController" Collapsed="true">
+    <Position X="50.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\CuentasContablesController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.CustomUserController" Collapsed="true">
+    <Position X="34.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAYAAAAAAAABABAAAAAAAAAAAQBAAAAkQAgAIAAAAg=</HashCode>
+      <FileName>Controllers\CustomUserController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.DependencyController" Collapsed="true">
+    <Position X="38" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAIAAAAg=</HashCode>
+      <FileName>Controllers\DependencyController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.GestionController" Collapsed="true">
+    <Position X="48.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\GestionController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.GrupoContableController" Collapsed="true">
+    <Position X="31" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\GrupoContableController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.HomeController" Collapsed="true">
+    <Position X="46.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
+      <FileName>Controllers\HomeController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.LevelController" Collapsed="true">
+    <Position X="32.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\LevelController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.ModuleController" Collapsed="true">
+    <Position X="45" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\ModuleController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.NombramientoController" Collapsed="true">
+    <Position X="46.75" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAEAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\NombramientoController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.OrganizationalUnitController" Collapsed="true">
+    <Position X="32.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\OrganizationalUnitController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.PayrollController" Collapsed="true">
+    <Position X="39.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAIgAQBAECQDAABAgBAIArAABAhAAQAkQgYBQQAgQA=</HashCode>
+      <FileName>Controllers\PayrollController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.PeopleController" Collapsed="true">
+    <Position X="43.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQAAAAgAAAAARABAAAAAAIAESIAAEAgAEAAgAIgAAAg=</HashCode>
+      <FileName>Controllers\PeopleController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.PerformanceAreaController" Collapsed="true">
+    <Position X="46.75" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\PerformanceAreaController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.PositionsController" Collapsed="true">
+    <Position X="50.25" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAEAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\PositionController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.ResourceController" Collapsed="true">
+    <Position X="38" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\ResourceController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.RolController" Collapsed="true">
+    <Position X="41.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAAABABAAAAgAAAACAEAAAAAAABgAIAAAAg=</HashCode>
+      <FileName>Controllers\RolController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.ServContractController" Collapsed="true">
+    <Position X="43.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABgQAARAAEAADAhgAAAAIAAAAAAAABAAEAECBAAAAAA=</HashCode>
+      <FileName>Controllers\ServContractController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.TableOfTablesController" Collapsed="true">
+    <Position X="32.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gwEAAgBAQAAKNAgAwgAAQAAACAQEAAsJAQEAAAABAgA=</HashCode>
+      <FileName>Controllers\TableOfTablesController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Controllers.TipoEmpleadoDistController" Collapsed="true">
+    <Position X="39.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAABABAAAAAAAAACAEAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Controllers\TipoEmpleadoDistController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ADClass" Collapsed="true">
+    <Position X="38" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAYAAIBAAQEAAIAkQAAQAGAAAgAABAAAAAgAJAAIAAA=</HashCode>
+      <FileName>Logic\ADClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ValidateExcelFile" Collapsed="true">
+    <Position X="15" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQEwAwIhQAAHGAQAAEAAEAAgAAAQAgGCOAAAAAAAAQ=</HashCode>
+      <FileName>Logic\ExcelFiles\ValidateExcelFile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.HanaValidator" Collapsed="true">
+    <Position X="32.75" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAQAAgAAAAAA=</HashCode>
+      <FileName>Logic\HanaValidator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ValidateAuth" Collapsed="true">
+    <Position X="46.75" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAIABAAAAAQIAAACAAAAIAAgAEAgABAAAAA=</HashCode>
+      <FileName>Logic\ValidateAuth.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ValidatePerson" Collapsed="true">
+    <Position X="48.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAABAAAEAAAAAAAACAAABABAAAAoAAAAAA=</HashCode>
+      <FileName>Logic\ValidatePerson.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ValidateToken" Collapsed="true">
+    <Position X="50.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAEAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logic\ValidateToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.B1.B1Connection" Collapsed="true">
+    <Position X="32.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAQACsUAEWBBAwAgAJgAABCCIxAACAIREAAgIHBAoQ=</HashCode>
+      <FileName>Logic\B1\B1Connection.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.AcademicExcel" Collapsed="true">
+    <Position X="17.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AUAAAAAAAAAAFAAAgAAAAQAAAACAAAAABAAAAAAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\AcademicExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.AltasPersonalExcel" Collapsed="true">
+    <Position X="19.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAIAAFAAAAAAAAAAAAACAIAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logic\ExcelFiles\AltasPersonalExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.ContractExcel" Collapsed="true">
+    <Position X="21.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QEAAAIAAAAAAFAAAACEAAAAAAABAAAAAAAAgBAAAAAA=</HashCode>
+      <FileName>Logic\ExcelFiles\ContractExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.DiscountExcel" Collapsed="true">
+    <Position X="24" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAgAAAAQAAAACAAAAABAAAAQAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\DiscountExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.ORExcel" Collapsed="true">
+    <Position X="26.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAgAAAAQAAAACAAAAABAAAAQAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\ORExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.PayrollExcel" Collapsed="true">
+    <Position X="28.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAACAAgACAFAAAiACAAQCAAACAAAAABAAAAAAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\PayrollExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.PostgradoExcel" Collapsed="true">
+    <Position X="1.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAgAAAAQAAAACAAIAABAAAAQAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\PostgradoExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.PregradoExcel" Collapsed="true">
+    <Position X="3.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAgAAAAQAAAACAAAAABAAAAQAAAAg=</HashCode>
+      <FileName>Logic\ExcelFiles\PregradoExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.ValidateContractsFile" Collapsed="true">
+    <Position X="6" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAQAAAAFAAAAAAAAAAAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logic\ExcelFiles\ValidateContractsFile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.Serv.Serv_CarreraExcel" Collapsed="true">
+    <Position X="8.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAAAAAAIIAAACAAAAAAAEAAAAAAQA=</HashCode>
+      <FileName>Logic\ExcelFiles\Serv\Serv_CarreraExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.Serv.Serv_ParaleloExcel" Collapsed="true">
+    <Position X="10.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAAAAAAIIAAACAAAAAAAEAAAAAAQA=</HashCode>
+      <FileName>Logic\ExcelFiles\Serv\Serv_ParaleloExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.Serv.Serv_ProyectosExcel" Collapsed="true">
+    <Position X="12.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAAAAAAIIAAACAAIAAAAAAAAAAAQA=</HashCode>
+      <FileName>Logic\ExcelFiles\Serv\Serv_ProyectosExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.ExcelFiles.Serv.Serv_VariosExcel" Collapsed="true">
+    <Position X="15" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAAAFAAAAAAAAIIAAACAAAAAAAEAAAAAAQA=</HashCode>
+      <FileName>Logic\ExcelFiles\Serv\Serv_VariosExcel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Logic.Mail.Mail" Collapsed="true">
+    <Position X="34.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAABAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logic\Mail\Mail.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Migrations.FirstMigration" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="45" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAIAMAAAAAAAAAAAAAAAAAAAAAAAAAAQEAAAAAI=</HashCode>
+      <FileName>Migrations\201806042119020_FirstMigration.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="UcbBack.Migrations.Configuration" Collapsed="true">
+    <Position X="38" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Migrations\Configuration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.AddExternalLoginBindingModel" Collapsed="true">
+    <Position X="39.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ChangePasswordBindingModel" Collapsed="true">
+    <Position X="50.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAABAAAAAAAEAAAAAAAAAAAAAAIAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.RegisterBindingModel" Collapsed="true">
+    <Position X="31" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAACAAAAAAAAIAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.RegisterExternalBindingModel" Collapsed="true">
+    <Position X="32.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.RemoveLoginBindingModel" Collapsed="true">
+    <Position X="34.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.SetPasswordBindingModel" Collapsed="true">
+    <Position X="46.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAIAA=</HashCode>
+      <FileName>Models\AccountBindingModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ExternalLoginViewModel" Collapsed="true">
+    <Position X="41.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAACAAABAAAAAA=</HashCode>
+      <FileName>Models\AccountViewModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ManageInfoViewModel" Collapsed="true">
+    <Position X="36.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAQAAAAAAAAAAAAAQAQAAAAAAA=</HashCode>
+      <FileName>Models\AccountViewModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.UserInfoViewModel" Collapsed="true">
+    <Position X="41.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAEAAAAAIAAAAAAAA=</HashCode>
+      <FileName>Models\AccountViewModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.UserLoginInfoViewModel" Collapsed="true">
+    <Position X="43.25" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAA=</HashCode>
+      <FileName>Models\AccountViewModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.B1SDKLog" Collapsed="true">
+    <Position X="36.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QQACCAAAAAAAABAAAAAAAAgAAggAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\B1SDKLog.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Branches" Collapsed="true">
+    <Position X="38" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAECABAAAAQCABAIgAAQAAQABAAAAAAAAAAAAQABCBE=</HashCode>
+      <FileName>Models\Branches.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.BranchhasPosition" Collapsed="true">
+    <Position X="41.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIACAAAAIAAAALAgAAAAAAAAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\BranchhasPosition.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.CauseOfMovement" Collapsed="true">
+    <Position X="45" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAJAAAAAAAAQAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Models\CauseOfMovement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ChangesLogs" Collapsed="true">
+    <Position X="31" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAACAAAAAABAABAgAAAAAAAAAABAAAAAAAAAAYAABAA=</HashCode>
+      <FileName>Models\ChangesLogs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Civil" Collapsed="true">
+    <Position X="32.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AoACgAAAAAAAALAAAAAAAAAAAAAAAAACAAAAAAAAAAM=</HashCode>
+      <FileName>Models\Civil.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Contract" Collapsed="true">
+    <Position X="39.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAEIAAABAAAAAAAAAgAIAAAAAAAAAAAEAAAAA=</HashCode>
+      <FileName>Models\Contract.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ContractDetail" Collapsed="true">
+    <Position X="43.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AYACAEAAEJAECDAoAACAAAAhCIAAIABhAAAAQUAAAAA=</HashCode>
+      <FileName>Models\ContractDetail.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dependency" Collapsed="true">
+    <Position X="36.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAiAAAAAAAAADAAAAACQAQQAAEAAAAgAgEAAAAAgAA=</HashCode>
+      <FileName>Models\Dependency.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Gestion" Collapsed="true">
+    <Position X="46.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAQgAAAAAAAAAQAAAEAAAAA=</HashCode>
+      <FileName>Models\Gestion.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ApplicationUser" Collapsed="true">
+    <Position X="48.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\IdentityModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.ApplicationDbContext" Collapsed="true">
+    <Position X="45" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BIAAJACAYDAIDGSgAQiBAAIUEgAAgkgBACAIRAQAQgM=</HashCode>
+      <FileName>Models\IdentityModels.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Level" Collapsed="true">
+    <Position X="31" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAAAAAEAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>Models\Level.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Module" Collapsed="true">
+    <Position X="43.25" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAQAAAAAAAAAAAAAAAEAAAA=</HashCode>
+      <FileName>Models\Module.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.OrganizationalUnit" Collapsed="true">
+    <Position X="31" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAQAAAEAAAAgAAAAAAAAAAA=</HashCode>
+      <FileName>Models\OrganizationalUnit.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.People" Collapsed="true">
+    <Position X="41.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIACgAAECQAACDDAgCAIQAwAAIiEAAkKAAAQoAAACQA=</HashCode>
+      <FileName>Models\people.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.PerformanceArea" Collapsed="true">
+    <Position X="45" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\PerformanceArea.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Positions" Collapsed="true">
+    <Position X="48.5" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAiAAAAAQAAABAAAAAAAAQAABABAAABAAEAAAAAAAA=</HashCode>
+      <FileName>Models\Positions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Resource" Collapsed="true">
+    <Position X="36.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABIAAAAAAAQAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>Models\Resource.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.TableOfTables" Collapsed="true">
+    <Position X="31" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAABAAAAAAAAAAAAAAAAAAAQAgAAAAAAA=</HashCode>
+      <FileName>Models\TableOfTables.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.TempAlta" Collapsed="true">
+    <Position X="34.5" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AKACgAAAAAAAADAAAAAAAAggAICEAAACAAAABEAAAAA=</HashCode>
+      <FileName>Models\TempAlta.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.Access" Collapsed="true">
+    <Position X="31" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAIAAggBIAAAAgAAAIAAAAAAAAAAAAAAAAQAA=</HashCode>
+      <FileName>Models\Auth\Access.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.AccessLogs" Collapsed="true">
+    <Position X="34.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACgAAAAAAAABIAAAAgIAgAAgAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Auth\AccessLogs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.PasswordHash" Collapsed="true">
+    <Position X="38" Y="7.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAAAAAIAAQAAgAAAAAEAAAAAAABAAAAACABAAAA=</HashCode>
+      <FileName>Models\Auth\PasswordHash.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.Rol" Collapsed="true">
+    <Position X="39.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAIAAAgBAAAAAAAAQAAAAAAAABAAAAAAAAABA=</HashCode>
+      <FileName>Models\Auth\Rol.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.RolhasAccess" Collapsed="true">
+    <Position X="43.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAFAgAAAAAAAAAAAAAgAAAAAAEAAAAAA=</HashCode>
+      <FileName>Models\Auth\RolhasAccess.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.SystemErrorLogs" Collapsed="true">
+    <Position X="50.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAACAAAAAAAAABAAAAAAAAgIAAAAAAQAEIAAAAIAAAA=</HashCode>
+      <FileName>Models\Auth\SystemErrorLogs.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Auth.CustomUser" Collapsed="true">
+    <Position X="32.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABCC0IhB0NVAQDAAAAAAEABAAAQAAACAAAAAIBEBAAA=</HashCode>
+      <FileName>Models\Auth\User.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.CuentaContable" Collapsed="true">
+    <Position X="48.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CIACAAAAAAAAADAAAAAAAAQAAAAAAEAAABAAEAAAAAA=</HashCode>
+      <FileName>Models\Dist\CuentaContable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Academic" Collapsed="true">
+    <Position X="39.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAiyAAgAAAABDAAgAABAQghgIiEAAACAAABAQgAABg=</HashCode>
+      <FileName>Models\Dist\Dist_Academic.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Discounts" Collapsed="true">
+    <Position X="41.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAgBAAgAAAAQQBAAAAQAAAAQAAAAAAABg=</HashCode>
+      <FileName>Models\Dist\Dist_Discounts.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_FileType" Collapsed="true">
+    <Position X="45" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAgAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Dist\Dist_FileType.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_LogErrores" Collapsed="true">
+    <Position X="46.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAQAAAAAAAAgAgJAAAAAAEAAAAAIAAAA=</HashCode>
+      <FileName>Models\Dist\Dist_LogErrores.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_OR" Collapsed="true">
+    <Position X="48.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAASyAAAAIAAATAAgAAACQghAICEAAACAAAAAQAAABg=</HashCode>
+      <FileName>Models\Dist\Dist_OR.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Posgrado" Collapsed="true">
+    <Position X="31" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACwAAAAAAAADAAiAAAAQglAICEIAAKAAAACQAAABg=</HashCode>
+      <FileName>Models\Dist\Dist_Posgrado.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Pregrado" Collapsed="true">
+    <Position X="32.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACgAAAAAAAABAAgAAAAQghAoCEAAACQAAAAQAAABg=</HashCode>
+      <FileName>Models\Dist\Dist_Pregrado.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Process" Collapsed="true">
+    <Position X="34.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIACAAAAACAAgDAAAAAAIQAAAAAAAAAAAAAABAAAAAg=</HashCode>
+      <FileName>Models\Dist\Dist_Process.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Error" Collapsed="true">
+    <Position X="39.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgAAAAAAAAAAQAAAAAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>Models\Dist\DistErrores.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_File" Collapsed="true">
+    <Position X="43.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAHAAAAAAAAgBAAAAACAAQAgAAgAAAAAAAABAAAAAA=</HashCode>
+      <FileName>Models\Dist\File.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.GrupoContable" Collapsed="true">
+    <Position X="50.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAgABAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Dist\GrupoContable.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.Dist_Payroll" Collapsed="true">
+    <Position X="50.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAEGwAAIABAQFDACgAAIAQghAMiUAggCAgCAARAAFBg=</HashCode>
+      <FileName>Models\Dist\Payroll.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Dist.TipoEmpleadoDist" Collapsed="true">
+    <Position X="38" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAACAAAAAAAgABAAAAAAAAQAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Dist\TipoEmpleadoDist.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.Comparativo" Collapsed="true">
+    <Position X="36.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAAwRAhAADIACAAAQAgBCAIABAAgCAAACAAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\Comparativo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.Distribution" Collapsed="true">
+    <Position X="36.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAQyAAAAAAAgDAAgEABAQAggQAFAACCAAAQEAAgIAg=</HashCode>
+      <FileName>Models\Not Mapped\Distribution.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.OACT" Collapsed="true">
+    <Position X="48.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IHgBABAAAAAEAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\OACT.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.SapVoucher" Collapsed="true">
+    <Position X="46.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAABAAAAAAAAEABIIKACAAQAAAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\SapVoucher.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.VoucherHeader" Collapsed="true">
+    <Position X="31" Y="11.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BBIAAAGKAAAAACAACABAAAQAAABAIigCIBAAAAgAAAE=</HashCode>
+      <FileName>Models\Not Mapped\VoucherHeader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.CustomDataAnnotations.CustomSchema" Collapsed="true">
+    <Position X="31" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAACAIAAAAEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\CustomDataAnnotations\CustomSchema.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.ContractDetailViewModel" Collapsed="true">
+    <Position X="45" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIACAAAEABAAAKAgAAAAAAAhAIAAAAACAAAgAUAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\ContractDetailViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.Serv_PregradoViewModel" Collapsed="true">
+    <Position X="31" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAECAogAAAAhACEAAABBAAEAAACAAAEQAAAAAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\Serv_PregradoViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.Serv_ProyectosViewModel" Collapsed="true">
+    <Position X="34.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAECAogAAAAhACAAAAABAAEAAAAAAQAwAAQAAAgAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\Serv_ProyectosViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.Serv_ReemplazoViewModel" Collapsed="true">
+    <Position X="36.25" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAECAogAAAAhACAAAAABAAEACAAAAAAQAgAQAAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\Serv_ReemplazoViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.Serv_VariosViewModel" Collapsed="true">
+    <Position X="39.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAECAogAAAAhACAAAAABAAEAAAAAAAAQAAAAACAAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\Serv_VariosViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.Serv_Voucher" Collapsed="true">
+    <Position X="41.5" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAASAAAQAAAACABAAAAAAAAEAQAIAECQAAAEAAAAEQ=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\Serv_Voucher.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Not_Mapped.ViewMoldes.UserViewModel" Collapsed="true">
+    <Position X="45" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AJACQJBJAVAAQIAgADAAAAABAIQAAgAiAAAgJQAAAAA=</HashCode>
+      <FileName>Models\Not Mapped\ViewMoldes\UserViewModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Serv.Serv_Carrera" Collapsed="true">
+    <Position X="48.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAQAgQADAIAAAAAAAAABQAAAEAQAAAgQAAJIQ=</HashCode>
+      <FileName>Models\Serv\Serv_Carrera.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Serv.Serv_Paralelo" Collapsed="true">
+    <Position X="50.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACQAAAQggQADAIAAAAAAAAABgAAAEAAAAAgQAAJIQ=</HashCode>
+      <FileName>Models\Serv\Serv_Paralelo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Serv.Serv_Proyectos" Collapsed="true">
+    <Position X="32.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAACQAAAQAgQADAIAAAAAAAAABQEAQEAAAAAgQAAJIQ=</HashCode>
+      <FileName>Models\Serv\Serv_Proyectos.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Serv.Serv_Varios" Collapsed="true">
+    <Position X="38" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAQAoQADAIAAAAAAAAABAAAAEAAAAAgQAAJIQ=</HashCode>
+      <FileName>Models\Serv\Serv_Varios.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Models.Serv.ServProcess" Collapsed="true">
+    <Position X="45" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AoACAgAAAAgAADAAACAAAAACAAAAAAAAAQAABAAAAAE=</HashCode>
+      <FileName>Models\Serv\ServProcess.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Providers.ApplicationOAuthProvider" Collapsed="true">
+    <Position X="46.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAAAAAAAAACAAAAAAAAAAAAAEAAEIAAAAAAAAAAAgA=</HashCode>
+      <FileName>Providers\ApplicationOAuthProvider.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UcbBack.Results.ChallengeResult" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="48.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAkAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Results\ChallengeResult.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Struct Name="UcbBack.Logic.Excelcol" Collapsed="true">
+    <Position X="31" Y="12.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAgAAAA=</HashCode>
+      <FileName>Logic\ExcelFiles\ValidateExcelFile.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Struct Name="UcbBack.Models.TableOfTablesTypes" Collapsed="true">
+    <Position X="32.75" Y="12.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAJAAAAAAIAAABAAAEAAAAAAAIAAAAAAE=</HashCode>
+      <FileName>Models\TableOfTables.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Interface Name="UcbBack.Areas.HelpPage.ModelDescriptions.IModelDocumentationProvider" Collapsed="true">
+    <Position X="31" Y="14" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\ModelDescriptions\IModelDocumentationProvider.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="UcbBack.Areas.HelpPage.SampleDirection" Collapsed="true">
+    <Position X="31" Y="15" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Areas\HelpPage\SampleGeneration\SampleDirection.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
