@@ -2,8 +2,13 @@
 
 REM Archivos específicos a excluir durante el merge (con rutas relativas)
 set EXCLUDED_FILE_1=Web.config
+<<<<<<< HEAD
 set EXCLUDED_FILE_2=App_Start\WebApiConfig.cs
 set EXCLUDED_FILE_3=Controllers\OptionsController.cs
+=======
+set EXCLUDED_FILE_2=App_Start/WebApiConfig.cs
+set EXCLUDED_FILE_3=Controllers/OptionsController.cs
+>>>>>>> devBack
 
 REM Realizar un stash de los cambios locales en la rama de destino (main)
 git stash
