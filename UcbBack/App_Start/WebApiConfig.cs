@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http;
-using System.Web.Http.Cors;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
 
@@ -27,18 +26,15 @@ namespace UcbBack
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-
-            // Descomenta la llamada a la función EnableCrossSiteRequests para habilitar CORS
-            EnableCrossSiteRequests(config);
+            //config.EnableCors();
         }
-
-        private static void EnableCrossSiteRequests(HttpConfiguration config)
+        /*private static void EnableCrossSiteRequests(HttpConfiguration config)
         {
             var cors = new EnableCorsAttribute(
-                origins: "http://localhost:8000",
+                origins: "*",
                 headers: "*",
                 methods: "*");
             config.EnableCors(cors);
-        }
+        }*/
     }
 }
