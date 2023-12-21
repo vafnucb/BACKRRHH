@@ -1,4 +1,4 @@
-﻿﻿@echo off
+@echo off
 
 REM Archivos específicos a excluir durante el merge (con rutas relativas)
 EXCLUDED_FILE_1=Web.config
