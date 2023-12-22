@@ -37,7 +37,42 @@ namespace UcbBack.Controllers
             B1 = B1Connection.Instance();
             auth = new ValidateAuth();
         }
-        
+
+        // convertir a mes literal
+        public List<AsesoriaDocenteViewModel> mesLiteral(string query)
+        {
+            string[] _months = {
+                        "ENE",
+                        "FEB",
+                        "MAR",
+                        "ABR",
+                        "MAY",
+                        "JUN",
+                        "JUL",
+                        "AGO",
+                        "SEP",
+                        "OCT",
+                        "NOV",
+                        "DIC"
+                    };
+            // Mes a literal
+            var rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(query).ToList();
+            List<AsesoriaDocenteViewModel> list = new List<AsesoriaDocenteViewModel>();
+            foreach (var element in rawresult)
+            {
+                if (element.Mes >= 1 && element.Mes <= _months.Length)
+                {
+                    element.MesLiteral = _months[element.Mes - 1];
+                }
+                else
+                {
+                    // Manejar el caso cuando Mes está fuera del rango válido
+                    element.MesLiteral = "Mes no válido";
+                }
+                list.Add(element);
+            };
+            return list;
+        }
 
         //registro por Id
         [HttpGet]
