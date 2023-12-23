@@ -3,6 +3,9 @@
 REM Establecer la ruta raíz en el directorio actual del script
 set rootpath=%~dp0
 
+REM Retroceder un nivel para llegar al directorio principal del repositorio
+set repo_path=%rootpath%\..
+
 REM Establecer las rutas de destino para producción y desarrollo
 set destination="C:\inetpub\wwwroot\RRHH2"
 
@@ -10,7 +13,9 @@ REM Habilitar aplicaciones de 32 bits en la aplicación del grupo de aplicaciones
 %systemroot%\system32\inetsrv\appcmd set apppool /apppool.name:ADMNALRRHH2 /enable32BitAppOnWin64:true
 
 REM Actualizar el repositorio local con los últimos cambios
+pushd "%repo_path%"
 git pull
+popd
 
 REM Crear directorios necesarios y copiar archivos
 mkdir "%destination%\Areas"
