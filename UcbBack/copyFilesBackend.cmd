@@ -9,6 +9,9 @@ set destination="C:\inetpub\wwwroot\RRHH2"
 REM Habilitar aplicaciones de 32 bits en la aplicación del grupo de aplicaciones (app pool)
 %systemroot%\system32\inetsrv\appcmd set apppool /apppool.name:ADMNALRRHH2 /enable32BitAppOnWin64:true
 
+REM Actualizar el repositorio local con los últimos cambios
+git pull
+
 REM Crear directorios necesarios y copiar archivos
 mkdir "%destination%\Areas"
 robocopy "%rootpath%\Areas" "%destination%\Areas" /E /COPYALL /is
