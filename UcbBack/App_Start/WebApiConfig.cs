@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Web.Http;
-using Microsoft.Owin.Security.OAuth;
-using Newtonsoft.Json.Serialization;
+﻿using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace UcbBack
 {
@@ -14,10 +9,19 @@ namespace UcbBack
         {
             // Web API configuration and services
             // Configure Web API to use only bearer token authentication.
-            //config.SuppressDefaultHostAuthentication();
-            //config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
-            //configure multipart for excel
+            // config.SuppressDefaultHostAuthentication();
+            // config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
+
+            // Configure CORS
+            var cors = new EnableCorsAttribute(
+                origins: "http://192.168.18.75:8020", // Puedes ajustar esto según tu necesidad
+                headers: "*",
+                methods: "*");
+            config.EnableCors(cors);
+
+            // Configure multipart for Excel
             config.Formatters.XmlFormatter.SupportedMediaTypes.Add(new System.Net.Http.Headers.MediaTypeHeaderValue("multipart/form-data"));
+
             // Web API routes
             config.MapHttpAttributeRoutes();
 
@@ -26,15 +30,6 @@ namespace UcbBack
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-            //config.EnableCors();
         }
-        /*private static void EnableCrossSiteRequests(HttpConfiguration config)
-        {
-            var cors = new EnableCorsAttribute(
-                origins: "*",
-                headers: "*",
-                methods: "*");
-            config.EnableCors(cors);
-        }*/
     }
 }
