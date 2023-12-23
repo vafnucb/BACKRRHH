@@ -4,10 +4,10 @@ REM Establecer la ruta raíz en el directorio actual del script
 set rootpath=%~dp0
 
 REM Establecer las rutas de destino para producción y desarrollo
-set destination="C:\Users\Juanpi\Desktop\PruebScripts"
+set destination="C:\inetpub\wwwroot\RRHH2"
 
 REM Habilitar aplicaciones de 32 bits en la aplicación del grupo de aplicaciones (app pool)
-%systemroot%\system32\inetsrv\appcmd set apppool /apppool.name:ucbback01 /enable32BitAppOnWin64:true
+%systemroot%\system32\inetsrv\appcmd set apppool /apppool.name:ADMNALRRHH2 /enable32BitAppOnWin64:true
 
 REM Crear directorios necesarios y copiar archivos
 mkdir "%destination%\Areas"
@@ -35,3 +35,6 @@ robocopy "%rootpath%\" "%destination%\\" favicon.ico /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" Global.asax /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" "packages.config" /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" "Web.config" /COPYALL /is
+
+ECHO ON
+exit /b
