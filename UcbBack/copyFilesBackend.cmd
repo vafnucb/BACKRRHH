@@ -36,5 +36,5 @@ robocopy "%rootpath%\" "%destination%\\" Global.asax /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" "packages.config" /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" "Web.config" /COPYALL /is
 
-ECHO ON
+REM ECHO ON
 exit /b
