@@ -22,7 +22,7 @@ namespace UcbBack
             config.Formatters.XmlFormatter.SupportedMediaTypes.Add(new System.Net.Http.Headers.MediaTypeHeaderValue("multipart/form-data"));
 
             // Habilitar CORS
-            var cors = new EnableCorsAttribute("*", "*", "*");
+            var cors = new EnableCorsAttribute("http://192.168.18.75:8020", "*", "*");
             config.EnableCors(cors);
 
             // Web API routes
