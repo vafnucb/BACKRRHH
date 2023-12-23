@@ -37,4 +37,4 @@ robocopy "%rootpath%\" "%destination%\\" "packages.config" /COPYALL /is
 robocopy "%rootpath%\" "%destination%\\" "Web.config" /COPYALL /is
 
 REM ECHO ON
-exit /b
+EXIT /B 0
