@@ -37,7 +37,6 @@ namespace UcbBack.Controllers
             B1 = B1Connection.Instance();
             auth = new ValidateAuth();
         }
-
         // convertir a mes literal
         public List<AsesoriaDocenteViewModel> mesLiteral(string query)
         {
@@ -90,12 +89,13 @@ namespace UcbBack.Controllers
                 return Ok(uniqueRecord);
             }
         }
-        //obtener registros de tutorias segun su estado
+
+        // obtener registros de tutorias segun su estado
         [HttpGet]
         [Route("api/AsesoriaDocente")]
         public IHttpActionResult getAsesoria([FromUri] string by)
         {
-            //datos para la tabla histórica
+            // datos para la tabla histórica
             string query = "select a.\"Id\",a.\"TeacherFullName\", a.\"TeacherCUNI\", a.\"TeacherBP\", a.\"Categoría\", " +
                                 "case when (a.\"Acta\") is null or (a.\"Acta\")='' then 'S/N' when (a.\"Acta\") is not null then a.\"Acta\" end as \"Acta\", a.\"ActaFecha\", a.\"BranchesId\", br.\"Abr\" as \"Regional\", a.\"Carrera\", a.\"DependencyCod\", a.\"Horas\", " +
                                 "a.\"MontoHora\", a.\"TotalNeto\", a.\"TotalBruto\", a.\"StudentFullName\", a.\"Mes\", a.\"Gestion\", " +
@@ -110,16 +110,15 @@ namespace UcbBack.Controllers
                                 "on a.\"BranchesId\"=br.\"Id\" ";
             string orderBy = "order by a.\"Gestion\" desc, a.\"Mes\" desc, a.\"Id\" asc, a.\"Carrera\" asc, a.\"TeacherCUNI\" asc ";
             var rawresult = new List<AsesoriaDocenteViewModel>();
-            //usuario para realizar el filtrado por sus accesos
             var user = auth.getUser(Request);
-            //saca el query segun el estado como un switch case
+
             if (by.Equals("APROBADO"))
             {
                 string customQuery = query + "where a.\"Estado\"='APROBADO' " + orderBy;
-                //Mes a literal
+                // Mes a literal
                 rawresult = mesLiteral(customQuery);
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
-                    .Select(x => new { x.Id, x.Origen, x.Acta, x.Carrera, Profesor = x.TeacherFullName, Estudiante = x.StudentFullName, Tarea = x.TipoTarea, x.Gestion, x.MesLiteral });
+                    .Select(x => new { x.Id, x.Origen, x.Acta, x.Carrera, Profesor = x.TeacherFullName, Estudiante = x.StudentFullName, Tarea = x.TipoTarea, x.Gestion, x.Mes });
                 return Ok(filteredList);
 
             }
@@ -146,7 +145,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-DEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -168,7 +167,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='INDEP' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -189,7 +188,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='OR' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -210,7 +209,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Factura\"= true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -231,8 +230,8 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-EXT"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
-                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Extranejero\"='true' and a.\"Factura\"=false " + orderBy;
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='EXT' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -252,8 +251,8 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
-                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='INDEP'  and a.\"Factura\"=false " + orderBy;
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='INDEP' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -273,7 +272,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='OR' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -294,7 +293,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-DEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -316,7 +315,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"= true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -335,15 +334,35 @@ namespace UcbBack.Controllers
                     });
                 return Ok(filteredList);
             }
+            else if (by.Equals("VERIFICADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='EXT' and a.\"Factura\"=false " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Acta,
+                        x.Carrera,
+                        x.StudentFullName,
+                        x.TipoTarea,
+                        x.Modalidad,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        Duplicado = x.Ignore
+                    }); ; ;
+                return Ok(filteredList);
+            }
             else
             {
-                //Si no es ninguno de los estados existentes sale error
+                // Si no es ninguno de los estados existentes sale error
                 return BadRequest();
             }
-
         }
 
-        //conseguir los registros del docente por nombre completo, esto se debe a que no todos los registros tienen cuni o socio de negocio
+        // conseguir los registros del docente por nombre completo, esto se debe a que no todos los registros tienen cuni o socio de negocio
         [HttpGet]
         [Route("api/TeacherStudent/{id}")]
         public IHttpActionResult TeachingRecords(int id)
@@ -359,17 +378,17 @@ namespace UcbBack.Controllers
                         "  \"TeacherFullName\"= '" + record + "' " +
                         "   and \"Estado\"='APROBADO' " +
                         "order by a.\"Gestion\" desc, a.\"Mes\" desc, a.\"Carrera\" asc, a.\"TeacherCUNI\" asc ";
-            var allTeachingRecords = mesLiteral(query).Select(x => new { x.Id, x.Origen, x.Modalidad, x.TipoTarea, x.Carrera, x.Horas, x.MontoHora, x.TotalBruto, x.Deduccion, x.TotalNeto, Estudiante = x.StudentFullName, x.MesLiteral, x.Gestion});
+            var allTeachingRecords = mesLiteral(query).Select(x => new { x.Id, x.Origen, x.Modalidad, x.TipoTarea, x.Carrera, x.Horas, x.MontoHora, x.TotalBruto, x.Deduccion, x.TotalNeto, Estudiante = x.StudentFullName, x.MesLiteral, x.Gestion });
 
             return Ok(allTeachingRecords);
         }
-        
+
         // lista de docentes para el registro
         [HttpGet]
         [Route("api/DocentesList")]
         public IHttpActionResult DocentesList()
         {
-            //Hacer un union con los docentes que no sean indepedientes, es decir que sean de civil nomas, por su jobTitle
+            // Hacer un union con los docentes que no sean indepedientes, es decir que sean de civil nomas, por su jobTitle
             var activeDocentes = _context.Database.SqlQuery<AsesoriaTeachers>("(select lc.\"CUNI\", fn.\"FullName\", lc.\"BranchesId\", true as \"TipoPago\", pe.\"Categoria\", b.\"Abr\" \"Regional\", ca.\"Precio\"" +
             "\r\nfrom " + CustomSchema.Schema + ".\"LASTCONTRACTS\" lc " +
             "\r\ninner join " + CustomSchema.Schema + ".\"FullName\" fn on fn.\"CUNI\" = lc.\"CUNI\" " +
@@ -377,7 +396,7 @@ namespace UcbBack.Controllers
             "\r\ninner join " + CustomSchema.Schema + ".\"Categoria\" ca on ca.\"Cat\" = pe.\"Categoria\"" +
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" b on b.\"Id\" = lc.\"BranchesId\"\r\nwhere pe.\"Categoria\" is not null " +
             "\r\ngroup by lc.\"CUNI\", fn.\"FullName\",lc.\"FullName\", lc.\"BranchesId\",pe.\"Categoria\",b.\"Abr\",ca.\"Precio\")" +
-                //aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
+            // aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
             " UNION ALL " +
             " (select cv.\"SAPId\" as \"CUNI\",ocrd.\"CardName\" \"FullName\", br.\"Id\" as \"BranchesId\",  false as \"TipoPago\", cv.\"Categoria\", br.\"Abr\" \"Regional\", 0 \"Precio\"" +
             "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" cv " +
@@ -386,7 +405,7 @@ namespace UcbBack.Controllers
             "\r\nwhere ocrd.\"frozenFor\" = 'N'" +
             "\r\ngroup by cv.\"SAPId\",ocrd.\"CardName\", br.\"Id\", cv.\"Categoria\",br.\"Abr\" )" +
             "\r\norder by \"FullName\""
-                //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            // "where oh.\"jobTitle\" like '%DOCENTE%' "
             ).ToList();
 
 
@@ -396,7 +415,7 @@ namespace UcbBack.Controllers
 
             return Ok(filteredList);
         }
-        
+
         [HttpGet]
         [Route("api/DocentesListAll")]
         public IHttpActionResult DocentesListAll()
@@ -410,7 +429,7 @@ namespace UcbBack.Controllers
             "on pe.\"CUNI\"=lc.\"CUNI\" " +
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" b on b.\"Id\" = lc.\"BranchesId\"  " +
             "where pe.\"Categoria\" is not null " +
-                //aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
+            //aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
             "UNION ALL " +
             "(select cv.\"SAPId\" as \"CUNI\",ocrd.\"CardName\" \"FullName\"," +
             " null as \"StartDate\", null as \"EndDate\", br.\"Id\" as \"BranchesId\", " +
@@ -422,7 +441,7 @@ namespace UcbBack.Controllers
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non crd8.\"BPLId\"=br.\"CodigoSAP\"" +
             "\r\nwhere ocrd.\"frozenFor\" = 'N') " +
             "order by \"FullName\" "
-                //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            //"where oh.\"jobTitle\" like '%DOCENTE%' "
             ).ToList();
 
 
@@ -839,8 +858,15 @@ namespace UcbBack.Controllers
 
                     var filteredWithoutCol = excelContent.Select(x => new
                     {
-                        x.Document, x.FirstSurName, x.SecondSurName, x.Names, x.MariedSurName, x.TotalNeto, x.Carrera,
-                        x.CUNI, x.Dependency
+                        x.Document,
+                        x.FirstSurName,
+                        x.SecondSurName,
+                        x.Names,
+                        x.MariedSurName,
+                        x.TotalNeto,
+                        x.Carrera,
+                        x.CUNI,
+                        x.Dependency
                     }).ToList();
 
                     //--------------------------------------------------------Generación del excel------------------------------------------------------------------------
@@ -941,7 +967,7 @@ namespace UcbBack.Controllers
             }
         }
 
-        //para generar el archivo PREGRADO de SARAI
+        // para generar el archivo PREGRADO de SARAI
         [HttpGet]
         [Route("api/ToCarreraFile")]
         public HttpResponseMessage ToCarreraFile([FromUri] string data)
@@ -953,7 +979,7 @@ namespace UcbBack.Controllers
             // el mes y la gestion son necesarios para guardar el registro histórico ISAAC
             string mes = (info[1]);
             string gestion = info[2];
-            //El query genera el archivo PREGRADO de SALOMON en base a los datos de las tutorías PRE-APROBADAS
+            // El query genera el archivo PREGRADO de SALOMON en base a los datos de las tutorías PRE-APROBADAS
             string query =
                 "select " +
                     "a.\"TeacherBP\" as \"Codigo_Socio\", a.\"TeacherFullName\" as \"Nombre_Socio\", " +
@@ -961,7 +987,7 @@ namespace UcbBack.Controllers
                     "'Servicios de Tutoria Relatoria en Pregrado' \"Nombre_del_Servicio\", a.\"Carrera\" as \"Codigo_Carrera\" ,a.\"Acta\" as \"Documento_Base\", " +
                     "a.\"StudentFullName\" as \"Postulante\", t.\"Abr\" as \"Tipo_Tarea_Asignada\", 'CC_TEMPORAL' as \"Cuenta_Asignada\", " +
                     "a.\"TotalBruto\" as \"Monto_Contrato\", a.\"IUE\" as \"Monto_IUE\", a.\"IT\" as \"Monto_IT\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  " +
-                    "a.\"Observaciones\" " +
+                    "a.\"Observaciones\", a.\"IUEExterior\" as \"IUEExterior\" " +
                 "from " +
                     CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                     "inner join " + CustomSchema.Schema + ".\"Civil\" c " +
@@ -973,34 +999,34 @@ namespace UcbBack.Controllers
                 "where " +
                    "a.\"Estado\"='PRE-APROBADO' " +
                 "and br.\"Abr\" ='" + segmento + "' " +
-                   "and a.\"Origen\"='INDEP' " +
+                   "and a.\"Origen\"='EXT' " +
                 "order by a.\"Id\" asc";
 
             var excelContent = _context.Database.SqlQuery<Serv_PregradoViewModel>(query).ToList();
 
-            //Para las columnas del excel
+            // Para las columnas del excel
             string[] header = new string[]{"Codigo_Socio", "Nombre_Socio", "Cod_Dependencia",
                                             "PEI_PO", "Nombre_del_Servicio", "Codigo_Carrera", "Documento_Base", "Postulante",
                                             "Tipo_Tarea_Asignada", "Cuenta_Asignada",
-                                            "Monto_Contrato","Monto_IUE","Monto_IT","Monto_a_Pagar", "Observaciones"};
+                                            "Monto_Contrato","Monto_IUE","Monto_IT","Monto_a_Pagar", "Observaciones", "IUEExterior"};
             var workbook = new XLWorkbook();
 
-            //Se agrega la hoja de excel
+            // Se agrega la hoja de excel
             var ws = workbook.Worksheets.Add("Plantilla_CARRERA");
 
             // Rango hoja excel
-            //1,1: es la posicion inicial; 2,header.Length: es el alto y el ancho
+            // 1,1: es la posicion inicial; 2,header.Length: es el alto y el ancho
             var rngTable = ws.Range(1, 1, 2, header.Length);
 
-            //Bordes para las columnas
+            // Bordes para las columnas
             var columns = ws.Range(2, 1, excelContent.Count + 1, header.Length);
             columns.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
             columns.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
 
-            //auxiliar: desde qué línea ponemos los nombres de columna
+            // auxiliar: desde qué línea ponemos los nombres de columna
             var headerPos = 1;
 
-            //Ciclo para asignar los nombres a las columnas y darles formato
+            // Ciclo para asignar los nombres a las columnas y darles formato
             for (int i = 0; i < header.Length; i++)
             {
                 ws.Cell(headerPos, i + 1).Value = header[i];
@@ -1009,16 +1035,19 @@ namespace UcbBack.Controllers
                 ws.Cell(headerPos, i + 1).Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent1);
             }
 
-            //Aquí hago el attachment del query a mi hoja de de excel
+            // Aquí hago el attachment del query a mi hoja de de excel
+            // ws.Cell(2, 1).Value = excelContent.AsEnumerable();
+
+            // Aquí hago el attachment del query a mi hoja de de excel
             ws.Cell(2, 1).Value = excelContent.AsEnumerable();
 
-            //Ajustar contenidos
+            // Ajustar contenidos
             ws.Columns().AdjustToContents();
 
-            //Carga el objeto de la respuesta
+            // Carga el objeto de la respuesta
             HttpResponseMessage response = new HttpResponseMessage();
 
-            //Array de bytes
+            // Array de bytes
             var ms = new MemoryStream();
             workbook.SaveAs(ms);
             response.StatusCode = HttpStatusCode.OK;
@@ -1027,14 +1056,15 @@ namespace UcbBack.Controllers
             response.Content.Headers.ContentDisposition.FileName = segmento + "-CC_CARRERA.xlsx";
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.Content.Headers.ContentLength = ms.Length;
-            //La posicion para el comienzo del stream
+            // La posicion para el comienzo del stream
             ms.Seek(0, SeekOrigin.Begin);
 
             //-----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
-            //Actualizar con la fecha a los registros pre-aprobados
+            // Actualizar con la fecha a los registros pre-aprobados
             var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
             var docentesPorAprobar = _context.AsesoriaDocente.Where(x => x.Origen.Equals("INDEP") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId).ToList();
-            //Se sobrescriben los registros con la fecha actual y el nuevo estado
+            // Se sobrescriben los registros con la fecha actual y el nuevo estado
+
             foreach (var docente in docentesPorAprobar)
             {
                 docente.Mes = Convert.ToInt16(mes);
@@ -1075,10 +1105,14 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("El tipo de tarea no existe en BD");
             }
+            if (!_context.TipoPago.ToList().Any(x => x.Id == asesoria.TipoPago))
+            {
+                return BadRequest("El tipo de pago no existe en BD");
+            }
 
-            //Validación de la carrera
+            // Validación de la carrera
             List<dynamic> careerList = B1conn.getCareers();
-            //Validar el noombre del código de la carrera con el ingresado
+            // Validar el noombre del código de la carrera con el ingresado
             if (!careerList.Exists(x => x.cod == asesoria.Carrera))
             {
                 return BadRequest("La carrera no existe en SAP, al menos para esa regional");
@@ -1087,33 +1121,33 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
-            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0))
+            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0) && asesoria.Origen != "EXT")
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
             if (asesoria.Origen.Equals("DEPEN") && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherCUNI.ToUpper() == asesoria.TeacherCUNI.ToUpper()) != null))
             {
                 return BadRequest("La combinación de docente y estudiante ya existe en la BD");
-                
+
             }
             if (asesoria.Origen == "INDEP" && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherBP.ToUpper() == asesoria.TeacherBP.ToUpper()) != null))
             {
-                    return BadRequest("La combinación de docente y estudiante ya existe en la BD");
+                return BadRequest("La combinación de docente y estudiante ya existe en la BD");
             }
             else
             {
-                //El branchesId es del último puesto de quién registra
+                // El branchesId es del último puesto de quién registra
                 var userCUNI = user.People.CUNI;
                 var regional = asesoria.Carrera;
                 string[] Abr = regional.Split('-');
                 var regionalId = Abr[0].ToString();
 
                 asesoria.BranchesId = _context.Branch.FirstOrDefault(x => x.Abr.Equals(regionalId)).Id;
-                //el Id del siguiente registro
+                // el Id del siguiente registro
                 asesoria.Id = AsesoriaDocente.GetNextId(_context);
-                //asegura que no se junte el nuevo registro con los históricos
+                // asegura que no se junte el nuevo registro con los históricos
                 asesoria.Estado = "REGISTRADO";
-                //identifica la dependencia del registro en base al nombre de la carrera y la regional
+                // identifica la dependencia del registro en base al nombre de la carrera y la regional
                 var dep = _context.Database.SqlQuery<int>("select de.\"Cod\" " +
                                         "from " +
                                         "   " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprc op " +
@@ -1130,14 +1164,14 @@ namespace UcbBack.Controllers
                 asesoria.DependencyCod = dep;
                 asesoria.StudentFullName = asesoria.StudentFullName.ToUpper();
                 asesoria.UserCreate = user.Id;
-                //agregar el nuevo registro en el contexto
+                // agregar el nuevo registro en el contexto
                 _context.AsesoriaDocente.Add(asesoria);
                 _context.SaveChanges();
                 return Ok("Información registrada");
             }
-            return Ok();
         }
-        //modificacion de la tutoria
+
+        // modificacion de la tutoria
         [HttpPut]
         [Route("api/AsesoriaDocente/{id}")]
         public IHttpActionResult Put(int id, [FromBody] AsesoriaDocente asesoria)
@@ -1156,8 +1190,8 @@ namespace UcbBack.Controllers
             if (asesoria.TotalBruto <= 0 || asesoria.TotalNeto <= 0)
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
-            } 
-            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0))
+            }
+            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0) && asesoria.Origen != "EXT")
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
@@ -1194,6 +1228,7 @@ namespace UcbBack.Controllers
                 //Sobre la tutoria
                 thisAsesoria.TipoTareaId = asesoria.TipoTareaId;
                 thisAsesoria.ModalidadId = asesoria.ModalidadId;
+                thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
@@ -1204,6 +1239,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.Observaciones = asesoria.Observaciones;
                 thisAsesoria.IUE = asesoria.IUE;
                 thisAsesoria.IT = asesoria.IT;
+                thisAsesoria.IUEExterior = asesoria.IUEExterior;
                 //Del Acta
                 thisAsesoria.Acta = asesoria.Acta;
                 thisAsesoria.ActaFecha = asesoria.ActaFecha;
@@ -1217,7 +1253,7 @@ namespace UcbBack.Controllers
             }
         }
 
-        //para la instancia de el modulo de aprobacion Isaac, pasar a pre-aprobacion
+        // para la instancia de el modulo de aprobacion Isaac, pasar a pre-aprobacion
         [HttpPut]
         [Route("api/ToPreAprobacion")]
         public IHttpActionResult ToPreAprobacion([FromUri] string myArray)
@@ -1237,9 +1273,9 @@ namespace UcbBack.Controllers
                     var thisAsesoria = _context.AsesoriaDocente.FirstOrDefault(x => x.Id == currentElement);
                     if (thisAsesoria != null)
                     {
-                        
-                            thisAsesoria.Estado = "PRE-APROBADO";
-                            _context.SaveChanges();
+
+                        thisAsesoria.Estado = "PRE-APROBADO";
+                        _context.SaveChanges();
                     }
                     else
                     {
@@ -1261,7 +1297,7 @@ namespace UcbBack.Controllers
                 //Si solo fallan algunos
                 else
                 {
-                    return Ok("No se pudieron actualizar los siguientes registros:" + failedUpdates);//aquí meterle el concat por comas
+                    return Ok("No se pudieron actualizar los siguientes registros:" + failedUpdates);
                 }
             }
         }
@@ -1285,9 +1321,9 @@ namespace UcbBack.Controllers
                     var thisAsesoria = _context.AsesoriaDocente.FirstOrDefault(x => x.Id == currentElement);
                     if (thisAsesoria != null)
                     {
-                        
-                            thisAsesoria.Estado = "VERIFICADO";
-                            _context.SaveChanges();
+
+                        thisAsesoria.Estado = "VERIFICADO";
+                        _context.SaveChanges();
                     }
                     else
                     {
@@ -1391,7 +1427,7 @@ namespace UcbBack.Controllers
             }
         }
 
-        //para la instancia de el modulo de aprobacion Isaac, pasar a pre-aprobacion
+        // para la instancia de el modulo de aprobacion Isaac, pasar a pre-aprobacion
         [HttpPut]
         [Route("api/ToPreAprobacionOR")]
         public IHttpActionResult ToPreAprobacionOR([FromUri] string myArray, [FromUri] string data)
@@ -1429,42 +1465,35 @@ namespace UcbBack.Controllers
                     }
                     else
                     {
-                        //Hubieron elementos del array que no se pudieron actualizar
+                        // Hubieron elementos del array que no se pudieron actualizar
                         failedUpdates[countRegister] = array[i];
                         countRegister += 1;
                     }
                 }
-                //Si tenemos todos los Ids
+                // Si tenemos todos los Ids
                 if (countRegister == 0)
                 {
                     return Ok("Se actualizaron los registros exitosamente");
                 }
-                //Si fallan todos los Ids
+                // Si fallan todos los Ids
                 else if (countRegister == array.Length)
                 {
                     return BadRequest("No se pudo actualizar ningún registro");
                 }
-                //Si solo fallan algunos
+                // Si solo fallan algunos
                 else
                 {
-                    return Ok("No se pudieron actualizar los siguientes registros:" + failedUpdates);//aquí meterle el concat por comas
+                    return Ok("No se pudieron actualizar los siguientes registros:" + failedUpdates);
                 }
             }
         }
 
-        //REPORTE POR CARRERA
-        //obtener carreras segun su estado en la lista
+        // REPORTE POR CARRERA
+        // obtener carreras segun su estado en la lista
         [HttpGet]
         [Route("api/AseCarrera")]
         public IHttpActionResult AseCarrera([FromUri] string by)
         {
-            //region
-            //CultureInfo cultura = new CultureInfo("is-IS");
-            //Remplazá "es-AR" por tu país.
-            //decimal d = Convert.ToDecimal("TextBox1.Text", cultura);
-            //Caso decimal
-            //double a = Convert.ToDouble("TextBox1.Text", cultura);
-            //datos para la tabla histórica
             string query = "select oprc.\"PrcCode\" \"Cod\", oprc.\"PrcName\" \"Carrera\", a.\"BranchesId\"" +
                            "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                            "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t on a.\"TipoTareaId\"=t.\"Id\" " +
@@ -1478,7 +1507,7 @@ namespace UcbBack.Controllers
             if (by.Equals("APROBADO"))
             {
                 string customQuery = query + "where a.\"Estado\"='APROBADO' " + orderBy;
-                //Mes a literal
+                // Mes a literal
                 rawresult = mesLiteral(customQuery);
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new { x.Cod, x.Carrera });
@@ -1500,7 +1529,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-DEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1514,7 +1543,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='INDEP' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1527,7 +1556,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='OR' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1540,8 +1569,21 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Factura\"=true " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("REGISTRADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='EXT' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -1553,7 +1595,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-DEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1567,7 +1609,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='INDEP' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1580,7 +1622,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='OR' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1593,8 +1635,21 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("VERIFICADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"=true " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='EXT' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -1647,7 +1702,6 @@ namespace UcbBack.Controllers
                             "\"Horas\", \"MontoHora\", " +
                             "\"TotalBruto\" , " +
                             "\"Deduccion\" , " +
-                            "a.\"Origen\"" + // Agrega esta línea para obtener la columna "Origen"
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
                             "\"TotalNeto\" , " +
@@ -1741,8 +1795,7 @@ namespace UcbBack.Controllers
                     IT = x.IT,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
-                    Dup = x.Ignore,
-                    Origen = x.Origen
+                    Dup = x.Ignore
                 });
 
                 return Ok(filteredListBody);
@@ -1953,18 +2006,63 @@ namespace UcbBack.Controllers
             return Ok(filteredList);
         }
 
-        //Lista de alumnos .
+        // Lista de alumnos.
         [HttpGet]
         [Route("api/AlumnosListBusqueda")]
         public IHttpActionResult AlumnosListBusqueda()
         {
             // Utiliza un query SQL para obtener la lista distinta de estudiantes
-            var estudiantes = _context.Database.SqlQuery<AsesoriaDocente>(
-                "select \"StudentFullName\" from \"ADMNALRRHH\".\"AsesoriaDocente\""
+            var alumnos = _context.Database.SqlQuery<string>(
+                "SELECT \"StudentFullName\" " +
+                "FROM \"ADMNALRRHH\".\"AsesoriaDocente\" " +
+                "GROUP BY \"StudentFullName\" " +
+                "ORDER BY \"StudentFullName\""
             ).ToList();
 
-            return Ok(estudiantes);
+            var user = auth.getUser(Request);
+
+            var filteredList = auth.filerByRegional(alumnos.AsQueryable(), user);
+
+            return Ok(filteredList);
         }
+
+        [HttpGet]
+        [Route("api/AlumnosListBusqueda2/{teacherName}")]
+        public IHttpActionResult AlumnosListBusqueda(string teacherName)
+        {
+            // Utiliza un query SQL para obtener la lista distinta de estudiantes filtrada por el nombre del docente
+            var query = string.Format(
+                "SELECT \"StudentFullName\" " +
+                "FROM \"ADMNALRRHH\".\"AsesoriaDocente\" " +
+                "WHERE \"TeacherFullName\" = '{0}' " +
+                "GROUP BY \"StudentFullName\" " +
+                "ORDER BY \"StudentFullName\"",
+                teacherName
+            );
+
+            var alumnos = _context.Database.SqlQuery<string>(query).ToList();
+
+            var user = auth.getUser(Request);
+
+            var filteredList = auth.filerByRegional(alumnos.AsQueryable(), user);
+
+            return Ok(filteredList);
+        }
+
+        [HttpGet]
+        [Route("api/Extranjeros")]
+        public IHttpActionResult Extranjeros()
+        {
+            var extranjeros = _context.Database.SqlQuery<string>(
+                "SELECT * " +
+                "FROM \"ADMNALRRHH\".\"AsesoriaDocente\" " +
+                "WHERE \"Extranjero\" = 0"
+            ).ToList();
+
+            return Ok(extranjeros);
+        }
+
+
 
 
         // lista de docentes para el registro
@@ -2013,7 +2111,7 @@ namespace UcbBack.Controllers
                                                                               "\r\nwhere ad.\"Estado\"= 'APROBADO' " +
                                                                               "\r\ngroup by ad.\"Carrera\", oprc.\"PrcName\", br.\"Id\"" +
                                                                               "\r\norder by ad.\"Carrera\""
-                //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            //"where oh.\"jobTitle\" like '%DOCENTE%' "
             ).ToList();
 
 
@@ -2024,43 +2122,70 @@ namespace UcbBack.Controllers
             return Ok(filteredList);
         }
         [HttpGet]
-        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{dependencia}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}")]
-        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string dependencia, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro)
+        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}/{minBruto}/{maxBruto}/{minNeto}/{maxNeto}/{tPag}")]
+        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro, int minBruto, int maxBruto, int minNeto, int maxNeto, string tPag)
         {
             try
             {
-                //Siguientes lineas para realizar el filtro por regional directamente dentro del query segun las regionales a las que tenga acceso el usuario
+                // Siguientes lineas para realizar el filtro por regional directamente dentro del query segun las regionales a las que tenga acceso el usuario
                 var user = auth.getUser(Request);
                 ADClass ad = new ADClass();
                 List<Branches> bre = ad.getUserBranches(user);
                 Branches[] auxi = bre.ToArray();
                 string regionalesUser = "and ad.\"BranchesId\" in (";
-                for (int i = 0; i < auxi.Length -1; i++)
+                for (int i = 0; i < auxi.Length - 1; i++)
                 {
-                    regionalesUser = regionalesUser + auxi[i].Id + ",";
+                    regionalesUser = regionalesUser + auxi[i].Id;
+
+                    // Agregar una coma solo si no es el último elemento
+                    if (i < auxi.Length - 2)
+                    {
+                        regionalesUser = regionalesUser + ",";
+                    }
                 }
-                regionalesUser = regionalesUser + auxi[auxi.Length - 1].Id + ")";
+                regionalesUser = regionalesUser + ")";
+
 
                 var report = new List<AsesoriaDocenteReportViewModel>();
                 string car = "";
                 string doc = "";
-                string dep = "";
                 string mod = "";
                 string tar = "";
                 string est = "";
                 string mesO = "";
                 string ges = "";
                 string orgF = "";
+                string pag = "";
+
                 var cabecera =
-                    "select 1 \"Id\", ad.\"TeacherFullName\", ad.\"TeacherCUNI\", ad.\"TeacherBP\", \r\nad.\"DependencyCod\", d.\"Name\" \"Dependencia\",ad.\"Carrera\", ad.\"Origen\", m.\"Modalidad\" \"Modalidad\",\r\ntt.\"Tarea\" \"TipoTarea\", ad.\"StudentFullName\", ad.\"Categoría\", ad.\"Acta\", ad.\"ActaFecha\", ad.\"Observaciones\",\r\nad.\"TotalBruto\", case when ad.\"IUE\" is null then 0 else ad.\"IUE\" end as \"IUE\", case when ad.\"IT\" is null then 0 else ad.\"IT\" end as \"IT\",  ad.\"Deduccion\", ad.\"TotalNeto\", \r\ncase when ad.\"Mes\" = 1 then 'ENE'\r\nwhen ad.\"Mes\" = 2 then 'FEB'\r\nwhen ad.\"Mes\" = 3 then 'MAR'\r\nwhen ad.\"Mes\" = 4 then 'ABR'\r\nwhen ad.\"Mes\" = 5 then 'MAY'\r\nwhen ad.\"Mes\" = 6 then 'JUN'\r\nwhen ad.\"Mes\" = 7 then 'JUL'\r\nwhen ad.\"Mes\" = 8 then 'AGO'\r\nwhen ad.\"Mes\" = 9 then 'SEP'\r\nwhen ad.\"Mes\" = 10 then 'OCT'\r\nwhen ad.\"Mes\" = 11 then 'NOV'\r\nwhen ad.\"Mes\" = 12 then 'DIC'\r\nelse ''\r\nend as \"MesLiteral\", ad.\"Mes\"\r\n,ad.\"Gestion\", br.\"Abr\" \"Regional\", ad.\"BranchesId\", case when ad.\"Ignore\" = true then 'D' when ad.\"Ignore\" = false then '' end as \"Ignore\"";
-                var cabeceraSubTotal = "select 8 \"Id\",'' \"TeacherFullName\",  '' \"TeacherCUNI\",  '' \"TeacherBP\",  null \"DependencyCod\", '' \"Dependencia\" ,'' \"Carrera\", \r\n '' \"Origen\", '' \"Modalidad\",  '' \"TipoTarea\",  ''  \"StudentFullName\",  ''  \"Categoría\",  '' \"Acta\",  \r\n null \"ActaFecha\",  '' \"Observaciones\",sum(ad.\"TotalBruto\") \"TotalBruto\", case when sum(ad.\"IUE\") is null then 0 else sum(ad.\"IUE\") end as \"IUE\",  case when sum(ad.\"IT\") is null then 0 else sum(ad.\"IT\") end as \"IT\",\r\n  sum(ad.\"Deduccion\") \"Deduccion\", sum(ad.\"TotalNeto\") \"TotalNeto\", '' \"MesLiteral\", null \"Mes\", null \"Gestion\", '' \"Regional\", 17 \"BranchesId\", '' \"Dup\"";
+                    "select 1 ad.\"Id\", ad.\"TeacherFullName\", ad.\"TeacherCUNI\", ad.\"TeacherBP\", " +
+                    "ad.\"DependencyCod\", ad.\"Carrera\", ad.\"Origen\", " +
+                    "m.\"Modalidad\" as \"Modalidad\", tt.\"Tarea\" as \"TipoTarea\", ad.\"StudentFullName\", " +
+                    "ad.\"Categoría\", ad.\"Acta\", ad.\"ActaFecha\", ad.\"Observaciones\", ad.\"TotalBruto\", tp.\"Nombre\" as \"TipoPago\", " +
+                    "ad.\"TotalNeto\", case when ad.\"Mes\" = 1 then 'ENE' when ad.\"Mes\" = 2 then 'FEB' " +
+                    "when ad.\"Mes\" = 3 then 'MAR' when ad.\"Mes\" = 4 then 'ABR' when ad.\"Mes\" = 5 then 'MAY' " +
+                    "when ad.\"Mes\" = 6 then 'JUN' when ad.\"Mes\" = 7 then 'JUL' when ad.\"Mes\" = 8 then 'AGO' " +
+                    "when ad.\"Mes\" = 9 then 'SEP' when ad.\"Mes\" = 10 then 'OCT' when ad.\"Mes\" = 11 then 'NOV' " +
+                    "when ad.\"Mes\" = 12 then 'DIC' else '' end as \"MesLiteral\", ad.\"Mes\", ad.\"Gestion\", " +
+                    "br.\"Abr\" as \"Regional\", ad.\"BranchesId\", case when ad.\"Ignore\" = true then 'D' " +
+                    "when ad.\"Ignore\" = false then '' end as \"Ignore\"";
+
+                var cabeceraSubTotal =
+                    "select 8 \"Id\", '' \"TeacherFullName\", '' \"TeacherCUNI\", '' \"TeacherBP\", " +
+                    "null \"DependencyCod\", '' \"Carrera\", '' \"Origen\", '' \"Modalidad\", " +
+                    "'' \"TipoTarea\", '' \"StudentFullName\", '' \"Categoría\", '' \"Acta\", null \"ActaFecha\", " +
+                    "'' \"Observaciones\", sum(ad.\"TotalBruto\") \"TotalBruto\", " +
+                    "sum(ad.\"Deduccion\") \"Deduccion\", sum(ad.\"TotalNeto\") \"TotalNeto\", '' \"MesLiteral\", " +
+                    "null \"Mes\", null \"Gestion\", '' \"Regional\", 17 \"BranchesId\", '' \"Dup\"";
+
 
                 var queryCuerpo = "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaDocente\" ad" +
-                                "\r\ninner join " + CustomSchema.Schema + ".\"Modalidades\" m on m.\"Id\" = ad.\"ModalidadId\"" +
-                                "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" tt on tt.\"Id\" = ad.\"TipoTareaId\"" +
-                                "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br on br.\"Id\" = ad.\"BranchesId\"" +
-                                "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" d on d.\"Cod\" = ad.\"DependencyCod\"" +
-                                "\r\nwhere ad.\"Estado\"= 'APROBADO' ";
+                  "\r\ninner join " + CustomSchema.Schema + ".\"Modalidades\" m on m.\"Id\" = ad.\"ModalidadId\"" +
+                  "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" tt on tt.\"Id\" = ad.\"TipoTareaId\"" +
+                  "\r\ninner join " + CustomSchema.Schema + ".\"TipoPago\" tp on ad.\"TipoPago\"=tp.\"Id\" " +
+                  "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br on br.\"Id\" = ad.\"BranchesId\"" +
+                  "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" d on d.\"Cod\" = ad.\"DependencyCod\"" +
+                  "\r\nwhere ad.\"Estado\" = 'APROBADO' ";
 
                 if (carrera != "null")
                 {
@@ -2076,15 +2201,23 @@ namespace UcbBack.Controllers
                     {
                         orgF = " and ad.\"Origen\" ='INDEP'";
                     }
+                    else if (origenFiltro == "3")
+                    {
+                        orgF = " and ad. \"Origen\" ='OR'";
+                    }
+                    else if (origenFiltro == "4")
+                    {
+                        orgF = " and ad. \"Origen\" ='FAC'";
+                    }
+                    else if (origenFiltro == "5")
+                    {
+                        orgF = " and ad. \"Origen\" ='EXT'";
+                    }
                 }
 
                 if (docente != "null")
                 {
                     doc = " and ad.\"TeacherFullName\" like '%" + docente + "%'";
-                }
-                if (dependencia != "null")
-                {
-                    dep = " and ad.\"DependencyCod\" ='" + dependencia + "'";
                 }
                 if (modalidad != "null")
                 {
@@ -2106,9 +2239,17 @@ namespace UcbBack.Controllers
                 {
                     ges = " and ad.\"Gestion\" =" + gestion + "";
                 }
+                if (tPag != "null")
+                {
+                    pag = "and ad.\"TipoPago\" =" + tPag + "";
+                }
+                // Construir las condiciones de rango para TotalBruto y TotalNeto
+                var condicionesRangoBruto = (minBruto >= 0 && maxBruto >= minBruto) ? " AND ad.\"TotalBruto\" BETWEEN " + minBruto + " AND " + maxBruto : "";
+                var condicionesRangoNeto = (minNeto >= 0 && maxNeto >= minNeto) ? " AND ad.\"TotalNeto\" BETWEEN " + minNeto + " AND " + maxNeto : "";
+
                 string order = " order by \"Id\",\"Gestion\", \"Mes\", \"TeacherFullName\" ,\"StudentFullName\"";
-                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + dep + mod + tar + est + mesO + ges;
-                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + dep + mod + tar + est + mesO + ges;
+                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
+                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
                 string QueryOriginal = "(" + query + ") UNION (" + querysubTotal + ")" + order;
                 var reportOG = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(query).ToList();
                 report = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(QueryOriginal).ToList();
@@ -2122,7 +2263,6 @@ namespace UcbBack.Controllers
                         x.Origen,
                         x.Carrera,
                         Docente = x.TeacherFullName,
-                        x.Dependencia,
                         x.Modalidad,
                         Tarea = x.TipoTarea,
                         Alumno = x.StudentFullName,
@@ -2131,15 +2271,20 @@ namespace UcbBack.Controllers
                         x.TotalBruto,
                         x.Deduccion,
                         x.IUE,
+                        x.IUEExterior,
                         x.IT,
                         x.TotalNeto,
                         x.Observaciones,
-                        Dup = x.Ignore
+                        Dup = x.Ignore,
+                        x.TipoPago
                     });
                 return Ok(formattedList);
             }
             catch (Exception exception)
             {
+                // Loguear el error
+                Console.WriteLine("Error: " + exception.Message);
+                Console.WriteLine("StackTrace: " + exception.StackTrace);
                 return BadRequest("Ocurrió un problema. Comuniquese con el administrador. " + exception);
             }
         }
@@ -2149,7 +2294,7 @@ namespace UcbBack.Controllers
         [Route("api/DocentesList/{id}")]
         public IHttpActionResult DocentesList(string id)
         {
-            //Hacer un union con los docentes que no sean indepedientes, es decir que sean de civil nomas, por su jobTitle
+            // Hacer un union con los docentes que no sean indepedientes, es decir que sean de civil nomas, por su jobTitle
             var activeDocentes = _context.Database.SqlQuery<AsesoriaTeachers>("SELECT * FROM (" +
                                                                               "(select lc.\"CUNI\", fn.\"FullName\", lc.\"BranchesId\", true as \"TipoPago\", pe.\"Categoria\", b.\"Abr\" \"Regional\", ca.\"Precio\"" +
             "\r\nfrom " + CustomSchema.Schema + ".\"ContractDetail\" lc " +
@@ -2157,9 +2302,9 @@ namespace UcbBack.Controllers
             "\r\ninner join " + CustomSchema.Schema + ".\"People\" pe on pe.\"CUNI\" = lc.\"CUNI\"" +
             "\r\ninner join " + CustomSchema.Schema + ".\"Categoria\" ca on ca.\"Cat\" = pe.\"Categoria\"" +
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" b on b.\"Id\" = lc.\"BranchesId\"" +
-            "\r\nwhere pe.\"Categoria\" is not null " + 
+            "\r\nwhere pe.\"Categoria\" is not null " +
             "\r\ngroup by lc.\"CUNI\", fn.\"FullName\", lc.\"BranchesId\",pe.\"Categoria\",b.\"Abr\",ca.\"Precio\")" +
-                //aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
+            // aquí juntamos a las personas de ADMNALRHH con los profesores independientes, es decir que estan como socios de negocio
             " UNION ALL " +
             " (select cv.\"SAPId\" as \"CUNI\",ocrd.\"CardName\" \"FullName\", br.\"Id\" as \"BranchesId\",  false as \"TipoPago\", cv.\"Categoria\", br.\"Abr\" \"Regional\", 0 \"Precio\"" +
             "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" cv " +
@@ -2169,7 +2314,7 @@ namespace UcbBack.Controllers
             "\r\ngroup by cv.\"SAPId\",ocrd.\"CardName\", br.\"Id\", cv.\"Categoria\",br.\"Abr\" ))" +
             " WHERE \"CUNI\" LIKE '%" + id + "%'" +
             "\r\norder by \"FullName\""
-                //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            // "where oh.\"jobTitle\" like '%DOCENTE%' "
             ).ToList();
 
 

@@ -32,26 +32,26 @@ namespace UcbBack.Models
         public DbSet<OrganizationalUnit> OrganizationalUnits { get; set; }
         public DbSet<Dependency> Dependencies { get; set; }
         public DbSet<PerformanceArea> PerformanceAreas { get; set; }
-        public DbSet<Contract> Contracts  { get; set; }
+        public DbSet<Contract> Contracts { get; set; }
         public DbSet<ContractDetail> ContractDetails { get; set; }
-        public DbSet<Dist_Academic> DistAcademics  { get; set; }
-        public DbSet<Dist_Payroll> DistPayrolls  { get; set; }
-        public DbSet<Dist_Discounts> DistDiscountses  { get; set; }
-        public DbSet<Dist_Pregrado> DistPregrados  { get; set; }
-        public DbSet<Dist_Posgrado> DistPosgrados  { get; set; }
-        public DbSet<Dist_OR> DistOrs  { get; set; }
-        public DbSet<CuentaContable> CuentaContables  { get; set; }
-        public DbSet<GrupoContable> GrupoContables  { get; set; }
-        public DbSet<Gestion> Gestions  { get; set; }
-        public DbSet<TipoEmpleadoDist> TipoEmpleadoDists  { get; set; }
-        public DbSet<Dist_File> FileDbs  { get; set; }
-        public DbSet<Dist_LogErrores> DistLogErroreses  { get; set; }
-        public DbSet<Dist_Process> DistProcesses  { get; set; }
-        public DbSet<Dist_FileType> DistFileTypes  { get; set; }
-        public DbSet<Module> Modules  { get; set; }
-        public DbSet<Resource> Resources  { get; set; }
-        public DbSet<AccessLogs> AccessLogses  { get; set; }
-        public DbSet<B1SDKLog> SdkErrorLogs  { get; set; }
+        public DbSet<Dist_Academic> DistAcademics { get; set; }
+        public DbSet<Dist_Payroll> DistPayrolls { get; set; }
+        public DbSet<Dist_Discounts> DistDiscountses { get; set; }
+        public DbSet<Dist_Pregrado> DistPregrados { get; set; }
+        public DbSet<Dist_Posgrado> DistPosgrados { get; set; }
+        public DbSet<Dist_OR> DistOrs { get; set; }
+        public DbSet<CuentaContable> CuentaContables { get; set; }
+        public DbSet<GrupoContable> GrupoContables { get; set; }
+        public DbSet<Gestion> Gestions { get; set; }
+        public DbSet<TipoEmpleadoDist> TipoEmpleadoDists { get; set; }
+        public DbSet<Dist_File> FileDbs { get; set; }
+        public DbSet<Dist_LogErrores> DistLogErroreses { get; set; }
+        public DbSet<Dist_Process> DistProcesses { get; set; }
+        public DbSet<Dist_FileType> DistFileTypes { get; set; }
+        public DbSet<Module> Modules { get; set; }
+        public DbSet<Resource> Resources { get; set; }
+        public DbSet<AccessLogs> AccessLogses { get; set; }
+        public DbSet<B1SDKLog> SdkErrorLogs { get; set; }
         public DbSet<TableOfTables> TableOfTableses { get; set; }
         public DbSet<TempAlta> TempAltas { get; set; }
         public DbSet<BranchhasPosition> BranchhasPositions { get; set; }
@@ -78,6 +78,7 @@ namespace UcbBack.Models
         public DbSet<AsesoriaDocente> AsesoriaDocente { get; set; }
         public DbSet<Modalidades> Modalidades { get; set; }
         public DbSet<TipoTarea> TipoTarea { get; set; }
+        public DbSet<TipoPago> TipoPago { get; set; }
 
         public DbSet<ProjectModules> ProjectModuleses { get; set; }
         public DbSet<AsesoriaPostgrado> AsesoriaPostgrado { get; set; }
@@ -96,9 +97,9 @@ namespace UcbBack.Models
 
         public ApplicationDbContext()
             : base("DefaultConnection", throwIfV1Schema: false)
-        {     
+        {
         }
-        
+
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();
@@ -108,7 +109,7 @@ namespace UcbBack.Models
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.HasDefaultSchema("ADMNALRRHH");
-           // modelBuilder.Ignore<People>();
+            // modelBuilder.Ignore<People>();
         }
     }
 }
