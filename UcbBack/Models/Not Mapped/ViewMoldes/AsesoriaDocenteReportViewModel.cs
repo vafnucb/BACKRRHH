@@ -37,16 +37,15 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string Observaciones { get; set; }
         public decimal? Deduccion { get; set; }
         public decimal? IUE { get; set; }
+        public decimal? IUEExterior { get; set; }
         public decimal? IT { get; set; }
         public string Modalidad { get; set; }
         public string MesLiteral { get; set; }
         public string TipoTarea { get; set; }
+
+        public string TipoPago { get; set; }
         public string Cod { get; set; }
         public string Ignore { get; set; }
-
-
-
-
 
         public DataTable CreateDataTable<T>(IEnumerable<T> list)
         {

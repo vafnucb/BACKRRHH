@@ -57,12 +57,20 @@ namespace UcbBack.Controllers
                         "NOV",
                         "DIC"
                     };
-            //Mes a literal
+            // Mes a literal
             var rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(query).ToList();
             List<AsesoriaPostgradoViewModel> list = new List<AsesoriaPostgradoViewModel>();
             foreach (var element in rawresult)
             {
-                element.MesLiteral = _months[element.Mes - 1];
+                if (element.Mes >= 1 && element.Mes <= _months.Length)
+                {
+                    element.MesLiteral = _months[element.Mes - 1];
+                }
+                else
+                {
+                    // Manejar el caso cuando Mes está fuera del rango válido
+                    element.MesLiteral = "Mes no válido";
+                }
                 list.Add(element);
             };
             return list;

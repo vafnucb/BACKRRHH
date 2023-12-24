@@ -23,6 +23,7 @@ namespace UcbBack.Models
         public string Categoría { get; set; }
         public int? ModalidadId { get; set; }
         public int? TipoTareaId { get; set; }
+        public int TipoPago { get; set; }
         public int BranchesId { get; set; }
         public string DependencyCod { get; set; }
         public string Acta { get; set; }
@@ -39,6 +40,7 @@ namespace UcbBack.Models
         public string Origen { get; set; }
         public decimal? Deduccion { get; set; }
         public decimal? IUE { get; set; }
+        public decimal? IUEExterior { get; set; }
         public decimal? IT { get; set; }
         public bool? Ignore { get; set; }
         public bool? Factura { get; set; }

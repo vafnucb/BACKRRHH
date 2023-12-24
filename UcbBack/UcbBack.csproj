@@ -300,6 +300,7 @@
     <Compile Include="Controllers\RolController.cs" />
     <Compile Include="Controllers\ServContractController.cs" />
     <Compile Include="Controllers\TableOfTablesController.cs" />
+    <Compile Include="Controllers\TipoPagoController.cs" />
     <Compile Include="Controllers\TipoTareaController.cs" />
     <Compile Include="Controllers\TipoEmpleadoDistController.cs" />
     <Compile Include="Global.asax.cs">
@@ -334,6 +335,7 @@
     <Compile Include="Models\AccountBindingModels.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailListadoSalomon.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailForWatch.cs" />
+    <Compile Include="Models\TipoPago.cs" />
     <Compile Include="Models\ValidoListados.cs" />
     <Compile Include="Models\ValidoSalomon.cs" />
     <Compile Include="Models\Vacaciones.cs" />
