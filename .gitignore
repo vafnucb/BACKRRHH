@@ -1,4 +1,4 @@
-﻿# .gitignore para proyectos C#
+﻿﻿# .gitignore para proyectos C#
 
 # Archivos de usuario de Visual Studio
 .vscode/
@@ -7,3 +7,5 @@
 # Carpeta de archivos temporales generados por Visual Studio
 
 *.suo
+*.userosscache
+*.sln.docstates
