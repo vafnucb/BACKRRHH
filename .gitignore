@@ -1,0 +1,9 @@
+﻿# .gitignore para proyectos C#
+
+# Archivos de usuario de Visual Studio
+.vscode/
+.vs/
+
+# Carpeta de archivos temporales generados por Visual Studio
+
+*.suo
