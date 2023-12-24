@@ -23,7 +23,7 @@ namespace UcbBack.Models
         public string Categoría { get; set; }
         public int? ModalidadId { get; set; }
         public int? TipoTareaId { get; set; }
-        public int TipoPago { get; set; }
+        public int? TipoPago { get; set; }
         public int BranchesId { get; set; }
         public string DependencyCod { get; set; }
         public string Acta { get; set; }
