@@ -326,7 +326,6 @@ C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Securi
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Twitter.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.MicrosoftAccount.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\System.Web.Http.Owin.xml
-C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csprojAssemblyReference.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.Migrations.FirstMigration.resources
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.GenerateResource.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.CoreCompileInputs.cache
@@ -347,3 +346,4 @@ C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\System.Memory.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\System.Runtime.CompilerServices.Unsafe.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\System.Threading.Tasks.Extensions.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\System.Web.Http.Cors.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csprojAssemblyReference.cache
