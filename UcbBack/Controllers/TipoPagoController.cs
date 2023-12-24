@@ -21,12 +21,15 @@ namespace UcbBack.Controllers
         [Route("api/TipoPago")]
         public IHttpActionResult GetTipoPago()
         {
-            var tipoPago = _context.TipoPago.Select(x =>
-                new
+            var tipoPago = _context.TipoPago
+                .Select(x => new
                 {
                     x.Id,
                     x.Nombre
-                }).OrderBy(x => x.Nombre);
+                })
+                .OrderBy(x => x.Nombre)
+                .ToList();
+
             return Ok(tipoPago);
         }
     }
