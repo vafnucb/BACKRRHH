@@ -7,3 +7,5 @@
 # Carpeta de archivos temporales generados por Visual Studio
 
 *.suo
+*.userosscache
+*.sln.docstates
