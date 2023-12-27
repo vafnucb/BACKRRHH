@@ -238,6 +238,25 @@ namespace UcbBack.Controllers
                     });
                 return Ok(filteredList);
             }
+            else if (by.Equals("REGISTRADO-EXT"))
+            {
+                //para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='EXT' and a.\"Factura\"=false " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    }); ; ;
+                return Ok(filteredList);
+            }
             else
             {
                 return BadRequest();
