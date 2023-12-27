@@ -88,6 +88,49 @@ namespace UcbBack.Controllers
 
             return Ok(result);
         }
+        [HttpGet]
+        [Route("api/GetUnitName/{cod}")]
+        public IHttpActionResult GetUnitName(string cod)
+        {
+            try
+            {
+                string query = @"
+            SELECT DISTINCT ou.""Name""
+            FROM ""ADMNALRRHH"".""OrganizationalUnit"" ou
+            JOIN ""ADMNALRRHH"".""Dependency"" d ON ou.""Id"" = d.""OrganizationalUnitId""
+            JOIN ""ADMNALRRHH"".""AsesoriaPostgrado"" ap ON d.""Cod"" = ap.""DependencyCod""
+            WHERE ap.""Proyecto"" = '" + cod + "'";
+
+                var result = _context.Database.SqlQuery<string>(query).FirstOrDefault();
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest("Ocurrió un problema. Comuníquese con el administrador. " + exception);
+            }
+        }
+
+        [HttpGet]
+        [Route("api/GetUniteCode/{cod}")]
+        public IHttpActionResult GetUniteCode(string cod)
+        {
+            try
+            {
+                string query = @"
+            SELECT DISTINCT ou.""Cod""
+            FROM ""ADMNALRRHH"".""OrganizationalUnit"" ou
+            JOIN ""ADMNALRRHH"".""Dependency"" d ON ou.""Id"" = d.""OrganizationalUnitId""
+            JOIN ""ADMNALRRHH"".""AsesoriaPostgrado"" ap ON d.""Cod"" = ap.""DependencyCod""
+            WHERE ap.""Proyecto"" = '" + cod + "'";
+
+                var result = _context.Database.SqlQuery<string>(query).FirstOrDefault();
+                return Ok(result);
+            }
+            catch (Exception exception)
+            {
+                return BadRequest("Ocurrió un problema. Comuníquese con el administrador. " + exception);
+            }
+        }
         //registro por Id
         [HttpGet]
         [Route("api/ProjectModules/{id}")]
