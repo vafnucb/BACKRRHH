@@ -459,7 +459,7 @@ namespace UcbBack.Controllers
             string state = data[1];
             string origin = data[2];
             string qOrigen = "";
-            //query para generar todos los datos de cada docente, ordenado por carrera y docente
+            // query para generar todos los datos de cada docente, ordenado por carrera y docente
             if (origin == "FAC")
             {
                 qOrigen = " and a.\"Origen\" = 'INDEP' and a.\"Factura\" = true ";
@@ -471,10 +471,10 @@ namespace UcbBack.Controllers
             switch (section)
             {
                 case "Body":
-                    //obtiene el cuerpo de la tabla para el PDF
-                    //join para el nombre de la carrera
+                    // obtiene el cuerpo de la tabla para el PDF
+                    // join para el nombre de la carrera
                     query = "select " +
-                            "\"TeacherFullName\"," +
+                            "\"TeacherFullName\", \"Origen\", " +
                             "m.\"Abr\" as \"Modalidad\", " +
                             "t.\"Abr\" as \"TipoTarea\", " +
                             "a.\"Carrera\" ||" + " ' ' " + "|| op.\"PrcName\" as \"Carrera\" " + ", \"StudentFullName\" , " +
@@ -484,10 +484,10 @@ namespace UcbBack.Controllers
                             "\"Deduccion\" , " +
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
+                            "case when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
                             "\"TotalNeto\" , " +
                             "\"Observaciones\", \"BranchesId\", " +
-                            " case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\", " +
-                            "a.\"Origen\"" + // Agrega esta línea para obtener la columna "Origen"
+                            "case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                         "inner join " +
@@ -509,15 +509,15 @@ namespace UcbBack.Controllers
                     break;
 
                 case "Results":
-                    //obtiene los resultados al pie de cada tabla, por carrera
+                    // obtiene los resultados al pie de cada tabla, por carrera
                     query = "select " +
                             "(a.\"Carrera\" ||" + " ' ' " + "|| op.\"PrcName\") as \"Carrera\", " +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
-                            "\"Origen\"" + // Agrega esta línea para obtener la columna "Origen"
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                         "inner join " +
@@ -533,14 +533,14 @@ namespace UcbBack.Controllers
                     break;
 
                 case "FinalResult":
-                    //obtiene los resultados al pie de cada tabla, por carrera
+                    // obtiene los resultados al pie de cada tabla, por carrera
                     query = "select " +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
-                            "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\", " +
-                            "\"Origen\"" + // Agrega esta línea para obtener la columna "Origen"
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
+                            "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
 
@@ -550,7 +550,6 @@ namespace UcbBack.Controllers
                             "\"Estado\"='" + state + "' " +
                             qOrigen +
                         "group by \"BranchesId\", \"Origen\" ";
-                    Debug.WriteLine("FinalResult Query: " + query);
                     report = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(query).ToList();
                     break;
 
@@ -565,6 +564,7 @@ namespace UcbBack.Controllers
                 {
                     Carrera = x.Carrera,
                     Docente = x.TeacherFullName,
+                    Origen = x.Origen,
                     Categ = x.Categoría,
                     Modal = x.Modalidad,
                     Tarea = x.TipoTarea,
@@ -577,10 +577,10 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
-                    Dup = x.Ignore,
-                    Origen = x.Origen
+                    Dup = x.Ignore
                 });
 
                 return Ok(filteredListBody);
@@ -594,6 +594,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.BranchesId
                 });
@@ -607,6 +608,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Origen = x.Origen
                 });
@@ -642,6 +644,7 @@ namespace UcbBack.Controllers
                             "\"Deduccion\" , " +
                             "\"IUE\" , " +
                             "\"IT\" , " +
+                            "\"IUEExterior\" , " +
                             "\"TotalNeto\" , " +
                             "\"Observaciones\", \"BranchesId\", " +
                             " case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\"" +
@@ -672,6 +675,7 @@ namespace UcbBack.Controllers
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "sum(\"IUE\") as \"IUE\", " +
                             "sum(\"IT\") as \"IT\", " +
+                            "sum(\"IUEExterior\") as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
@@ -693,6 +697,7 @@ namespace UcbBack.Controllers
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "sum(\"IUE\") as \"IUE\", " +
                             "sum(\"IT\") as \"IT\", " +
+                            "sum(\"IUEExterior\") as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
@@ -726,6 +731,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
                     x.Ignore
@@ -742,6 +748,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);
@@ -754,6 +761,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);
@@ -1693,7 +1701,7 @@ namespace UcbBack.Controllers
                     //obtiene el cuerpo de la tabla para el PDF
                     //join para el nombre de la carrera
                     query = "select " +
-                            "\"TeacherFullName\", \"Categoría\", " +
+                            "\"TeacherFullName\", \"Origen\", \"Categoría\", " +
                             "m.\"Abr\" as \"Modalidad\", " +
                             "t.\"Abr\" as \"TipoTarea\", " +
                             "a.\"Carrera\" ||" + " ' ' " + "|| op.\"PrcName\" as \"Carrera\" " + ", \"StudentFullName\" , " +
@@ -1704,6 +1712,7 @@ namespace UcbBack.Controllers
                             "\"Deduccion\" , " +
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
+                            "case when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
                             "\"TotalNeto\" , " +
                             "\"Observaciones\", \"BranchesId\", " +
                             " case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\"" +
@@ -1735,6 +1744,7 @@ namespace UcbBack.Controllers
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
@@ -1757,6 +1767,7 @@ namespace UcbBack.Controllers
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\"" +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
@@ -1774,7 +1785,7 @@ namespace UcbBack.Controllers
                 default:
                     return BadRequest();
             }
-            //Filtro de datos por regional
+            // Filtro de datos por regional
             var user = auth.getUser(Request);
             if (section.Equals("Body"))
             {
@@ -1782,6 +1793,7 @@ namespace UcbBack.Controllers
                 {
                     Carrera = x.Carrera,
                     Docente = x.TeacherFullName,
+                    Origen = x.Origen,
                     Modal = x.Modalidad,
                     Tarea = x.TipoTarea,
                     Alumno = x.StudentFullName,
@@ -1793,6 +1805,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
                     Dup = x.Ignore
@@ -1809,6 +1822,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.BranchesId
                 });
@@ -1822,6 +1836,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);

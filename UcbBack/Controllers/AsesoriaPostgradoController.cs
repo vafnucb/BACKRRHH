@@ -40,7 +40,7 @@ namespace UcbBack.Controllers
             B1 = B1Connection.Instance();
             auth = new ValidateAuth();
         }
-        //convertir a mes literal
+        // convertir a mes literal
         public List<AsesoriaPostgradoViewModel> mesLiteral(string query)
         {
             string[] _months = {
@@ -76,7 +76,7 @@ namespace UcbBack.Controllers
             return list;
         }
 
-        //registro por Id
+        // registro por Id
         [HttpGet]
         [Route("api/AsesoriaPostgrado/{id}")]
         public IHttpActionResult getIndividualRecord(int id)
@@ -94,25 +94,20 @@ namespace UcbBack.Controllers
             }
         }
 
-        //obtener registros de tutorias segun su estado
+        // obtener registros de tutorias segun su estado
         [HttpGet]
         [Route("api/AsesoriaPostgrado")]
         public IHttpActionResult getAsesoriaPostgrado([FromUri] string by)
         {
-            //region
-            //CultureInfo cultura = new CultureInfo("is-IS");
-            //Remplazá "es-AR" por tu país.
-            //decimal d = Convert.ToDecimal("TextBox1.Text", cultura);
-            //Caso decimal
-            //double a = Convert.ToDouble("TextBox1.Text", cultura);
-            //datos para la tabla histórica
+            // datos para la tabla histórica
             string query = "select a.\"Id\", a.\"TeacherCUNI\", a.\"TeacherBP\", \r\na.\"BranchesId\", br.\"Abr\" as \"Regional\", a.\"Proyecto\"," +
                            "a.\"Modulo\", a.\"DependencyCod\", a.\"Horas\", \r\na.\"MontoHora\", a.\"TotalNeto\", a.\"TotalBruto\", a.\"Mes\"," +
                            " a.\"Gestion\", \r\na.\"Observaciones\", a.\"Deduccion\", t.\"Abr\" as \"TipoTarea\", \r\nnull as \"MesLiteral\", " +
-                           "a.\"Origen\" ,\r\ncase when fn.\"FullName\" is null then c.\"CardName\"\r\nwhen c.\"CardName\" is null then fn.\"FullName\"\r\nend as \"TeacherFullName\", " +
+                           "a.\"Origen\", tp.\"Nombre\" as \"TipoPago\", \r\ncase when fn.\"FullName\" is null then c.\"CardName\"\r\nwhen c.\"CardName\" is null then fn.\"FullName\"\r\nend as \"TeacherFullName\", " +
                            "case when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\", a.\"Origen\"" +
                            "\r\nfrom "+CustomSchema.Schema+".\"AsesoriaPostgrado\" a " +
                            "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t \r\non a.\"TipoTareaId\"=t.\"Id\" " +
+                           "\r\ninner join " + CustomSchema.Schema + ".\"TipoPago\" tp \r\non a.\"TipoPago\"=tp.\"Id\" " +
                            "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non a.\"BranchesId\"=br.\"Id\" " +
                            "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\" " +
                            "\r\nleft join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c\r\non a.\"TeacherBP\"=c.\"CardCode\"";
@@ -123,7 +118,7 @@ namespace UcbBack.Controllers
             if (by.Equals("APROBADO"))
             {
                 string customQuery = query + "where a.\"Estado\"='APROBADO' " + orderBy;
-                //Mes a literal
+                // Mes a literal
                 rawresult = mesLiteral(customQuery);
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -136,6 +131,7 @@ namespace UcbBack.Controllers
                         Mes = x.MesLiteral,
                         x.Gestion,
                         x.Origen,
+                        x.TipoPago,
                         Dup = x.Ignored
                     });
                 return Ok(filteredList);
@@ -353,7 +349,7 @@ namespace UcbBack.Controllers
             return Ok(activeDocentes);
         }
 
-        //para obtener el cuerpo del reporte PDF
+        // para obtener el cuerpo del reporte PDF
         [HttpGet]
         [Route("api/PDFReportBodyPostgrado")]
         public IHttpActionResult PDFReport([FromUri] string part)
@@ -364,12 +360,12 @@ namespace UcbBack.Controllers
             string section = data[0];
             string state = data[1];
             string origin = data[2];
-            //query para generar todos los datos de cada docente, ordenado por carrera y docente
+            // query para generar todos los datos de cada docente, ordenado por carrera y docente
             switch (section)
             {
                 case "Body":
-                    //obtiene el cuerpo de la tabla para el PDF
-                    //join para el nombre de la carrera
+                    // obtiene el cuerpo de la tabla para el PDF
+                    // join para el nombre de la carrera
                     query = "select \r\na.\"Id\", " +
                             "\r\ncase when fn.\"FullName\" is null then c.\"CardName\"when c.\"CardName\" is null then fn.\"FullName\"end as \"TeacherFullName\", " +
                             "\r\nt.\"Abr\" as \"TipoTarea\"," +
@@ -382,8 +378,11 @@ namespace UcbBack.Controllers
                             "\r\na.\"Deduccion\", " +
                             "\r\na.\"IUE\"," +
                             "\r\na.\"IT\"," +
+                            "\r\na.\"IUEExterior\"," +
+                            "\r\na.\"StudentFullName\"," +
                             "\r\na.\"TotalNeto\", " +
                             "\r\na.\"Observaciones\", " +
+                            "\r\ncase when a.\"StudentFullName\" is null or a.\"StudentFullName\" = '' then 'No Asignado' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                             "\r\ncase when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodModule\"=a.\"Modulo\" and pm.\"CodProject\" = a.\"Proyecto\" " +
@@ -400,7 +399,7 @@ namespace UcbBack.Controllers
                     break;
 
                 case "Results":
-                    //obtiene los resultados al pie de cada tabla, por carrera
+                    // obtiene los resultados al pie de cada tabla, por carrera
                     query = "select " +
                             "\r\na.\"BranchesId\"," +
                             "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" \"Proyecto\"," +
@@ -408,6 +407,7 @@ namespace UcbBack.Controllers
                             "\r\nsum(a.\"Deduccion\") \"Deduccion\", " +
                             "\r\nsum(a.\"IUE\") \"IUE\"," +
                             "\r\nsum(a.\"IT\") \"IT\"," +
+                            "\r\nsum(a.\"IUEExterior\") \"IUEExterior\"," +
                             "\r\nsum(a.\"TotalNeto\") \"TotalNeto\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodModule\"=a.\"Modulo\" and pm.\"CodProject\" = a.\"Proyecto\" " +
@@ -425,12 +425,13 @@ namespace UcbBack.Controllers
                     break;
 
                 case "FinalResult":
-                    //obtiene los resultados totales
+                    // obtiene los resultados totales
                     query = "select " +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "sum(\"IUE\") as \"IUE\", " +
                             "sum(\"IT\") as \"IT\", " +
+                            "sum(\"IUEExterior\") as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\"" +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
@@ -454,6 +455,7 @@ namespace UcbBack.Controllers
                 var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.TeacherFullName,
+                    Alumno = x.StudentFullName,
                     x.TipoTarea,
                     x.Proyecto,
                     x.Modulo,
@@ -463,6 +465,7 @@ namespace UcbBack.Controllers
                     x.Deduccion,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.Observaciones,
                     Dup = x.Ignored,
@@ -476,10 +479,12 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Proyecto,
+                    Alumno = x.StudentFullName,
                     Total_Bruto = x.TotalBruto,
                     x.Deduccion,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.BranchesId
                 });
@@ -490,9 +495,11 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     Total_Bruto = x.TotalBruto,
+                    Alumno = x.StudentFullName,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);
@@ -959,9 +966,16 @@ namespace UcbBack.Controllers
                     return BadRequest("El monto para IUE o IT no puede registrarse en blanco.");
                 }
             }
+            if (asesoria.Origen.Equals("EXT"))
+            {
+                if (string.IsNullOrEmpty(asesoria.IUEExterior.ToString()))
+                {
+                    return BadRequest("El monto para IUEExterior no puede registrarse en blanco.");
+                }
+            }
 
-                //El branchesId es del último puesto de quién registra
-                var userCUNI = user.People.CUNI;
+            //El branchesId es del último puesto de quién registra
+            var userCUNI = user.People.CUNI;
                 var regionalId = _context.Database.SqlQuery<int>("select b.\"Id\" " +
                                                                  "from " +
                                                                  "   " +
@@ -1281,13 +1295,13 @@ namespace UcbBack.Controllers
         }
 
         [HttpGet]
-        [Route("api/BusquedaAvanzadaIsaacPost/{Proyecto}/{Modulo}/{Docente}/{Origen}/{tarea}/{mes}/{gestion}")]
+        [Route("api/BusquedaAvanzadaIsaacPost/{Proyecto}/{Modulo}/{Docente}/{Origen}/{tarea}/{mes}/{gestion}/{minB}/{maxB}/{minN}/{maxN}/{tpago}")]
         public IHttpActionResult BusquedaAvanzadaPost(string Proyecto, string Modulo, string Docente,
-            string Origen, string Tarea, string Mes, string gestion)
+            string Origen, string Tarea, string Mes, string gestion, int minB, int maxB, int minN, int maxN, string tpago)
         {
             try
             {
-                //Siguientes lineas para realizar el filtro por regional directamente dentro del query segun las regionales a las que tenga acceso el usuario
+                // Siguientes lineas para realizar el filtro por regional directamente dentro del query segun las regionales a las que tenga acceso el usuario
                 var user = auth.getUser(Request);
                 ADClass ad = new ADClass();
                 List<Branches> bre = ad.getUserBranches(user);
@@ -1309,6 +1323,7 @@ namespace UcbBack.Controllers
                 string mes0 = "";
                 string ges = "";
                 string org = "";
+                string pag = "";
                 var cabecera =
                     "select\r\n1 \"Id\",\r\nad.\"Proyecto\",\r\nad.\"Modulo\",\r\nad.\"Origen\", \r\ntt.\"Tarea\" \"TipoTarea\", \r\nad.\"Observaciones\",\r\nad.\"TotalBruto\", \r\ncase when ad.\"IUE\" is null then 0 else ad.\"IUE\" end as \"IUE\",\r\ncase when ad.\"IT\" is null then 0 else ad.\"IT\" end as \"IT\",  \r\nad.\"Deduccion\", \r\nad.\"TotalNeto\", \r\ncase when ad.\"Mes\" = 1 then 'ENE'when ad.\"Mes\" = 2 then 'FEB'when ad.\"Mes\" = 3 then 'MAR'when ad.\"Mes\" = 4 then 'ABR'when ad.\"Mes\" = 5 then 'MAY'when ad.\"Mes\" = 6 then 'JUN'when ad.\"Mes\" = 7 then 'JUL'when ad.\"Mes\" = 8 then 'AGO'when ad.\"Mes\" = 9 then 'SEP'when ad.\"Mes\" = 10 then 'OCT'when ad.\"Mes\" = 11 then 'NOV'when ad.\"Mes\" = 12 then 'DIC'else ''end as \"MesLiteral\",\r\nad.\"Mes\", \r\nad.\"Gestion\", \r\nbr.\"Abr\" \"Regional\", \r\nad.\"BranchesId\", \r\ncase when ad.\"Ignore\" = true then 'D' when ad.\"Ignore\" = false then '' end as \"Ignore\",\r\nx.\"TeacherFullName\"";
                 var cabeceraSubTotal =
@@ -1348,8 +1363,20 @@ namespace UcbBack.Controllers
                     {
                         org = " and ad.\"Origen\" ='INDEP'";
                     }
+                    else if (Origen == "3")
+                    {
+                        org = " and ad. \"Origen\" ='OR'";
+                    }
+                    else if (Origen == "4")
+                    {
+                        org = " and ad. \"Origen\" ='FAC'";
+                    }
+                    else if (Origen == "5")
+                    {
+                        org = " and ad. \"Origen\" ='EXT'";
+                    }
                 }
-                //todo falta el conseguir el nombre del docente para busqueda
+                // todo falta el conseguir el nombre del docente para busqueda
                 if (Docente != "null")
                 {
                     doc = " and \"TeacherFullName\" like '%" + Docente + "%'";
@@ -1369,13 +1396,20 @@ namespace UcbBack.Controllers
                 {
                     ges = " and ad.\"Gestion\" =" + gestion + "";
                 }
+                if (tpago != "null")
+                {
+                    pag = " and ad.\"TipoPago\" = " + tpago + "";
+                }
 
+                // Construir las condiciones de rango para TotalBruto y TotalNeto
+                var condicionesRangoBruto = (minB >= 0 && maxB >= minB) ? " AND ad.\"TotalBruto\" BETWEEN " + minB + " AND " + maxB : "";
+                var condicionesRangoNeto = (minN >= 0 && maxN >= minN) ? " AND ad.\"TotalNeto\" BETWEEN " + minN + " AND " + maxN : "";
                 string order = " order by \"Id\",\"Gestion\", \"Mes\", \"TeacherFullName\"";
                 string group = " group by ad.\"TeacherCUNI\", \r\nad.\"TeacherBP\", \r\nad.\"DependencyCod\", \r\nad.\"Proyecto\",\r\nad.\"Modulo\",\r\nad.\"Origen\", \r\ntt.\"Tarea\", \r\nad.\"Observaciones\",\r\nad.\"TotalBruto\", \r\nad.\"IUE\",\r\nad.\"IT\",  \r\nad.\"Deduccion\", \r\nad.\"TotalNeto\",\r\nad.\"Mes\",\r\nad.\"Gestion\", \r\nbr.\"Abr\", \r\nad.\"BranchesId\", \r\nad.\"Ignore\",\r\nx.\"TeacherFullName\"";
                 string query = cabecera + queryCuerpo + regionalesUser + pro + mod + org + doc + tar + est +
-                               mes0 + ges + group;
+                               mes0 + ges + pag + condicionesRangoBruto + condicionesRangoNeto + group;
                 string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + pro + mod + org + doc + tar + est +
-                                       mes0 + ges + group;
+                                       mes0 + ges + pag + condicionesRangoBruto + condicionesRangoNeto + group;
                 string QueryOriginal = "(" + query + ") UNION (" + subtotal + "(" + querysubTotal + "))" + order;
                 var reportOG = _context.Database.SqlQuery<AsesoriaPostgradoReportViewModel>(query).ToList();
                 report = _context.Database.SqlQuery<AsesoriaPostgradoReportViewModel>(QueryOriginal).ToList();
@@ -1400,7 +1434,8 @@ namespace UcbBack.Controllers
                         x.IT,
                         x.TotalNeto,
                         x.Observaciones,
-                        Dup = x.Ignore
+                        Dup = x.Ignore,
+                        Pago = x.TipoPago
                     });
                 return Ok(formattedList);
             }
@@ -1409,6 +1444,7 @@ namespace UcbBack.Controllers
                 return BadRequest("Ocurrió un problema. Comuniquese con el administrador. " + exception);
             }
         }
+
 
         [HttpGet]
         [Route("api/ProyectosUsed")]
@@ -1501,8 +1537,8 @@ namespace UcbBack.Controllers
 
             return Ok(filteredList);
         }
-        //REPORTE POR CARRERA
-        //obtener carreras segun su estado en la lista
+        // REPORTE POR CARRERA
+        // obtener carreras segun su estado en la lista
         [HttpGet]
         [Route("api/AseProyectos")]
         public IHttpActionResult AseProyectos([FromUri] string by)
@@ -1554,7 +1590,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='INDEP' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1567,7 +1603,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='OR' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -1580,8 +1616,23 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Factura\"=true " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Proyecto,
+                        x.StudentFullName,
+                        x.IUEExterior
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("REGISTRADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='EXT' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -1617,12 +1668,12 @@ namespace UcbBack.Controllers
             {
                 qOrigen = " and a.\"Origen\" like '%" + origin + "%' and a.\"Factura\" = false ";
             }
-            //query para generar todos los datos de cada carrera, ordenado por carrera y docente
+            // query para generar todos los datos de cada carrera, ordenado por carrera y docente
             switch (section)
             {
                 case "Body":
-                    //obtiene el cuerpo de la tabla para el PDF
-                    //join para el nombre de la carrera
+                    // obtiene el cuerpo de la tabla para el PDF
+                    // join para el nombre de la carrera
                     query =
                         "select \r\ncase when a.\"Origen\" = 'INDEP' then ocrd.\"CardName\" else fn.\"FullName\" end as \"TeacherFullName\"," +
                         "\r\nt.\"Abr\" as \"TipoTarea\", " +
@@ -1631,8 +1682,11 @@ namespace UcbBack.Controllers
                         "\r\na.\"Horas\", a.\"MontoHora\", " +
                         "\r\na.\"TotalBruto\" , " +
                         "\r\na.\"Deduccion\" , " +
+                        "\r\na.\"StudentFullName\" , " +
+                        "\r\ncase when a.\"StudentFullName\" is null or a.\"StudentFullName\" = '' then 'No Asignado' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                         "\r\ncase when a.\"IUE\" is null then 0 else a.\"IUE\" end as \"IUE\", " +
                         "\r\ncase when a.\"IT\" is null then 0 else a.\"IT\" end as \"IT\", " +
+                        "\r\ncase when a.\"IUEExterior\" is null then 0 else a.\"IUEExterior\" end as \"IUEExterior\", " +
                         "\r\na.\"TotalNeto\" , " +
                         "\r\na.\"Observaciones\", a.\"BranchesId\", " +
                         "\r\n case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\"" +
@@ -1652,13 +1706,14 @@ namespace UcbBack.Controllers
                     break;
 
                 case "Results":
-                    //obtiene los resultados al pie de cada tabla, por carrera
+                    // obtiene los resultados al pie de cada tabla, por carrera
                     query = "select " +
                             "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" as \"Proyecto\" ," +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\" " +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t on a.\"TipoTareaId\"=t.\"Id\" " +
@@ -1676,12 +1731,13 @@ namespace UcbBack.Controllers
                     break;
 
                 case "FinalResult":
-                    //obtiene los resultados al pie de cada tabla, por carrera
+                    // obtiene los resultados al pie de cada tabla, por carrera
                     query = "select " +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
                             "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
                             "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\"" +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
@@ -1699,13 +1755,14 @@ namespace UcbBack.Controllers
                 default:
                     return BadRequest();
             }
-            //Filtro de datos por regional
+            // Filtro de datos por regional
             var user = auth.getUser(Request);
             if (section.Equals("Body"))
             {
                 var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     Proyecto = x.Proyecto,
+                    Alumno = x.StudentFullName,
                     Docente = x.TeacherFullName,
                     Tarea = x.TipoTarea,
                     x.Modulo,
@@ -1715,6 +1772,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
                     Dup = x.Ignore
@@ -1728,9 +1786,11 @@ namespace UcbBack.Controllers
                 {
                     Proyecto = x.Proyecto,
                     Total_Bruto = x.TotalBruto,
+                    Alumno = x.StudentFullName,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.BranchesId
                 });
@@ -1741,9 +1801,11 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     Total_Bruto = x.TotalBruto,
+                    Alumno = x.StudentFullName,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);

@@ -16,10 +16,12 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
     {
         public int Id { get; set; }
         public string TeacherFullName { get; set; }
+        public string StudentFullName { get; set; }
         public string TeacherCUNI { get; set; }
         public string TeacherBP { get; set; }
         public string Modalidad { get; set; }
         public string TipoTarea { get; set; }
+        public string TipoPago { get; set; }
         public int BranchesId { get; set; }
         public string Proyecto { get; set; }
         public string Modulo { get; set; }
@@ -32,6 +34,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public decimal? TotalNeto { get; set; }
         public decimal? IUE { get; set; }
         public decimal? IT { get; set; }
+        public decimal? IUEExterior { get; set; }
         public decimal? Deduccion { get; set; }
         public decimal? TotalBruto { get; set; }
         public int Mes { get; set; }

@@ -31,6 +31,7 @@ namespace UcbBack.Models
         public decimal? TotalNeto { get; set; }
         public decimal? IUE { get; set; }
         public decimal? IT { get; set; }
+        public decimal? IUEExterior { get; set; }
         public decimal? Deduccion { get; set; }
         public decimal? TotalBruto { get; set; }
         public int Mes { get; set; }
