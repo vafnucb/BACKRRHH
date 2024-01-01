@@ -326,14 +326,16 @@ namespace UcbBack.Controllers
                 // ...
 
 
-                string realFileName;
-                if (!verifyName(o.fileName, o.BranchesId, o.FileType, out realFileName))
+                if (!verifyName(o.fileName, o.BranchesId, o.FileType, out string realFileName))
                 {
+                    Console.WriteLine($"Nombre Incorrecto: El archivo enviado no cumple con la regla de nombres. Nombre sugerido: {realFileName}");
+
                     response.StatusCode = HttpStatusCode.BadRequest;
-                    response.Headers.Add("UploadErrors", "{ \"Nombre Incorrecto\": \"El archivo enviado no cumple con la regla de nombres. Nombre sugerido: " + realFileName + "\"}");
+                    response.Headers.Add("UploadErrors", $"{{ \"Nombre Incorrecto\": \"El archivo enviado no cumple con la regla de nombres. Nombre sugerido: {realFileName}\"}}");
                     response.Content = new StringContent("El archivo enviado no cumple con la regla de nombres.");
                     return response;
                 }
+
 
                 var user = auth.getUser(Request);
 
@@ -650,6 +652,7 @@ namespace UcbBack.Controllers
                     x.Contrato,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     x.xPagar,
                     x.Observaciones
                     
@@ -674,6 +677,7 @@ namespace UcbBack.Controllers
                     x.Contrato,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     x.xPagar,
                     x.Observaciones
                 });
@@ -695,6 +699,7 @@ namespace UcbBack.Controllers
                     x.Contrato,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     x.xPagar,
                     x.Observaciones
                 });
@@ -717,6 +722,7 @@ namespace UcbBack.Controllers
                     x.Contrato,
                     x.IUE,
                     x.IT,
+                    x.IUEExterior,
                     x.xPagar,
                     x.Observaciones
                 });
@@ -1138,6 +1144,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = 0,
                             Monto_IUE = 0,
                             Monto_IT = 0,
+                            IUEExterior = 0,
                             Monto_a_Pagar = 0,
                             Observaciones = "",
                         }).ToList();

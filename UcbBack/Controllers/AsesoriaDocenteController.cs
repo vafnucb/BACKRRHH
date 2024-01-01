@@ -994,8 +994,8 @@ namespace UcbBack.Controllers
                     "a.\"DependencyCod\" as \"Cod_Dependencia\", 'PO' as \"PEI_PO\", " +
                     "'Servicios de Tutoria Relatoria en Pregrado' \"Nombre_del_Servicio\", a.\"Carrera\" as \"Codigo_Carrera\" ,a.\"Acta\" as \"Documento_Base\", " +
                     "a.\"StudentFullName\" as \"Postulante\", t.\"Abr\" as \"Tipo_Tarea_Asignada\", 'CC_TEMPORAL' as \"Cuenta_Asignada\", " +
-                    "a.\"TotalBruto\" as \"Monto_Contrato\", a.\"IUE\" as \"Monto_IUE\", a.\"IT\" as \"Monto_IT\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  " +
-                    "a.\"Observaciones\", a.\"IUEExterior\" as \"IUEExterior\" " +
+                    "a.\"TotalBruto\" as \"Monto_Contrato\", a.\"IUE\" as \"Monto_IUE\", a.\"IT\" as \"Monto_IT\", a.\"IUEExterior\" as \"IUEExterior\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  " +
+                    "a.\"Observaciones\" " +
                 "from " +
                     CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                     "inner join " + CustomSchema.Schema + ".\"Civil\" c " +
@@ -1006,24 +1006,26 @@ namespace UcbBack.Controllers
                     "on a.\"BranchesId\"=br.\"Id\" " +
                 "where " +
                    "a.\"Estado\"='PRE-APROBADO' " +
-                "and br.\"Abr\" ='" + segmento + "' " +
-                   "and a.\"Origen\"='EXT' " +
+                   "and br.\"Abr\" ='" + segmento + "' " +
+                   "and (a.\"Origen\"='INDEP' or a.\"Origen\"='EXT') " +
                 "order by a.\"Id\" asc";
+
 
             var excelContent = _context.Database.SqlQuery<Serv_PregradoViewModel>(query).ToList();
 
             // Para las columnas del excel
             string[] header = new string[]{"Codigo_Socio", "Nombre_Socio", "Cod_Dependencia",
-                                            "PEI_PO", "Nombre_del_Servicio", "Codigo_Carrera", "Documento_Base", "Postulante",
-                                            "Tipo_Tarea_Asignada", "Cuenta_Asignada",
-                                            "Monto_Contrato","Monto_IUE","Monto_IT","Monto_a_Pagar", "Observaciones", "IUEExterior"};
+                                "PEI_PO", "Nombre_del_Servicio", "Codigo_Carrera", "Documento_Base", "Postulante",
+                                "Tipo_Tarea_Asignada", "Cuenta_Asignada",
+                                "Monto_Contrato", "Monto_IUE", "Monto_IT", "IUEExterior", "Monto_a_Pagar", "Observaciones"};
+
             var workbook = new XLWorkbook();
 
             // Se agrega la hoja de excel
             var ws = workbook.Worksheets.Add("Plantilla_CARRERA");
 
             // Rango hoja excel
-            // 1,1: es la posicion inicial; 2,header.Length: es el alto y el ancho
+            // 1,1: es la posición inicial; 2,header.Length: es el alto y el ancho
             var rngTable = ws.Range(1, 1, 2, header.Length);
 
             // Bordes para las columnas
@@ -1044,12 +1046,9 @@ namespace UcbBack.Controllers
             }
 
             // Aquí hago el attachment del query a mi hoja de de excel
-            // ws.Cell(2, 1).Value = excelContent.AsEnumerable();
+            ws.Cell(headerPos + 1, 1).InsertData(excelContent.AsEnumerable());
 
-            // Aquí hago el attachment del query a mi hoja de de excel
-            ws.Cell(2, 1).Value = excelContent.AsEnumerable();
-
-            // Ajustar contenidos
+            // Ajustar contenidos después de insertar los datos
             ws.Columns().AdjustToContents();
 
             // Carga el objeto de la respuesta
@@ -1067,12 +1066,13 @@ namespace UcbBack.Controllers
             // La posicion para el comienzo del stream
             ms.Seek(0, SeekOrigin.Begin);
 
-            //-----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
+            // -----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
             // Actualizar con la fecha a los registros pre-aprobados
             var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
-            var docentesPorAprobar = _context.AsesoriaDocente.Where(x => x.Origen.Equals("INDEP") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId).ToList();
+            var docentesPorAprobar = _context.AsesoriaDocente
+                .Where(x => (x.Origen.Equals("INDEP") || x.Origen.Equals("EXT")) && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId)
+                .ToList();
             // Se sobrescriben los registros con la fecha actual y el nuevo estado
-
             foreach (var docente in docentesPorAprobar)
             {
                 docente.Mes = Convert.ToInt16(mes);
