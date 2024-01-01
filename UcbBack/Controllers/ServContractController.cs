@@ -326,7 +326,8 @@ namespace UcbBack.Controllers
                 // ...
 
 
-                if (!verifyName(o.fileName, o.BranchesId, o.FileType, out string realFileName))
+                string realFileName;
+                if (!verifyName(o.fileName, o.BranchesId, o.FileType, out realFileName))
                 {
                     response.StatusCode = HttpStatusCode.BadRequest;
                     response.Headers.Add("UploadErrors", "{ \"Nombre Incorrecto\": \"El archivo enviado no cumple con la regla de nombres. Nombre sugerido: " + realFileName + "\"}");
