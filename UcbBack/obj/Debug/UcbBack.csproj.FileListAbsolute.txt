@@ -340,10 +340,7 @@ C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\EntityFramework.SqlSe
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.Core.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.Owin.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.EntityFramework.xml
-<<<<<<< Updated upstream
-=======
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csprojAssemblyReference.cache
->>>>>>> Stashed changes
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.Migrations.FirstMigration.resources
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.GenerateResource.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.CoreCompileInputs.cache
