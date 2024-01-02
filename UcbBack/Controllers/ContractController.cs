@@ -74,7 +74,8 @@ namespace UcbBack.Controllers
                     FullName = x.People.GetFullName(),
                     Dependency = x.Dependency.Name,
                     DependencyCod = x.Dependency.Cod,
-                    x.BranchesId
+                    x.BranchesId,
+                    BranchName = x.Branches.Name
                 }).ToList();
             var user = auth.getUser(Request);
 
