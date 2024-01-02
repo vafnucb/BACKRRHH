@@ -26,6 +26,7 @@ namespace UcbBack.Models.Serv
         public string State { get; set; }
         public string SAPId { get; set; }
 
+
         public struct Serv_FileState
         {
             public const string Started = "INICIADO";
