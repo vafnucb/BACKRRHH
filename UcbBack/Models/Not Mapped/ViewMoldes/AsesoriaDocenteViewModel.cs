@@ -42,6 +42,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string MesLiteral { get; set; }
         public string TipoTarea { get; set; }
         public string TipoPago { get; set; }
+        public string NumeroContrato { get; set; }
         public string Cod { get; set; }
         public string Ignore { get; set; }
 

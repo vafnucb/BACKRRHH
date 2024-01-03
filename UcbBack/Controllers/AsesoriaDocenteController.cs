@@ -1231,6 +1231,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.TeacherBP = asesoria.TeacherBP;
                 thisAsesoria.Categoría = asesoria.Categoría;
                 thisAsesoria.Origen = asesoria.Origen;
+                thisAsesoria.NumeroContrato = asesoria.NumeroContrato;
                 //Estudiante
                 thisAsesoria.StudentFullName = asesoria.StudentFullName.ToUpper();
                 //Sobre la tutoria
