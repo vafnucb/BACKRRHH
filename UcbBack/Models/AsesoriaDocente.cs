@@ -49,6 +49,7 @@ namespace UcbBack.Models
         public int? UserCreate { get; set; }
         public int? UserUpdate { get; set; }
         public int? UserAuth { get; set; }
+        public string NumeroContrato { get; set; }
 
         public static int GetNextId(ApplicationDbContext _context)
         {
