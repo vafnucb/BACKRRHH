@@ -966,6 +966,10 @@ namespace UcbBack.Controllers
                     return BadRequest("El monto para IUE o IT no puede registrarse en blanco.");
                 }
             }
+            if (asesoria.Origen.Equals("EXT") && asesoria.Factura == false && asesoria.IUEExterior == 0)
+            {
+                return BadRequest("El monto para IUEExterior debe ser mayor a 0.");
+            }
             if (asesoria.Origen.Equals("EXT"))
             {
                 if (string.IsNullOrEmpty(asesoria.IUEExterior.ToString()))
@@ -1062,7 +1066,7 @@ namespace UcbBack.Controllers
                 {
                     return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
                 }
-                if (asesoria.Origen.Equals("INDEP") && asesoria.Factura == false && (asesoria.IUE == 0 || asesoria.IT == 0))
+                if (asesoria.Origen.Equals("INDEP") && asesoria.Factura == false && (asesoria.IUE < 0 || asesoria.IT < 0))
                 {
                     return BadRequest("El monto para IUE o IT debe ser mayor a 0.");
                 }
@@ -1073,7 +1077,18 @@ namespace UcbBack.Controllers
                         return BadRequest("El monto para IUE o IT no puede registrarse en blanco.");
                     }
                 }
-                var thisAsesoria = _context.AsesoriaPostgrado.FirstOrDefault(x => x.Id == id);
+                if (asesoria.Origen.Equals("EXT") && asesoria.Factura == false && asesoria.IUEExterior < 0)
+                {
+                    return BadRequest("El monto para IUEExterior no debe ser menor a 0.");
+                }
+                if (asesoria.Origen.Equals("EXT"))
+                {
+                    if (string.IsNullOrEmpty(asesoria.IUEExterior.ToString()))
+                    {
+                        return BadRequest("El monto para IUEExterior no puede registrarse en blanco.");
+                    }
+                }
+                    var thisAsesoria = _context.AsesoriaPostgrado.FirstOrDefault(x => x.Id == id);
                 //Temporalidad
                 thisAsesoria.Mes = asesoria.Mes;
                 thisAsesoria.Gestion = asesoria.Gestion;

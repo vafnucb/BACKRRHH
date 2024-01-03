@@ -1129,7 +1129,7 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
-            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0) && asesoria.Origen != "EXT")
+            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0 || asesoria.IUEExterior <= 0))
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
@@ -1197,9 +1197,9 @@ namespace UcbBack.Controllers
             }
             if (asesoria.TotalBruto <= 0 || asesoria.TotalNeto <= 0)
             {
-                return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
+                return BadRequest("No se pueden ingresar datos con valores negativos");
             }
-            if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0) && asesoria.Origen != "EXT")
+            if (asesoria.Factura == false && (asesoria.IUE < 0 || asesoria.IT < 0 || asesoria.IUEExterior < 0))
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
