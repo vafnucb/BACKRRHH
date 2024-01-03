@@ -1212,6 +1212,10 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("La combinación de docente y estudiante ya existe en la BD");
             }
+            if (asesoria.Origen.Equals("EXT") && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.Id != id && x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherBP.ToUpper() == asesoria.TeacherBP.ToUpper()) != null))
+            {
+                return BadRequest("La combinación de docente y estudiante ya existe en la BD");
+            }
             else
             {
                 if (!ModelState.IsValid)
@@ -1219,9 +1223,45 @@ namespace UcbBack.Controllers
                     return BadRequest("Datos inválidos para el registro");
                 }
                 var thisAsesoria = _context.AsesoriaDocente.FirstOrDefault(x => x.Id == id);
+                bool origenCambiado = thisAsesoria.Origen != asesoria.Origen;
                 //Temporalidad
                 thisAsesoria.Mes = asesoria.Mes;
                 thisAsesoria.Gestion = asesoria.Gestion;
+
+                if (origenCambiado)
+                {
+                    // Reiniciar campos específicos que no son relevantes para el nuevo origen
+                    thisAsesoria.IUE = 0;
+                    thisAsesoria.IT = 0;
+                    thisAsesoria.IUEExterior = 0;
+                    thisAsesoria.Deduccion = 0;
+
+                    switch (asesoria.Origen)
+                    {
+                        case "DEPEN":
+                            // Reiniciar campos específicos para DEPEN
+                            thisAsesoria.IUE = 0;
+                            thisAsesoria.IT = 0;
+                            thisAsesoria.IUEExterior = 0;
+                            thisAsesoria.Deduccion = asesoria.Deduccion;
+                            break;
+                        case "INDEP":
+                            // Reiniciar campos específicos para INDEP
+                            thisAsesoria.IUEExterior = 0;
+                            thisAsesoria.Deduccion = 0;
+                            thisAsesoria.IUE = asesoria.IUE;
+                            thisAsesoria.IT = asesoria.IT;
+                            break;
+                        case "EXT":
+                            // Reiniciar campos específicos para EXT
+                            thisAsesoria.IUE = 0;
+                            thisAsesoria.IT = 0;
+                            thisAsesoria.Deduccion = 0;
+                            thisAsesoria.IUEExterior = asesoria.IUEExterior;
+                            break;
+                            // Añade más casos según los posibles orígenes
+                    }
+                }
                 //Carrera y Dep
                 thisAsesoria.DependencyCod = asesoria.DependencyCod;
                 thisAsesoria.Carrera = asesoria.Carrera;
@@ -1244,11 +1284,11 @@ namespace UcbBack.Controllers
                 thisAsesoria.MontoHora = asesoria.MontoHora;
                 thisAsesoria.TotalBruto = asesoria.TotalBruto;
                 thisAsesoria.TotalNeto = asesoria.TotalNeto;
-                thisAsesoria.Deduccion = asesoria.Deduccion;
+                // thisAsesoria.Deduccion = asesoria.Deduccion;
                 thisAsesoria.Observaciones = asesoria.Observaciones;
-                thisAsesoria.IUE = asesoria.IUE;
-                thisAsesoria.IT = asesoria.IT;
-                thisAsesoria.IUEExterior = asesoria.IUEExterior;
+                // thisAsesoria.IUE = asesoria.IUE;
+                // thisAsesoria.IT = asesoria.IT;
+                // thisAsesoria.IUEExterior = asesoria.IUEExterior;
                 //Del Acta
                 thisAsesoria.Acta = asesoria.Acta;
                 thisAsesoria.ActaFecha = asesoria.ActaFecha;
