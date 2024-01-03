@@ -482,6 +482,8 @@ namespace UcbBack.Controllers
                             "\"Horas\", \"MontoHora\", " +
                             "\"TotalBruto\" , " +
                             "\"Deduccion\" , " +
+                            "\"NumeroContrato\" , " +
+                            "tp.\"Nombre\" as \"TipoPago\", " +
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
                             "case when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
@@ -493,6 +495,9 @@ namespace UcbBack.Controllers
                         "inner join " +
                             CustomSchema.Schema + ".\"TipoTarea\" t " +
                             "on a.\"TipoTareaId\"=t.\"Id\" " +
+                        "inner join " +
+                            CustomSchema.Schema + ".\"TipoPago\" tp " +
+                            "on a.\"TipoPago\"=tp.\"Id\" " +
                         "inner join " +
                             CustomSchema.Schema + ".\"Modalidades\" m " +
                             "on a.\"ModalidadId\"=m.\"Id\" " +
@@ -571,6 +576,8 @@ namespace UcbBack.Controllers
                     Alumno = x.StudentFullName,
                     Acta = x.Acta,
                     Fecha = x.ActaFecha != null ? x.ActaFecha.ToString("dd-MM-yyyy") : null,
+                    x.NumeroContrato,
+                    x.TipoPago,
                     Horas = x.Horas,
                     Costo_Hora = x.MontoHora,
                     Total_Bruto = x.TotalBruto,
@@ -1751,6 +1758,8 @@ namespace UcbBack.Controllers
                             "\"Horas\", \"MontoHora\", " +
                             "\"TotalBruto\" , " +
                             "\"Deduccion\" , " +
+                            "\"NumeroContrato\" , " +
+                            "tp.\"Nombre\" as \"TipoPago\", " +
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
                             "case when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
@@ -1762,6 +1771,9 @@ namespace UcbBack.Controllers
                         "inner join " +
                             CustomSchema.Schema + ".\"TipoTarea\" t " +
                             "on a.\"TipoTareaId\"=t.\"Id\" " +
+                        "inner join " +
+                            CustomSchema.Schema + ".\"TipoPago\" tp " +
+                            "on a.\"TipoPago\"=tp.\"Id\" " +
                         "inner join " +
                             CustomSchema.Schema + ".\"Modalidades\" m " +
                             "on a.\"ModalidadId\"=m.\"Id\" " +
@@ -1841,6 +1853,8 @@ namespace UcbBack.Controllers
                     Acta = x.Acta,
                     Fecha = x.ActaFecha != null ? x.ActaFecha.ToString("dd-MM-yyyy") : null,
                     Horas = x.Horas,
+                    x.NumeroContrato,
+                    x.TipoPago,
                     Costo_Hora = x.MontoHora,
                     Total_Bruto = x.TotalBruto,
                     Deduccion = x.Deduccion,
@@ -2178,8 +2192,8 @@ namespace UcbBack.Controllers
             return Ok(filteredList);
         }
         [HttpGet]
-        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}/{minBruto}/{maxBruto}/{minNeto}/{maxNeto}/{tPag}")]
-        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro, int minBruto, int maxBruto, int minNeto, int maxNeto, string tPag)
+        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}/{tPag}")]
+        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro, string tPag)
         {
             try
             {
@@ -2191,15 +2205,9 @@ namespace UcbBack.Controllers
                 string regionalesUser = "and ad.\"BranchesId\" in (";
                 for (int i = 0; i < auxi.Length - 1; i++)
                 {
-                    regionalesUser = regionalesUser + auxi[i].Id;
-
-                    // Agregar una coma solo si no es el último elemento
-                    if (i < auxi.Length - 2)
-                    {
-                        regionalesUser = regionalesUser + ",";
-                    }
+                    regionalesUser = regionalesUser + auxi[i].Id + ",";
                 }
-                regionalesUser = regionalesUser + ")";
+                regionalesUser = regionalesUser + auxi[auxi.Length - 1].Id + ")";
 
 
                 var report = new List<AsesoriaDocenteReportViewModel>();
@@ -2212,33 +2220,15 @@ namespace UcbBack.Controllers
                 string ges = "";
                 string orgF = "";
                 string pag = "";
-
                 var cabecera =
-                    "select 1 ad.\"Id\", ad.\"TeacherFullName\", ad.\"TeacherCUNI\", ad.\"TeacherBP\", " +
-                    "ad.\"DependencyCod\", ad.\"Carrera\", ad.\"Origen\", " +
-                    "m.\"Modalidad\" as \"Modalidad\", tt.\"Tarea\" as \"TipoTarea\", ad.\"StudentFullName\", " +
-                    "ad.\"Categoría\", ad.\"Acta\", ad.\"ActaFecha\", ad.\"Observaciones\", ad.\"TotalBruto\", tp.\"Nombre\" as \"TipoPago\", " +
-                    "ad.\"TotalNeto\", case when ad.\"Mes\" = 1 then 'ENE' when ad.\"Mes\" = 2 then 'FEB' " +
-                    "when ad.\"Mes\" = 3 then 'MAR' when ad.\"Mes\" = 4 then 'ABR' when ad.\"Mes\" = 5 then 'MAY' " +
-                    "when ad.\"Mes\" = 6 then 'JUN' when ad.\"Mes\" = 7 then 'JUL' when ad.\"Mes\" = 8 then 'AGO' " +
-                    "when ad.\"Mes\" = 9 then 'SEP' when ad.\"Mes\" = 10 then 'OCT' when ad.\"Mes\" = 11 then 'NOV' " +
-                    "when ad.\"Mes\" = 12 then 'DIC' else '' end as \"MesLiteral\", ad.\"Mes\", ad.\"Gestion\", " +
-                    "br.\"Abr\" as \"Regional\", ad.\"BranchesId\", case when ad.\"Ignore\" = true then 'D' " +
-                    "when ad.\"Ignore\" = false then '' end as \"Ignore\"";
-
-                var cabeceraSubTotal =
-                    "select 8 \"Id\", '' \"TeacherFullName\", '' \"TeacherCUNI\", '' \"TeacherBP\", " +
-                    "null \"DependencyCod\", '' \"Carrera\", '' \"Origen\", '' \"Modalidad\", " +
-                    "'' \"TipoTarea\", '' \"StudentFullName\", '' \"Categoría\", '' \"Acta\", null \"ActaFecha\", " +
-                    "'' \"Observaciones\", sum(ad.\"TotalBruto\") \"TotalBruto\", " +
-                    "sum(ad.\"Deduccion\") \"Deduccion\", sum(ad.\"TotalNeto\") \"TotalNeto\", '' \"MesLiteral\", " +
-                    "null \"Mes\", null \"Gestion\", '' \"Regional\", 17 \"BranchesId\", '' \"Dup\"";
-
+                    "select 1 \"Id\", ad.\"TeacherFullName\", ad.\"TeacherCUNI\", ad.\"TeacherBP\", \r\nad.\"DependencyCod\", d.\"Name\" \"Dependencia\",ad.\"Carrera\", ad.\"Origen\", m.\"Modalidad\" \"Modalidad\",\r\ntt.\"Tarea\" \"TipoTarea\",\r\ntp.\"Nombre\" \"TipoPago\", ad.\"StudentFullName\", ad.\"Categoría\", ad.\"Acta\", ad.\"ActaFecha\", ad.\"Observaciones\",\r\nad.\"TotalBruto\", case when ad.\"IUE\" is null then 0 else ad.\"IUE\" end as \"IUE\", case when ad.\"IT\" is null then 0 else ad.\"IT\" end as \"IT\",  ad.\"Deduccion\", ad.\"TotalNeto\", \r\ncase when ad.\"Mes\" = 1 then 'ENE'\r\nwhen ad.\"Mes\" = 2 then 'FEB'\r\nwhen ad.\"Mes\" = 3 then 'MAR'\r\nwhen ad.\"Mes\" = 4 then 'ABR'\r\nwhen ad.\"Mes\" = 5 then 'MAY'\r\nwhen ad.\"Mes\" = 6 then 'JUN'\r\nwhen ad.\"Mes\" = 7 then 'JUL'\r\nwhen ad.\"Mes\" = 8 then 'AGO'\r\nwhen ad.\"Mes\" = 9 then 'SEP'\r\nwhen ad.\"Mes\" = 10 then 'OCT'\r\nwhen ad.\"Mes\" = 11 then 'NOV'\r\nwhen ad.\"Mes\" = 12 then 'DIC'\r\nelse ''\r\nend as \"MesLiteral\", ad.\"Mes\"\r\n,ad.\"Gestion\", br.\"Abr\" \"Regional\", ad.\"BranchesId\", case when ad.\"Ignore\" = true then 'D' when ad.\"Ignore\" = false then '' end as \"Ignore\"";
+                
+                var cabeceraSubTotal = "select 8 \"Id\",'' \"TeacherFullName\",  '' \"TeacherCUNI\",  '' \"TeacherBP\",  null \"DependencyCod\", '' \"Dependencia\" ,'' \"Carrera\", \r\n '' \"Origen\", '' \"Modalidad\",  '' \"TipoTarea\",  '' \"TipoPago\",  ''  \"StudentFullName\",  ''  \"Categoría\",  '' \"Acta\",  \r\n null \"ActaFecha\",  '' \"Observaciones\",sum(ad.\"TotalBruto\") \"TotalBruto\", case when sum(ad.\"IUE\") is null then 0 else sum(ad.\"IUE\") end as \"IUE\",  case when sum(ad.\"IT\") is null then 0 else sum(ad.\"IT\") end as \"IT\",\r\n  sum(ad.\"Deduccion\") \"Deduccion\", sum(ad.\"TotalNeto\") \"TotalNeto\", '' \"MesLiteral\", null \"Mes\", null \"Gestion\", '' \"Regional\", 17 \"BranchesId\", '' \"Dup\"";
 
                 var queryCuerpo = "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaDocente\" ad" +
                   "\r\ninner join " + CustomSchema.Schema + ".\"Modalidades\" m on m.\"Id\" = ad.\"ModalidadId\"" +
                   "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" tt on tt.\"Id\" = ad.\"TipoTareaId\"" +
-                  "\r\ninner join " + CustomSchema.Schema + ".\"TipoPago\" tp on ad.\"TipoPago\"=tp.\"Id\" " +
+                  "\r\ninner join " + CustomSchema.Schema + ".\"TipoPago\" tp on tp.\"Id\"= ad.\"TipoPago\" " +
                   "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br on br.\"Id\" = ad.\"BranchesId\"" +
                   "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" d on d.\"Cod\" = ad.\"DependencyCod\"" +
                   "\r\nwhere ad.\"Estado\" = 'APROBADO' ";
@@ -2257,15 +2247,15 @@ namespace UcbBack.Controllers
                     {
                         orgF = " and ad.\"Origen\" ='INDEP'";
                     }
-                    else if (origenFiltro == "3")
+                    if (origenFiltro == "3")
                     {
                         orgF = " and ad. \"Origen\" ='OR'";
                     }
-                    else if (origenFiltro == "4")
+                    if (origenFiltro == "4")
                     {
                         orgF = " and ad. \"Origen\" ='FAC'";
                     }
-                    else if (origenFiltro == "5")
+                    if (origenFiltro == "5")
                     {
                         orgF = " and ad. \"Origen\" ='EXT'";
                     }
@@ -2297,15 +2287,15 @@ namespace UcbBack.Controllers
                 }
                 if (tPag != "null")
                 {
-                    pag = "and ad.\"TipoPago\" =" + tPag + "";
+                    pag = "and ad.\"TipoPago\" ='" + tPag + "'";
                 }
                 // Construir las condiciones de rango para TotalBruto y TotalNeto
-                var condicionesRangoBruto = (minBruto >= 0 && maxBruto >= minBruto) ? " AND ad.\"TotalBruto\" BETWEEN " + minBruto + " AND " + maxBruto : "";
-                var condicionesRangoNeto = (minNeto >= 0 && maxNeto >= minNeto) ? " AND ad.\"TotalNeto\" BETWEEN " + minNeto + " AND " + maxNeto : "";
+                // var condicionesRangoBruto = (minBruto >= 0 && maxBruto >= minBruto) ? " AND ad.\"TotalBruto\" BETWEEN " + minBruto + " AND " + maxBruto : "";
+                // var condicionesRangoNeto = (minNeto >= 0 && maxNeto >= minNeto) ? " AND ad.\"TotalNeto\" BETWEEN " + minNeto + " AND " + maxNeto : "";
 
                 string order = " order by \"Id\",\"Gestion\", \"Mes\", \"TeacherFullName\" ,\"StudentFullName\"";
-                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
-                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
+                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag;
+                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag;
                 string QueryOriginal = "(" + query + ") UNION (" + querysubTotal + ")" + order;
                 var reportOG = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(query).ToList();
                 report = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(QueryOriginal).ToList();
@@ -2338,9 +2328,6 @@ namespace UcbBack.Controllers
             }
             catch (Exception exception)
             {
-                // Loguear el error
-                Console.WriteLine("Error: " + exception.Message);
-                Console.WriteLine("StackTrace: " + exception.StackTrace);
                 return BadRequest("Ocurrió un problema. Comuniquese con el administrador. " + exception);
             }
         }
