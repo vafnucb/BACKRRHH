@@ -32,17 +32,7 @@ namespace UcbBack.Controllers
         public IHttpActionResult OrganizationalUnits()
         {
             var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*").Cast<JObject>();
-
-            // Imprimir las columnas en la consola
-            foreach (var item in y)
-            {
-                Console.WriteLine("Columnas recibidas:");
-                foreach (var property in item.Properties())
-                {
-                    Console.WriteLine($"{property.Name}: {property.Value}");
-                }
-            }
-
+            //var y = getOrganizationalUnit();
             return Ok(y);
         }
 
