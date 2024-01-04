@@ -34,6 +34,7 @@ namespace UcbBack
                 origins: "*",
                 headers: "*",
                 methods: "*");
+            cors.ExposedHeaders.Add("Content-Disposition");
             config.EnableCors(cors);
         }*/
     }

@@ -571,7 +571,7 @@ namespace UcbBack.Controllers
                     query = "select\r\nsv.\"Id\",\r\nsv.\"CardCode\" \"Codigo_Socio\",\r\nsv.\"CardName\" \"Nombre_Socio\",\r\ndep.\"Cod\" \"Cod_Dependencia\",\r\nou.\"Cod\" \"Cod_UO\"," +
                             "\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"Carrera\" \"Codigo_Carrera\",\r\nsv.\"DocumentNumber\" \"Documento_Base\"," +
                             "\r\nsv.\"Student\" \"Postulante\",\r\nsv.\"AssignedJob\" \"Tarea_Asignada\",\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
-                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
+                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
                             "from " +CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
@@ -581,7 +581,7 @@ namespace UcbBack.Controllers
                             "\r\n select\r\nsum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n'' " +
                             "\"Cod_Dependencia\",\r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n'' \"Codigo_Carrera\",\r\n'' " +
                             "\"Documento_Base\",\r\n'' \"Postulante\",\r\n'' \"Tipo_Tarea_Asignada\",\r\n'' \"Cuenta_Asignada\",\r\nsum(sv.\"ContractAmount\") " +
-                            "\"Monto_Contrato\",\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\") " +
+                            "\"Monto_Contrato\",\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\nsum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\") " +
                             "\r\nfrom  " + CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\n where \"Serv_ProcessId\" = "+id+"\r\n order by \"Id\"";
@@ -785,6 +785,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = x.ContractAmount,
                             Monto_IUE = x.IUE,
                             Monto_IT = x.IT,
+                            IUEExterior = x.IUEExterior,
                             Monto_a_Pagar = x.TotalAmount,
                             Observaciones = x.Comments,
                         }).OrderBy(x => x.Id);
@@ -1120,6 +1121,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = 0,
                             Monto_IUE = 0,
                             Monto_IT = 0,
+                            IUEExterior = 0,
                             Monto_a_Pagar = 0,
                             Observaciones = "",
                         }).ToList();
@@ -1165,6 +1167,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = 0,
                             Monto_IUE = 0,
                             Monto_IT = 0,
+                            IUEExterior = 0,
                             Monto_a_Pagar = 0,
                             Observaciones = "",
                         }).ToList();
@@ -1188,6 +1191,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = 0,
                             Monto_IUE = 0,
                             Monto_IT = 0,
+                            IUEExterior = 0,
                             Monto_a_Pagar = 0,
                             Observaciones = "",
                         }).ToList();
