@@ -48,7 +48,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public Decimal Monto_IT { get; set; }
 
         [DisplayName("IUEExterior")]
-        public decimal? IUEExterior { get; set; }
+        public Decimal IUEExterior { get; set; }
 
         [DisplayName("Monto a Pagar")]
         public Decimal Monto_a_Pagar { get; set; }

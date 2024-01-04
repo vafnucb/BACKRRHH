@@ -38,6 +38,7 @@ namespace UcbBack
                 origins: "http://localhost:8000",
                 headers: "*",
                 methods: "*");
+            cors.ExposedHeaders.Add("Content-Disposition");
             config.EnableCors(cors);
         }
     }
