@@ -1083,8 +1083,8 @@ namespace UcbBack.Controllers
 
         // para generar el archivo PREGRADO de Extranjero para SARAI
         [HttpGet]
-        [Route("api/ToCarreraFileExt")]
-        public HttpResponseMessage ToCarreraFileExt([FromUri] string data)
+        [Route("api/FileExt")]
+        public HttpResponseMessage FileExt([FromUri] string data)
         {
             string[] info = data.Split(';');
             var user = auth.getUser(Request);
