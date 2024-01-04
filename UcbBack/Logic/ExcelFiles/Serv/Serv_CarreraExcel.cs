@@ -141,10 +141,10 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 // Verifica que el Grupo Contable exista con la Bandera VerificacionSarai
                 bool v8 = VerifyColumnValueInWithSpace(10, ConversionStringList("select \"Name\" from " + CustomSchema.Schema + ".\"GrupoContable\" where  \"VerificacionSarai\" = true;"), comment: "No existe este tipo de Cuenta Asignada.");
                 // Verifica que las restas de montos cuadren
-                bool v9 = VerifyTotal();
+                bool v9 = VerifyTotal2();
                 bool v10 = true;
                 // Verifica que ninguna columna entre vacia
-                foreach (var i in new List<int>() { 1, 2, 3, 4, 5, 6,/* 7, */8, 9, 10, 11, 12, 13, 15 })
+                foreach (var i in new List<int>() { 1, 2, 3, 4, 5, 6,/* 7, */8, 9, 10, 11, 15 })
                 {
                     v10 = VerifyNotEmpty(i) && v10;
                 }
@@ -180,6 +180,45 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 addError("ValorNoValido", "Monto a Pagar no cuadra.", false);
             return res;
         }
+
+        private bool VerifyTotal2()
+        {
+            bool res = true;
+            int sheet = 1;
+
+            IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
+            for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
+            {
+                decimal contrato = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 11).Value.ToString()), 2);
+                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 12).Value.ToString()), 2);
+                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
+                decimal total = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 15).Value.ToString()), 2);
+
+                if (IUEExterior == 0)
+                {
+                    if (contrato - IUE - IT != total)
+                    {
+                        res = false;
+                        paintXY(11, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
+                    }
+                }
+                else
+                {
+                    if (contrato - IUEExterior != total)
+                    {
+                        res = false;
+                        paintXY(11, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
+                    }
+                }
+            }
+
+            valid = valid && res;
+            if (!res)
+                addError("ValorNoValido", "Monto a Pagar no cuadra.", false);
+            return res;
+        }
+
         public decimal TruncateDecimal(decimal value, int precision)
         {
             decimal step = (decimal)Math.Pow(10, precision);
