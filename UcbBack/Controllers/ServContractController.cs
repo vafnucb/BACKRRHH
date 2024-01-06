@@ -571,7 +571,7 @@ namespace UcbBack.Controllers
                     query = "select\r\nsv.\"Id\",\r\nsv.\"CardCode\" \"Codigo_Socio\",\r\nsv.\"CardName\" \"Nombre_Socio\",\r\ndep.\"Cod\" \"Cod_Dependencia\",\r\nou.\"Cod\" \"Cod_UO\"," +
                             "\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"Carrera\" \"Codigo_Carrera\",\r\nsv.\"DocumentNumber\" \"Documento_Base\"," +
                             "\r\nsv.\"Student\" \"Postulante\",\r\nsv.\"AssignedJob\" \"Tarea_Asignada\",\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
-                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
+                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
                             "from " +CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
@@ -1086,6 +1086,7 @@ namespace UcbBack.Controllers
                 }).ToList();
 
                 List<Serv_Voucher> dist1 = ppagar.Union(rest).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
+                Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process );
                 B1.addServVoucher(user.Id, dist1.ToList(), process);
             }
 

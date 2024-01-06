@@ -185,7 +185,7 @@ namespace UcbBack.Models.Serv
                         "  " +
                         " union all " +
                         " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
-                        " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                        " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\",  " +
                         " CASE WHEN cc.\"Indicator\"=\'D\' then sv.\"IT\" else 0 end as \"Debit\", " +
                         " CASE WHEN cc.\"Indicator\"=\'H\' then sv.\"IT\"else 0 end as \"Credit\" " +
                         " from "+CustomSchema.Schema+".\"Serv_Carrera\" sv " +
@@ -243,7 +243,7 @@ namespace UcbBack.Models.Serv
                         " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou " +
                         " on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                         " where gc.\"Id\">11 " +
-                        " and \"Concept\" = \'IUEExterior\' " +
+                        " and \"Concept\" = \'IUEEXT\' " +
                         " and \"Serv_ProcessId\" = " + this.Id;
                     break;
                 case ServProcess.Serv_FileType.Proyectos:

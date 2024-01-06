@@ -31,9 +31,9 @@ namespace UcbBack.Models.Serv
 
         public string AssignedAccount { get; set; }
         public Decimal ContractAmount { get; set; }
-        public Decimal IUE { get; set; }
-        public Decimal IT { get; set; }
-        public Decimal IUEExterior { get; set; }
+        public Decimal? IUE { get; set; }
+        public Decimal? IT { get; set; }
+        public Decimal? IUEExterior { get; set; }
         public Decimal TotalAmount { get; set; }
         public string Comments { get; set; }
 
