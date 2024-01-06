@@ -40,7 +40,7 @@ namespace UcbBack.Logic
     }
     public abstract class ValidateExcelFile
     {
-        private Excelcol[] columns { get; set; }
+        private Excelcol[] Columns { get; set; }
         //private DataTable data { get; set; }
         private string fileName { get; set; }
         private string resultfileName { get; set; }
@@ -56,7 +56,7 @@ namespace UcbBack.Logic
 
         public ValidateExcelFile(Excelcol[] columns, string fileName, int headerin = 1,ApplicationDbContext context=null)
         {
-            this.columns = columns;
+            Columns = columns;
             this.fileName = fileName;
             this.headerin = headerin;
             _context = context ?? new ApplicationDbContext();
@@ -66,7 +66,7 @@ namespace UcbBack.Logic
         public ValidateExcelFile(Excelcol[] columns, Stream data, string fileName, int headerin =1, int sheets = 1, string resultfileName = "Result", ApplicationDbContext context=null)
         {
             _context = context ?? new ApplicationDbContext();
-            this.columns = columns;
+            Columns = columns;
             this.fileName = fileName;
             this.resultfileName = resultfileName;
             this.sheets = sheets;
@@ -89,7 +89,7 @@ namespace UcbBack.Logic
         {
             var template = new XLWorkbook();
             IXLWorksheet ws =template.AddWorksheet(fileName.Replace(".xlsx",""));
-            var tittle = ws.Range(1, 1, 2, columns.Length);
+            var tittle = ws.Range(1, 1, 2, Columns.Length);
             tittle.Cell(1, 1).Value = fileName.Replace(".xlsx", "").ToUpper();//"Base de Datos Nacional de Capital Humano";
             tittle.Cell(1, 1).Style.Font.Bold = true;
             tittle.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent1);
@@ -97,10 +97,10 @@ namespace UcbBack.Logic
             tittle.Cell(1, 1).Style.Font.FontSize = 20;
             tittle.Cell(1, 1).Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
             tittle.Merge();
-            for (int i = 0; i < columns.Length; i++)
+            for (int i = 0; i < Columns.Length; i++)
             {
                 ws.Column(i + 1).Width=13;
-                ws.Cell(headerin, i + 1).Value = columns[i].headers;
+                ws.Cell(headerin, i + 1).Value = Columns[i].headers;
                 /*if(columns[i].typeofcol==typeof(double))
                     for (int j = headerin + 1; j < 1000; j++)
                     {
@@ -141,9 +141,9 @@ namespace UcbBack.Logic
                     addError("Archivo Sin Datos", "No se encontró datos en el archivo subido.");
                     return false;
                 }*/
-                if (UsedRange.ColumnCount() != columns.Length)
+                if (UsedRange.ColumnCount() != Columns.Length)
                 {
-                    addError("Cantidad de Columnas", "Se esperaba tener " + columns.Length + "columnas en la hoja: " + sheet.Name + " se encontró " + UsedRange.ColumnCount());
+                    addError("Cantidad de Columnas", "Se esperaba tener " + Columns.Length + "columnas en la hoja: " + sheet.Name + " se encontró " + UsedRange.ColumnCount());
                     res = false;
                 }
 
@@ -152,30 +152,30 @@ namespace UcbBack.Logic
                     addError("Archivo Sin Datos", "No se encontró datos en el archivo subido.");
                     res = false;
                 }
-                for (int i = 1; i <= columns.Length; i++)
+                for (int i = 1; i <= Columns.Length; i++)
                 {
                     var comp = String.Compare(
                         Regex.Replace(sheet.Cell(headerin, i).Value.ToString().Trim().ToUpper().Replace("_"," "), @"\t|\n|\r", " "),
-                        columns[i - 1].headers.Trim().ToUpper(), CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace);
+                        Columns[i - 1].headers.Trim().ToUpper(), CultureInfo.CurrentCulture, CompareOptions.IgnoreNonSpace);
                     if (comp!=0)
                     {
                         res = false;
-                        addError("Nombre de columna", "La columna " + i + "deberia llamarse: " + columns[i - 1].headers,false);
-                        paintXY(i, headerin, XLColor.Red, "Esta Columna deberia llamarse: " + columns[i - 1].headers);
+                        addError("Nombre de columna", "La columna " + i + "deberia llamarse: " + Columns[i - 1].headers,false);
+                        paintXY(i, headerin, XLColor.Red, "Esta Columna deberia llamarse: " + Columns[i - 1].headers);
                     }
                     bool tipocol = true;
-                    if (columns[i - 1].typeofcol != typeof(string))    
+                    if (Columns[i - 1].typeofcol != typeof(string))    
                     for (int j = headerin + 1; j < UsedRange.LastRow().RowNumber(); j++)
                     {
                         
-                        if (sheet.Cell(j, i).Value.GetType() != columns[i - 1].typeofcol)
+                        if (sheet.Cell(j, i).Value.GetType() != Columns[i - 1].typeofcol)
                         {
                             res = false;
                             var xx = sheet.Cell(j, i).Value;
-                            paintXY(i, j, XLColor.Red, "Esta Celda deberia ser tipo: " + columns[i - 1].typeofcol.Name);
+                            paintXY(i, j, XLColor.Red, "Esta Celda deberia ser tipo: " + Columns[i - 1].typeofcol.Name);
                             if (tipocol)
                             {
-                                addError("Tipo de valor de columna", "La columna " + i + " deberia ser tipo: " + columns[i - 1].typeofcol.Name, false);
+                                addError("Tipo de valor de columna", "La columna " + i + " deberia ser tipo: " + Columns[i - 1].typeofcol.Name, false);
                                 tipocol = false;
                             }
                         }
