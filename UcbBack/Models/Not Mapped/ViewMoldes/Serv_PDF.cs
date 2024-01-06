@@ -52,7 +52,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public Decimal IT { get; set; }
 
         [DisplayName("IUEExterior")]
-        public decimal IUEExterior { get; set; }
+        public Decimal? IUEExterior { get; set; }
 
         [DisplayName("Monto a Pagar")]
         public Decimal xPagar { get; set; }
