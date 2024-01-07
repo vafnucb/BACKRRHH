@@ -493,17 +493,22 @@ namespace UcbBack.Controllers
         [Route("api/ServContract/CheckUpload")]
         public IHttpActionResult CheckUpload([FromBody] JObject upload)
         {
+            Console.WriteLine("Datos recibidos en la solicitud POST:");
+            Console.WriteLine(upload);
+
             int branchid = 0;
             int processid = 0;
-            if (upload["FileType"] == null || upload["BranchesId"] == null || !Int32.TryParse(upload["BranchesId"].ToString(), out branchid) || upload["ProcessId"] == null)
-                return BadRequest("Debes enviar Tipo de Archivo y segmentoOrigen");
+            if (upload["FileType"] == null || upload["BranchesId"] == null || !Int32.TryParse(upload["BranchesId"].ToString(), out branchid) || upload["ProcessId"] == null || upload["TipoDocente"] == null)
+                return BadRequest("Debes enviar Tipo de Archivo, segmentoOrigen");
 
-
-
+      
             var FileType = upload["FileType"].ToString();
+            var TipoDocente = upload["TipoDocente"].ToString();
+
+            Console.WriteLine("TIPO DOCENTEEEEEEEEEEE:");
+            Console.WriteLine(TipoDocente);
 
             ServProcess process = null;
-
 
             if (Int32.TryParse(upload["ProcessId"].ToString(), out processid))
             {
@@ -515,17 +520,23 @@ namespace UcbBack.Controllers
                 process = _context.ServProcesses.FirstOrDefault(f => f.BranchesId == branchid
                                                                      && (f.State == ServProcess.Serv_FileState.Started)
                                                                      && f.FileType == FileType);
+
             }
             if (process == null)
                 return Ok();
 
             List<string> tipos = new List<string>();
             tipos.Add(FileType);
+            process.TipoDocente = TipoDocente;
 
+            // Actualiza solo la propiedad TipoDocente en la base de datos
+            _context.Entry(process).Property(x => x.TipoDocente).IsModified = true;
+            _context.SaveChanges();
             dynamic res = new JObject();
             res.array = JToken.FromObject(tipos);
             res.id = process.Id;
             res.state = process.State;
+            res.tipoDocente = process.TipoDocente;
             return Ok(res);
         }
 
