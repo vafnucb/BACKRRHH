@@ -506,9 +506,6 @@ namespace UcbBack.Controllers
             var FileType = upload["FileType"].ToString();
             var TipoDocente = upload["TipoDocente"].ToString();
 
-            Console.WriteLine("TIPO DOCENTEEEEEEEEEEE:");
-            Console.WriteLine(TipoDocente);
-
             ServProcess process = null;
 
             if (Int32.TryParse(upload["ProcessId"].ToString(), out processid))
