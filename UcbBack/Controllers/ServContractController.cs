@@ -227,6 +227,7 @@ namespace UcbBack.Controllers
                             r.FileType,
                             r.State,
                             r.SAPId,
+                            r.TipoDocente,
                             CreatedAt = r.CreatedAt.ToString("dd MMM yyyy")
                         }).ToList();
             return Ok(res2);
