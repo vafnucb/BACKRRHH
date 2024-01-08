@@ -1222,9 +1222,17 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
-            if (asesoria.Factura == false && (asesoria.IUE < 0 || asesoria.IT < 0 || asesoria.IUEExterior < 0))
+            if (asesoria.Origen.Equals("INDEP") && asesoria.Factura == false && asesoria.IUE <= 0 || asesoria.IT <= 0 && asesoria.TeacherFullName == null)
             {
-                return BadRequest("No se pueden ingresar datos con valores negativos");
+                return BadRequest("El IUE y el IT no pueden ser cero o negativo");
+            }
+            if (asesoria.Origen.Equals("DEPEN") && asesoria.Factura == false && asesoria.Deduccion < 0)
+            {
+                return BadRequest("La Deducción no puede ser negativa");
+            }           
+            if (asesoria.Origen.Equals("EXT") && asesoria.Factura == false && asesoria.IUEExterior <= 0)
+            {
+                return BadRequest("El IUEExterior no puede ser cero o negativo");
             }
             if (asesoria.Origen.Equals("DEPEN") && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherCUNI.ToUpper() == asesoria.TeacherCUNI.ToUpper()) != null))
             {
@@ -1232,6 +1240,10 @@ namespace UcbBack.Controllers
 
             }
             if (asesoria.Origen == "INDEP" && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherBP.ToUpper() == asesoria.TeacherBP.ToUpper()) != null))
+            {
+                return BadRequest("La combinación de docente y estudiante ya existe en la BD");
+            }
+            if (asesoria.Origen == "EXT" && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherBP.ToUpper() == asesoria.TeacherBP.ToUpper()) != null))
             {
                 return BadRequest("La combinación de docente y estudiante ya existe en la BD");
             }
@@ -1284,6 +1296,14 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("No existe el registro correspondiente");
             }
+            if ((asesoria.Origen.Equals("DEPEN") || asesoria.Origen.Equals("OR")) && !_context.Person.ToList().Any(x => x.CUNI == asesoria.TeacherCUNI))
+            {
+                return BadRequest("La persona no existe en BD");
+            }
+            if (asesoria.Origen.Equals("INDEP") && !_context.Civils.ToList().Any(x => x.SAPId == asesoria.TeacherBP))
+            {
+                return BadRequest("La persona no existe en BD Civil");
+            }
             if (!careerList.Exists(x => x.cod == asesoria.Carrera))
             {
                 return BadRequest("La carrera no existe en SAP, al menos para esa regional");
@@ -1292,9 +1312,21 @@ namespace UcbBack.Controllers
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos");
             }
-            if (asesoria.Factura == false && (asesoria.IUE < 0 || asesoria.IT < 0 || asesoria.IUEExterior < 0))
+            //if (asesoria.Factura == false && (asesoria.IUE <= 0 || asesoria.IT <= 0 || asesoria.IUEExterior <= 0))
+            //{
+            //    return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
+            //}
+            if (asesoria.Origen.Equals("INDEP") && asesoria.Factura == false && asesoria.IUE <= 0 || asesoria.IT <= 0 && asesoria.TeacherFullName == null)
             {
-                return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
+                return BadRequest("El IUE y el IT no pueden ser cero o negativo");
+            }
+            if (asesoria.Origen.Equals("DEPEN") && asesoria.Factura == false && asesoria.Deduccion < 0)
+            {
+                return BadRequest("La Deducción no puede ser negativa");
+            }
+            if (asesoria.Origen.Equals("EXT") && asesoria.Factura == false && asesoria.IUEExterior <= 0)
+            {
+                return BadRequest("El IUEExterior no puede ser cero o negativo");
             }
             if (asesoria.Origen.Equals("DEPEN") && asesoria.Ignore == false && (_context.AsesoriaDocente.FirstOrDefault(x => x.Id != id && x.StudentFullName.ToUpper() == asesoria.StudentFullName.ToUpper() && x.TeacherCUNI.ToUpper() == asesoria.TeacherCUNI.ToUpper()) != null))
             {
@@ -1311,50 +1343,52 @@ namespace UcbBack.Controllers
             }
             else
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest("Datos inválidos para el registro");
-                }
+                //if (!ModelState.IsValid)
+                //{
+                //    var errors = ModelState.Values.SelectMany(v => v.Errors);
+                //    // Log o inspecciona los errores para identificar el problema específico.
+                //    return BadRequest("Datos inválidos para el registro");
+                //}
                 var thisAsesoria = _context.AsesoriaDocente.FirstOrDefault(x => x.Id == id);
                 bool origenCambiado = thisAsesoria.Origen != asesoria.Origen;
                 //Temporalidad
                 thisAsesoria.Mes = asesoria.Mes;
                 thisAsesoria.Gestion = asesoria.Gestion;
 
-                if (origenCambiado)
-                {
-                    // Reiniciar campos específicos que no son relevantes para el nuevo origen
-                    thisAsesoria.IUE = 0;
-                    thisAsesoria.IT = 0;
-                    thisAsesoria.IUEExterior = 0;
-                    thisAsesoria.Deduccion = 0;
+                //if (origenCambiado)
+                //{
+                //    // Reiniciar campos específicos que no son relevantes para el nuevo origen
+                //    thisAsesoria.IUE = 0;
+                //    thisAsesoria.IT = 0;
+                //    thisAsesoria.IUEExterior = 0;
+                //    thisAsesoria.Deduccion = 0;
 
-                    switch (asesoria.Origen)
-                    {
-                        case "DEPEN":
-                            // Reiniciar campos específicos para DEPEN
-                            thisAsesoria.IUE = 0;
-                            thisAsesoria.IT = 0;
-                            thisAsesoria.IUEExterior = 0;
-                            thisAsesoria.Deduccion = asesoria.Deduccion;
-                            break;
-                        case "INDEP":
-                            // Reiniciar campos específicos para INDEP
-                            thisAsesoria.IUEExterior = 0;
-                            thisAsesoria.Deduccion = 0;
-                            thisAsesoria.IUE = asesoria.IUE;
-                            thisAsesoria.IT = asesoria.IT;
-                            break;
-                        case "EXT":
-                            // Reiniciar campos específicos para EXT
-                            thisAsesoria.IUE = 0;
-                            thisAsesoria.IT = 0;
-                            thisAsesoria.Deduccion = 0;
-                            thisAsesoria.IUEExterior = asesoria.IUEExterior;
-                            break;
-                            // Añade más casos según los posibles orígenes
-                    }
-                }
+                //    switch (asesoria.Origen)
+                //    {
+                //        case "DEPEN":
+                //            // Reiniciar campos específicos para DEPEN
+                //            thisAsesoria.IUE = 0;
+                //            thisAsesoria.IT = 0;
+                //            thisAsesoria.IUEExterior = 0;
+                //            thisAsesoria.Deduccion = asesoria.Deduccion;
+                //            break;
+                //        case "INDEP":
+                //            // Reiniciar campos específicos para INDEP
+                //            thisAsesoria.IUEExterior = 0;
+                //            thisAsesoria.Deduccion = 0;
+                //            thisAsesoria.IUE = asesoria.IUE;
+                //            thisAsesoria.IT = asesoria.IT;
+                //            break;
+                //        case "EXT":
+                //            // Reiniciar campos específicos para EXT
+                //            thisAsesoria.IUE = 0;
+                //            thisAsesoria.IT = 0;
+                //            thisAsesoria.Deduccion = 0;
+                //            thisAsesoria.IUEExterior = asesoria.IUEExterior;
+                //            break;
+                //            // Añade más casos según los posibles orígenes
+                //    }
+                //}
                 //Carrera y Dep
                 thisAsesoria.DependencyCod = asesoria.DependencyCod;
                 thisAsesoria.Carrera = asesoria.Carrera;
@@ -1377,11 +1411,11 @@ namespace UcbBack.Controllers
                 thisAsesoria.MontoHora = asesoria.MontoHora;
                 thisAsesoria.TotalBruto = asesoria.TotalBruto;
                 thisAsesoria.TotalNeto = asesoria.TotalNeto;
-                // thisAsesoria.Deduccion = asesoria.Deduccion;
+                thisAsesoria.Deduccion = asesoria.Deduccion;
                 thisAsesoria.Observaciones = asesoria.Observaciones;
-                // thisAsesoria.IUE = asesoria.IUE;
-                // thisAsesoria.IT = asesoria.IT;
-                // thisAsesoria.IUEExterior = asesoria.IUEExterior;
+                thisAsesoria.IUE = asesoria.IUE;
+                thisAsesoria.IT = asesoria.IT;
+                thisAsesoria.IUEExterior = asesoria.IUEExterior;
                 //Del Acta
                 thisAsesoria.Acta = asesoria.Acta;
                 thisAsesoria.ActaFecha = asesoria.ActaFecha;

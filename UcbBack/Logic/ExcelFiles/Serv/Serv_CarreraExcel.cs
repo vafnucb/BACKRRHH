@@ -150,12 +150,38 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 }
                 //Verifica que el comentario solo tenga 300 caracteres
                 bool v12 = VerifyLength(15, 300);
-                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v10 && v11 && v9 && v12;
+                bool v20 = verifyTipoDocente();
+                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v10 && v11 && v9 && v12 && v20;
             }
 
             return false;
         }
+        private bool verifyTipoDocente()
+        {
+            bool res = true;
+            int sheet = 1;
 
+            IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
+            for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
+            {
+                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 12).Value.ToString()), 2);
+                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
+
+                if (IUEExterior > 0 && process.TipoDocente == "INDEP")
+                {
+                    res = false;
+                    addError("Error de archivo", "Subió un archivo de extranjero como tipo de docente independiente");
+                }
+                if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
+                {
+                    res = false;
+                    addError("Error de archivo", "Subió un archivo de independiente como tipo de docente extranjero");
+                }
+                return res;
+            }
+            return res;
+        }
         private bool VerifyTotal()
         {
             bool res = true;
