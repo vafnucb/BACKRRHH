@@ -745,7 +745,7 @@ namespace UcbBack.Controllers
                 }
             }
         }
-        //para generar el archivo PROYECTOS de SARAI
+        // para generar el archivo PROYECTOS de SARAI
         [HttpGet]
         [Route("api/ToProyectosFile")]
         public HttpResponseMessage ToCarreraFile([FromUri] string data)
@@ -801,7 +801,7 @@ namespace UcbBack.Controllers
                 string[] header = new string[]{"Codigo_Socio", "Nombre_Socio", "Cod_Dependencia",
                                             "PEI_PO", "Nombre_del_Servicio", "Codigo_Proyecto_SAP", "Nombre_del_Proyecto", "Versión", "Periodo_Académico",
                                             "Tipo_Tarea_Asignada", "Cuenta_Asignada",
-                                            "Monto_Contrato","Monto_IUE","Monto_IT","Monto_a_Pagar", "Observaciones"};
+                                            "Monto_Contrato","Monto_IUE","Monto_IT", "IUEExterior", "Monto_a_Pagar", "Observaciones"};
                 var workbook = new XLWorkbook();
 
                 //Se agrega la hoja de excel
@@ -864,6 +864,137 @@ namespace UcbBack.Controllers
                 }
 
                 _context.SaveChanges();
+
+                return response;
+            }
+        }
+
+        // para generar el archivo PROYECTOS de SARAI
+        [HttpGet]
+        [Route("api/ProyectosExt")]
+        public HttpResponseMessage ProyectosExt([FromUri] string data)
+        {
+            string[] info = data.Split(';');
+            int segmentoId = Convert.ToInt16(info[0]);
+            string segmento = _context.Branch.FirstOrDefault(x => x.Id == segmentoId).Abr;
+            // el mes y la gestion son necesarios para guardar el registro histórico ISAAC
+            string mes = (info[1]);
+            string gestion = info[2];
+            string proy = info[3];
+            var user = auth.getUser(Request);
+            //El query genera el archivo PREGRADO de SALOMON en base a los datos de las tutorías PRE-APROBADAS
+            var auxDates = _context.Database.SqlQuery<Serv_ProyectosViewModel>("select * from " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj where \"PrjCode\" = '" + proy + "' and current_date between \"ValidFrom\" and \"ValidTo\"").ToList();
+            if (auxDates.Count < 1)
+            {
+                HttpResponseMessage response =
+                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                response.Content = new StringContent("No se puede generar el archivo porque el proyecto no tiene una fecha valida.");
+                response.RequestMessage = Request;
+                return response;
+            }
+            else
+            {
+                string query =
+                "select a.\"TeacherBP\" as \"Codigo_Socio\", case when fn.\"FullName\" is null then cr.\"CardName\" when cr.\"CardName\" is null then fn.\"FullName\" end as \"Nombre_Socio\", " +
+                "\r\na.\"DependencyCod\" as \"Cod_Dependencia\", o.\"U_PEI_PO\" as \"PEI_PO\", \r\nprj.\"NameModule\" \"Nombre_del_Servicio\", \r\no.\"PrjCode\" \"Código_Proyecto_SAP\"," +
+                "\r\n\r\ncase \r\nwhen a.\"Modulo\" = '0' then substring(concat ('', concat (concat(substring(a.\"StudentFullName\",1,20), ' '),  substring(prj.\"NameModule\",1,20))),1,40)\r\nelse substring(concat ('', concat (concat(a.\"Modulo\", ' '), concat ('', prj.\"NameModule\"))),1,40)\r\nend as \"Nombre_del_Proyecto\",\r\n'' \"Versión\", '' \"PeriodoAcadémico\", " +
+                "t.\"Abr\" as \"Tipo_Tarea_Asignada\", \r\ncase when o.\"U_Tipo\" = 'E' then 'CC_EC'\r\nwhen o.\"U_Tipo\" = 'F' then 'CC_FC'\r\nwhen o.\"U_Tipo\" = 'P' then 'CC_POST'" +
+                "\r\nwhen o.\"U_Tipo\" = 'S' then 'CC_SA'\r\nwhen o.\"U_Tipo\" = 'V' then 'CC_INV'\r\nelse '' end as  \"Cuenta_Asignada\",\r\na.\"TotalBruto\" as \"Monto_Contrato\", " +
+                "a.\"IUE\" as \"Monto_IUE\", a.\"IT\" as \"Monto_IT\", a.\"IUEExterior\" as \"IUEExterior\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  \r\na.\"Observaciones\" " +
+                "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
+                " \r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" prj on prj.\"CodProject\" = a.\"Proyecto\" and prj.\"CodModule\" = '0'" +
+                "\r\ninner join " + CustomSchema.Schema + ".\"Civil\" c " +
+                "\r\non a.\"TeacherBP\"=c.\"SAPId\" " +
+                "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
+                "\r\non a.\"TipoTareaId\"=t.\"Id\" " +
+                "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br " +
+                "\r\non a.\"BranchesId\"=br.\"Id\" " +
+                "\r\ninner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
+                "\r\non a.\"Proyecto\"=o.\"PrjCode\" " +
+                "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\"  " +
+                "\r\nleft join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" cr\r\non a.\"TeacherBP\"=cr.\"CardCode\"  " +
+                "\r\nwhere \r\n   a.\"Estado\"='PRE-APROBADO' " +
+                "\r\nand br.\"Abr\" ='" + segmento + "' " +
+                "\r\n   and a.\"Origen\"='EXT' " +
+                "\r\n   and a.\"Proyecto\"='" + proy + "' " +
+                "\r\norder by a.\"Id\" asc;";
+
+                var excelContent = _context.Database.SqlQuery<Serv_ProyectosViewModel>(query).ToList();
+
+                //Para las columnas del excel
+                string[] header = new string[]{"Codigo_Socio", "Nombre_Socio", "Cod_Dependencia",
+                                            "PEI_PO", "Nombre_del_Servicio", "Codigo_Proyecto_SAP", "Nombre_del_Proyecto", "Versión", "Periodo_Académico",
+                                            "Tipo_Tarea_Asignada", "Cuenta_Asignada",
+                                            "Monto_Contrato","Monto_IUE","Monto_IT", "IUEExterior", "Monto_a_Pagar", "Observaciones"};
+                var workbook = new XLWorkbook();
+
+                //Se agrega la hoja de excel
+                var ws = workbook.Worksheets.Add("Plantilla_PROYECTOS");
+
+                // Rango hoja excel
+                //1,1: es la posicion inicial; 2,header.Length: es el alto y el ancho
+                // var rngTable = ws.Range(1, 1, 2, header.Length);
+
+                //Bordes para las columnas
+                var columns = ws.Range(2, 1, excelContent.Count + 1, header.Length);
+                columns.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                columns.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+                //auxiliar: desde qué línea ponemos los nombres de columna
+                var headerPos = 1;
+
+                //Ciclo para asignar los nombres a las columnas y darles formato
+                //for (int i = 0; i < header.Length; i++)
+                //{
+                //    ws.Cell(headerPos, i + 1).Value = header[i];
+                //    ws.Cell(headerPos, i + 1).Style.Font.Bold = true;
+                //    ws.Cell(headerPos, i + 1).Style.Font.FontColor = XLColor.White;
+                //    ws.Cell(headerPos, i + 1).Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent1);
+                //}
+
+                ////Aquí hago el attachment del query a mi hoja de de excel
+                //ws.Cell(2, 1).Value = excelContent.AsEnumerable();
+
+                ////Ajustar contenidos
+                //ws.Columns().AdjustToContents();
+
+                ws.Cell(headerPos, 1).InsertTable(excelContent.AsEnumerable(), "Table");
+
+                // Ajustar contenidos después de insertar la tabla
+                ws.Tables.Table(0).ShowAutoFilter = false; // Puedes ajustar esto según tus necesidades
+                ws.Tables.Table(0).Theme = XLTableTheme.TableStyleLight1;
+                ws.Columns().AdjustToContents();
+
+                //Carga el objeto de la respuesta
+                HttpResponseMessage response = new HttpResponseMessage();
+
+                //Array de bytes
+                var ms = new MemoryStream();
+                workbook.SaveAs(ms);
+                response.StatusCode = HttpStatusCode.OK;
+                response.Content = new StreamContent(ms);
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+                response.Content.Headers.ContentDisposition.FileName = segmento + "-CC_PROYECTOS.xlsx";
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                response.Content.Headers.ContentLength = ms.Length;
+                //La posicion para el comienzo del stream
+                ms.Seek(0, SeekOrigin.Begin);
+
+                ////-----------------------------------------------------Cambios en PRE-APROBADOS EXT ---------------------------------------------------------------------
+                ////Actualizar con la fecha a los registros pre-aprobados
+                //var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
+                //var docentesPorAprobar = _context.AsesoriaPostgrado.Where(x => x.Origen.Equals("EXT") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId && x.Proyecto == proy).ToList();
+                ////Se sobrescriben los registros con la fecha actual y el nuevo estado
+                //foreach (var docente in docentesPorAprobar)
+                //{
+                //    docente.Mes = Convert.ToInt16(mes);
+                //    docente.Gestion = Convert.ToInt16(gestion);
+                //    docente.Estado = "APROBADO";
+                //    docente.ToAuthAt = DateTime.Now;
+                //    docente.UserAuth = user.Id;
+                //}
+
+                //_context.SaveChanges();
 
                 return response;
             }
