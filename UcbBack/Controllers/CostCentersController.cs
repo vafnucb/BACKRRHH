@@ -37,12 +37,20 @@ namespace UcbBack.Controllers
             var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
                 .Where(item =>
                 {
+                    string validToString = item["ValidTo"].ToString();
                     DateTime validToDate;
-                    return DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate)
-                           && validToDate > currentDate;
+
+                    if (!string.IsNullOrWhiteSpace(validToString) &&
+                        DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                    {
+                        return validToDate > currentDate;
+                    }
+
+            // Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
+            return false;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
-                .ToList(); // Convierte la lista a una lista de objetos anónimos
+                .ToList();
 
             var y = costCenters.Select(item =>
             {
@@ -59,6 +67,7 @@ namespace UcbBack.Controllers
 
             return Ok(y);
         }
+
 
 
 
