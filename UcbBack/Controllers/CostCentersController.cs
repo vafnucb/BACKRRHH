@@ -49,7 +49,8 @@ namespace UcbBack.Controllers
                             string validToString = (string)validToValue;
 
                     // Intentar convertir la cadena de fecha a DateTime
-                    if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                    DateTime validToDate;
+                            if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
                             {
                         // Comparar las fechas convertidas
                         return validToDate > currentDate;
@@ -70,6 +71,7 @@ namespace UcbBack.Controllers
                 return InternalServerError(ex);
             }
         }
+
 
 
 
