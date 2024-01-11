@@ -35,6 +35,12 @@ namespace UcbBack.Controllers
             DateTime currentDate = DateTime.Now;
 
             var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                .Where(item =>
+                {
+                    DateTime validToDate;
+                    return DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate)
+                           && validToDate > currentDate;
+                })
                 .OrderBy(item => item["PrcName"].ToString())
                 .ToList(); // Convierte la lista a una lista de diccionarios
 
@@ -53,6 +59,7 @@ namespace UcbBack.Controllers
 
             return Ok(y);
         }
+
 
 
 
