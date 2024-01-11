@@ -42,27 +42,28 @@ namespace UcbBack.Controllers
                 .Select(entry => new
                 {
                     PrcName = entry.PrcName,
-            // Agregar otras propiedades según sea necesario
+                    ValidTo = entry.ValidTo?.ToString("yyyy-MM-dd HH:mm:ss"), // Convertir fecha a string
+                                                                              // Agregar otras propiedades según sea necesario
         })
                 .ToList(); // Convertir a lista antes de devolver
 
             return Ok(result);
         }
 
-        private bool IsValidDate(dynamic validTo, DateTime currentDate)
+        private bool IsValidDate(string validTo, DateTime currentDate)
         {
-            // Implementa la lógica para verificar si la fecha es válida
-            // Puedes utilizar TryParseExact u otras lógicas de acuerdo a tus necesidades
-            // Devuelve true si la fecha es válida, false si no lo es
-            // Aquí tienes un ejemplo básico:
-
-            if (DateTime.TryParseExact(validTo.ToString(), "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+            // Intentar convertir la cadena validTo a un objeto DateTime
+            if (DateTime.TryParseExact(validTo, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
             {
+                // Si la conversión fue exitosa, verificar si la fecha es mayor que la fecha actual
                 return validToDate > currentDate;
             }
 
+            // Si la conversión falla, ocurrirá si validTo no es una cadena válida para la fecha
+            // Devolver false en este caso
             return false;
         }
+
 
 
 
