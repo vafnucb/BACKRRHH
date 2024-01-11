@@ -43,26 +43,41 @@ namespace UcbBack.Controllers
                     {
                         DateTime validToDate;
 
-                // Intentar convertir con varios formatos y culturas
-                string[] dateFormats = { "dd/MM/yyyy hh:mm:ss tt", "dd/MM/yyyy hh:mm:ss a. m.", "dd/MM/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss a. m." };
-
-                        if (DateTime.TryParseExact(validToString, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                        if (TryParseDateTime(validToString, out validToDate))
                         {
                             return validToDate > currentDate;
                         }
 
-                // Si todos los intentos de conversión fallan, manejar el caso de error
-                throw new InvalidOperationException(String.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+                        // Si todos los intentos de conversión fallan, manejar el caso de error
+                        throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+
                     }
 
-            // Manejar el caso en que la cadena de fecha es vacía
-            return false;
+                    // Manejar el caso en que la cadena de fecha es vacía
+                    return false;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
                 .Cast<JObject>();
 
             return Ok(y);
         }
+
+        private bool TryParseDateTime(string dateString, out DateTime result)
+        {
+            string[] dateFormats = { "dd/MM/yyyy hh:mm:ss tt", "dd/MM/yyyy hh:mm:ss a. m.", "dd/MM/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss a. m." };
+
+            foreach (var format in dateFormats)
+            {
+                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
+                {
+                    return true;
+                }
+            }
+
+            result = DateTime.MinValue;
+            return false;
+        }
+
 
 
 
