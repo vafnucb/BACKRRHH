@@ -63,40 +63,40 @@ namespace UcbBack.Controllers
         //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
         //    return Ok(y);
         //}
-        [HttpGet]
-        [Route("api/CostCenters/PEI")]
-        public IHttpActionResult PEI()
-        {
-            DateTime currentDate = DateTime.Now;
+        //[HttpGet]
+        //[Route("api/CostCenters/PEI")]
+        //public IHttpActionResult PEI()
+        //{
+        //    DateTime currentDate = DateTime.Now;
 
-            var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-                         .Where(item =>
-                         {
-                             string validToString = item["ValidTo"].ToString();
+        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+        //                 .Where(item =>
+        //                 {
+        //                     string validToString = item["ValidTo"].ToString();
 
-                             if (!string.IsNullOrWhiteSpace(validToString))
-                             {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-                                 {
-                                     return validToDate > currentDate;
-                                 }
-                                 else
-                                 {
-                                     // Manejar el caso en que la conversión de fecha falla
-                                     throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
-                                 }
-                             }
-                             else
-                             {
-                         // Manejar el caso en que la cadena de fecha es vacía
-                         return false;
-                             }
-                         })
-                         .OrderBy(item => item["PrcName"].ToString())
-                         .Cast<JObject>();
+        //                     if (!string.IsNullOrWhiteSpace(validToString))
+        //                     {
+        //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+        //                         {
+        //                             return validToDate > currentDate;
+        //                         }
+        //                         else
+        //                         {
+        //                             // Manejar el caso en que la conversión de fecha falla
+        //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+        //                         }
+        //                     }
+        //                     else
+        //                     {
+        //                 // Manejar el caso en que la cadena de fecha es vacía
+        //                 return false;
+        //                     }
+        //                 })
+        //                 .OrderBy(item => item["PrcName"].ToString())
+        //                 .Cast<JObject>();
 
-            return Ok(y);
-        }
+        //    return Ok(y);
+        //}
 
         [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
