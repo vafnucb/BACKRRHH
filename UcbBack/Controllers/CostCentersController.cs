@@ -37,14 +37,19 @@ namespace UcbBack.Controllers
 
             // Consulta a la base de datos con ordenación y filtración
             var result = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                // .Where(entry => entry.ValidTo > currentDate) // Filtrar por ValidTo mayor que la fecha actual
+                .Where(entry => DateTime.ParseExact(entry.ValidTo, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture) > currentDate)
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .Select(entry => new
+                {
+                    PrcName = entry.PrcName,
+                    ValidTo = DateTime.ParseExact(entry.ValidTo, "dd/MM/yyyy", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"), // Solo la fecha
+                                                                                                                                     // Agregar otras propiedades según sea necesario
+        })
                 .Cast<JObject>();
 
             return Ok(result);
         }
 
-    
 
 
 
@@ -62,49 +67,51 @@ namespace UcbBack.Controllers
 
 
 
-    //[HttpGet]
-    //[Route("api/CostCenters/PEI")]
-    //public IHttpActionResult PEI()
-    //{
-    //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
-    //    return Ok(y);
-    //}
-    //[HttpGet]
-    //[Route("api/CostCenters/PEI")]
-    //public IHttpActionResult PEI()
-    //{
-    //    DateTime currentDate = DateTime.Now;
 
-    //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-    //                 .Where(item =>
-    //                 {
-    //                     string validToString = item["ValidTo"].ToString();
 
-    //                     if (!string.IsNullOrWhiteSpace(validToString))
-    //                     {
-    //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-    //                         {
-    //                             return validToDate > currentDate;
-    //                         }
-    //                         else
-    //                         {
-    //                             // Manejar el caso en que la conversión de fecha falla
-    //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
-    //                         }
-    //                     }
-    //                     else
-    //                     {
-    //                 // Manejar el caso en que la cadena de fecha es vacía
-    //                 return false;
-    //                     }
-    //                 })
-    //                 .OrderBy(item => item["PrcName"].ToString())
-    //                 .Cast<JObject>();
+        //[HttpGet]
+        //[Route("api/CostCenters/PEI")]
+        //public IHttpActionResult PEI()
+        //{
+        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
+        //    return Ok(y);
+        //}
+        //[HttpGet]
+        //[Route("api/CostCenters/PEI")]
+        //public IHttpActionResult PEI()
+        //{
+        //    DateTime currentDate = DateTime.Now;
 
-    //    return Ok(y);
-    //}
+        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+        //                 .Where(item =>
+        //                 {
+        //                     string validToString = item["ValidTo"].ToString();
 
-    [HttpGet]
+        //                     if (!string.IsNullOrWhiteSpace(validToString))
+        //                     {
+        //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+        //                         {
+        //                             return validToDate > currentDate;
+        //                         }
+        //                         else
+        //                         {
+        //                             // Manejar el caso en que la conversión de fecha falla
+        //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+        //                         }
+        //                     }
+        //                     else
+        //                     {
+        //                 // Manejar el caso en que la cadena de fecha es vacía
+        //                 return false;
+        //                     }
+        //                 })
+        //                 .OrderBy(item => item["PrcName"].ToString())
+        //                 .Cast<JObject>();
+
+        //    return Ok(y);
+        //}
+
+        [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
         public IHttpActionResult PlanDeEstudios()
         {
