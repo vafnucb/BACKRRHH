@@ -34,21 +34,22 @@ namespace UcbBack.Controllers
         {
             DateTime currentDate = DateTime.Now;
 
-            var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-            //    .Where(item =>
-            //    {
-            //        DateTime validToDate;
-
-            //        if (DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
-            //        {
-            //            return validToDate > currentDate;
-            //        }
-
-            //// Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
-            //return false;
-            //    })
+            var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
                 .OrderBy(item => item["PrcName"].ToString())
-                .Cast<JObject>();
+                .ToList(); // Convierte la lista a una lista de diccionarios
+
+            var y = costCenters.Select(item =>
+            {
+                // Crear un nuevo diccionario con las propiedades necesarias
+                return new Dictionary<string, object>
+        {
+            { "PrcCode", item["PrcCode"].ToString() },
+            { "PrcName", item["PrcName"].ToString() },
+            { "ValidFrom", item["ValidFrom"].ToString() },
+            { "ValidTo", item["ValidTo"].ToString() },
+            { "U_TipoUnidadO", item["U_TipoUnidadO"].ToString() },
+        };
+            });
 
             return Ok(y);
         }
