@@ -55,12 +55,13 @@ namespace UcbBack.Controllers
                             return validToDate > currentDate;
                         }
 
-                // Si ambos intentos de conversión fallan, manejar el caso de error
-                throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                        // Si ambos intentos de conversión fallan, manejar el caso de error
+                    throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
+
                     }
 
-            // Manejar el caso en que la cadena de fecha es vacía
-            return false;
+                    // Manejar el caso en que la cadena de fecha es vacía
+                    return false;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
                 .Cast<JObject>();
