@@ -41,7 +41,7 @@ namespace UcbBack.Controllers
 
                              if (!string.IsNullOrWhiteSpace(validToString))
                              {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
                                  {
                                      return validToDate > currentDate;
                                  }
@@ -85,7 +85,7 @@ namespace UcbBack.Controllers
 
                              if (!string.IsNullOrWhiteSpace(validToString))
                              {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
                                  {
                                      return validToDate > currentDate;
                                  }
