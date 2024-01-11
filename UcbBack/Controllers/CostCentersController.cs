@@ -32,41 +32,38 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/OrganizationalUnits")]
         public IHttpActionResult OrganizationalUnits()
         {
-            DateTime currentDate = DateTime.Now;
-
-            var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                .Where(item =>
-                {
-                    string validToString = item["ValidTo"].ToString();
-                    DateTime validToDate;
-
-                    if (!string.IsNullOrWhiteSpace(validToString) &&
-                        DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
-                    {
-                        return validToDate > currentDate;
-                    }
-
-            // Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
-            return false;
-                })
-                .OrderBy(item => item["PrcName"].ToString())
-                .ToList();
-
-            var y = costCenters.Select(item =>
+            try
             {
-                // Crear un nuevo objeto anónimo con las propiedades necesarias
-                return new
-                {
-                    PrcCode = item["PrcCode"].ToString(),
-                    PrcName = item["PrcName"].ToString(),
-                    ValidFrom = item["ValidFrom"].ToString(),
-                    ValidTo = item["ValidTo"].ToString(),
-                    U_TipoUnidadO = item["U_TipoUnidadO"].ToString(),
-                };
-            });
+                DateTime currentDate = DateTime.Now;
 
-            return Ok(y);
+                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                    .Where(item =>
+                    {
+                        object validToValue;
+
+                        if (item.TryGetValue("ValidTo", out validToValue) && validToValue is DateTime)
+                        {
+                            DateTime validToDate = (DateTime)validToValue;
+                            return validToDate > currentDate;
+                        }
+
+                // Si no se puede obtener la fecha, también puedes tratar este caso como fechas mayores a la actual
+                return false;
+                    })
+                    .OrderBy(item => item["PrcName"].ToString())
+                    .ToList();
+
+                return Ok(costCenters);
+            }
+            catch (Exception ex)
+            {
+                // Registrar la excepción para análisis posterior
+                Console.WriteLine("Error en la función OrganizationalUnits:", ex.Message);
+                return InternalServerError(ex);
+            }
         }
+
+
 
 
 
