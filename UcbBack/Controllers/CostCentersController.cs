@@ -54,18 +54,11 @@ namespace UcbBack.Controllers
                     }
                 })
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
-                .Select(entry => new
-                {
-                    PrcCode = entry.PrcCode,
-                    PrcName = entry.PrcName,
-                    ValidFrom = entry.ValidFrom,
-                    ValidTo = entry.ValidTo, // Mantener la fecha como cadena 
-                    U_TipoUnidadO = entry.U_TipoUnidadO
-                })
                 .ToList(); // Convertir a lista antes de devolver
 
             return Ok(result);
         }
+
 
 
 
