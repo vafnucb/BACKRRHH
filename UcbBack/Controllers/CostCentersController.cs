@@ -35,31 +35,35 @@ namespace UcbBack.Controllers
             DateTime currentDate = DateTime.Now;
 
             var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                         .Where(item =>
-                         {
-                             string validToString = item["ValidTo"].ToString();
+                .Where(item =>
+                {
+                    string validToString = item["ValidTo"].ToString();
 
-                             if (!string.IsNullOrWhiteSpace(validToString))
-                             {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-                                 {
-                                     return validToDate > currentDate;
-                                 }
-                                 else
-                                 {
-                                     // Manejar el caso en que la conversión de fecha falla
-                                     throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
+                    if (!string.IsNullOrWhiteSpace(validToString))
+                    {
+                        DateTime validToDate;
 
-                                 }
-                             }
-                             else
-                             {
-                         // Manejar el caso en que la cadena de fecha es vacía
-                         return false;
-                             }
-                         })
-                         .OrderBy(item => item["PrcName"].ToString())
-                         .Cast<JObject>();
+                // Intentar convertir con el formato "dd/MM/yyyy hh:mm:ss tt"
+                if (DateTime.TryParseExact(validToString, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                        {
+                            return validToDate > currentDate;
+                        }
+
+                // Si falla, intentar convertir con el formato "dd/MM/yyyy hh:mm:ss a. m."
+                if (DateTime.TryParseExact(validToString, "dd/MM/yyyy hh:mm:ss a. m.", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                        {
+                            return validToDate > currentDate;
+                        }
+
+                // Si ambos intentos de conversión fallan, manejar el caso de error
+                throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                    }
+
+            // Manejar el caso en que la cadena de fecha es vacía
+            return false;
+                })
+                .OrderBy(item => item["PrcName"].ToString())
+                .Cast<JObject>();
 
             return Ok(y);
         }
