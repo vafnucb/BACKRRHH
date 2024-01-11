@@ -35,18 +35,18 @@ namespace UcbBack.Controllers
             DateTime currentDate = DateTime.Now;
 
             var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                .Where(item =>
-                {
-                    DateTime validToDate;
+            //    .Where(item =>
+            //    {
+            //        DateTime validToDate;
 
-                    if (DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
-                    {
-                        return validToDate > currentDate;
-                    }
+            //        if (DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+            //        {
+            //            return validToDate > currentDate;
+            //        }
 
-            // Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
-            return false;
-                })
+            //// Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
+            //return false;
+            //    })
                 .OrderBy(item => item["PrcName"].ToString())
                 .Cast<JObject>();
 
