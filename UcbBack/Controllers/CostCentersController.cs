@@ -42,8 +42,8 @@ namespace UcbBack.Controllers
                 var validCostCenters = costCenters
                     .Where(item =>
                     {
-                        object validToValue;
-
+                // Obtener el valor directamente usando la notación de índice
+                object validToValue;
                         if (item.TryGetValue("ValidTo", out validToValue) && validToValue is string)
                         {
                             string validToString = (string)validToValue;
@@ -63,10 +63,11 @@ namespace UcbBack.Controllers
             catch (Exception ex)
             {
                 // Registrar la excepción para análisis posterior
-                Console.WriteLine("Error en la función OrganizationalUnits:" ,ex.Message);
+                Console.WriteLine($"Error en la función OrganizationalUnits:",ex.Message);
                 return InternalServerError(ex);
             }
         }
+
 
 
 
