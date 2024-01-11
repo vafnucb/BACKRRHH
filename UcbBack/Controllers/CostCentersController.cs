@@ -63,7 +63,7 @@ namespace UcbBack.Controllers
             catch (Exception ex)
             {
                 // Registrar la excepción para análisis posterior
-                Console.WriteLine($"Error en la función OrganizationalUnits:" ,ex.Message);
+                Console.WriteLine("Error en la función OrganizationalUnits:" ,ex.Message);
                 return InternalServerError(ex);
             }
         }
