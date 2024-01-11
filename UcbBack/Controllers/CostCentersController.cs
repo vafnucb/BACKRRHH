@@ -47,8 +47,9 @@ namespace UcbBack.Controllers
                                  }
                                  else
                                  {
-                             // Manejar el caso en que la conversión de fecha falla
-                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                                     // Manejar el caso en que la conversión de fecha falla
+                                     throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
+
                                  }
                              }
                              else
@@ -91,8 +92,9 @@ namespace UcbBack.Controllers
                                  }
                                  else
                                  {
-                             // Manejar el caso en que la conversión de fecha falla
-                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                                     // Manejar el caso en que la conversión de fecha falla
+                                     throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
+
                                  }
                              }
                              else
