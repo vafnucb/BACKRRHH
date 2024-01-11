@@ -36,15 +36,20 @@ namespace UcbBack.Controllers
             {
                 DateTime currentDate = DateTime.Now;
 
-                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*");
+
+                // Filtrar las fechas válidas
+                var validCostCenters = costCenters
                     .Where(item =>
                     {
                         object validToValue;
 
-                        if (item.TryGetValue("ValidTo", out validToValue) && validToValue is DateTime)
+                        if (item.TryGetValue("ValidTo", out validToValue) && validToValue is string)
                         {
-                            DateTime validToDate = (DateTime)validToValue;
-                            return validToDate > currentDate;
+                            string validToString = (string)validToValue;
+
+                    // Comparar directamente las cadenas de fecha sin convertirlas
+                    return string.Compare(validToString, currentDate.ToString("dd/MM/yyyy hh:mm:ss tt"), StringComparison.Ordinal) > 0;
                         }
 
                 // Si no se puede obtener la fecha, también puedes tratar este caso como fechas mayores a la actual
@@ -53,15 +58,16 @@ namespace UcbBack.Controllers
                     .OrderBy(item => item["PrcName"].ToString())
                     .ToList();
 
-                return Ok(costCenters);
+                return Ok(validCostCenters);
             }
             catch (Exception ex)
             {
                 // Registrar la excepción para análisis posterior
-                Console.WriteLine("Error en la función OrganizationalUnits:", ex.Message);
+                Console.WriteLine($"Error en la función OrganizationalUnits:" ,ex.Message);
                 return InternalServerError(ex);
             }
         }
+
 
 
 
