@@ -48,11 +48,15 @@ namespace UcbBack.Controllers
                         {
                             string validToString = (string)validToValue;
 
-                    // Comparar directamente las cadenas de fecha sin convertirlas
-                    return string.Compare(validToString, currentDate.ToString("dd/MM/yyyy hh:mm:ss tt"), StringComparison.Ordinal) > 0;
+                    // Intentar convertir la cadena de fecha a DateTime
+                    if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                            {
+                        // Comparar las fechas convertidas
+                        return validToDate > currentDate;
+                            }
                         }
 
-                // Si no se puede obtener la fecha, también puedes tratar este caso como fechas mayores a la actual
+                // Si no se puede obtener la fecha o convertir, también puedes tratar este caso como fechas mayores a la actual
                 return false;
                     })
                     .OrderBy(item => item["PrcName"].ToString())
@@ -63,10 +67,10 @@ namespace UcbBack.Controllers
             catch (Exception ex)
             {
                 // Registrar la excepción para análisis posterior
-                Console.WriteLine($"Error en la función OrganizationalUnits:",ex.Message);
                 return InternalServerError(ex);
             }
         }
+
 
 
 
