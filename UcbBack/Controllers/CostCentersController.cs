@@ -44,20 +44,10 @@ namespace UcbBack.Controllers
                     .Where(item =>
                     {
                 // Obtener el valor directamente usando la notación de punto
-                if (item.TryGetValue("ValidTo", out var validToValue) && validToValue is string)
-                        {
-                            string validToString = (string)validToValue;
+                var validToValue = item["ValidTo"];
 
-                    // Intentar convertir la cadena de fecha a DateTime
-                    if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var validToDate))
-                            {
-                        // Comparar las fechas convertidas
-                        return validToDate > currentDate;
-                            }
-                        }
-
-                // Si no se puede obtener la fecha o convertir, también puedes tratar este caso como fechas mayores a la actual
-                return false;
+                // Comparar las cadenas directamente
+                return String.Compare(validToValue.ToString(), currentDate.ToString("dd/MM/yyyy h:mm:ss tt")) > 0;
                     })
                     .ToList();
 
@@ -69,6 +59,9 @@ namespace UcbBack.Controllers
                 return InternalServerError(ex);
             }
         }
+
+
+
 
 
 
