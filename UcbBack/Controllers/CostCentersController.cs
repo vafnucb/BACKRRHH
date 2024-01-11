@@ -36,21 +36,20 @@ namespace UcbBack.Controllers
             {
                 DateTime currentDate = DateTime.Now;
 
-                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*");
+                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                    .OrderBy(item => item["PrcName"].ToString())
+                    .ToList(); // Convierte la lista a una lista de diccionarios
 
-                // Filtrar las fechas válidas
                 var validCostCenters = costCenters
                     .Where(item =>
                     {
-                // Obtener el valor directamente usando la notación de índice
-                object validToValue;
-                        if (item.TryGetValue("ValidTo", out validToValue) && validToValue is string)
+                // Obtener el valor directamente usando la notación de punto
+                if (item.TryGetValue("ValidTo", out var validToValue) && validToValue is string)
                         {
                             string validToString = (string)validToValue;
 
                     // Intentar convertir la cadena de fecha a DateTime
-                    DateTime validToDate;
-                            if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                    if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out var validToDate))
                             {
                         // Comparar las fechas convertidas
                         return validToDate > currentDate;
@@ -60,7 +59,6 @@ namespace UcbBack.Controllers
                 // Si no se puede obtener la fecha o convertir, también puedes tratar este caso como fechas mayores a la actual
                 return false;
                     })
-                    .OrderBy(item => item["PrcName"].ToString())
                     .ToList();
 
                 return Ok(validCostCenters);
@@ -71,6 +69,7 @@ namespace UcbBack.Controllers
                 return InternalServerError(ex);
             }
         }
+
 
 
 
