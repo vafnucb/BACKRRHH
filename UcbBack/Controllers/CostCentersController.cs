@@ -37,18 +37,34 @@ namespace UcbBack.Controllers
 
             // Consulta a la base de datos con ordenación y filtración
             var result = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                .Where(entry => DateTime.ParseExact(entry.ValidTo, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture) > currentDate)
+                .Where(entry =>
+                {
+                    try
+                    {
+                // Intentar convertir la cadena ValidTo a un objeto DateTime
+                DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
+
+                // Verificar si la fecha es mayor que la fecha actual
+                return validToDate > currentDate;
+                    }
+                    catch (FormatException)
+                    {
+                // Manejar el caso en el que ValidTo no es una cadena válida para la fecha
+                return false;
+                    }
+                })
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
                 .Select(entry => new
                 {
                     PrcName = entry.PrcName,
-                    ValidTo = DateTime.ParseExact(entry.ValidTo, "dd/MM/yyyy", CultureInfo.InvariantCulture).ToString("dd/MM/yyyy"), // Solo la fecha
-                                                                                                                                     // Agregar otras propiedades según sea necesario
+                    ValidTo = entry.ValidTo, // Mantener la fecha como cadena
+                                             // Agregar otras propiedades según sea necesario
         })
-                .Cast<JObject>();
+                .ToList(); // Convertir a lista antes de devolver
 
             return Ok(result);
         }
+
 
 
 
