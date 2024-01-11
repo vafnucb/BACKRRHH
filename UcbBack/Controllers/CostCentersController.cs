@@ -43,31 +43,27 @@ namespace UcbBack.Controllers
                     {
                         DateTime validToDate;
 
-                // Intentar convertir con el formato "dd/MM/yyyy hh:mm:ss tt"
-                if (DateTime.TryParseExact(validToString, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
+                // Intentar convertir con varios formatos y culturas
+                string[] dateFormats = { "dd/MM/yyyy hh:mm:ss tt", "dd/MM/yyyy hh:mm:ss a. m.", "dd/MM/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss a. m." };
+
+                        if (DateTime.TryParseExact(validToString, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
                         {
                             return validToDate > currentDate;
                         }
 
-                // Si falla, intentar convertir con el formato "dd/MM/yyyy hh:mm:ss a. m."
-                if (DateTime.TryParseExact(validToString, "dd/MM/yyyy hh:mm:ss a. m.", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
-                        {
-                            return validToDate > currentDate;
-                        }
-
-                        // Si ambos intentos de conversión fallan, manejar el caso de error
-                    throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
-
+                // Si todos los intentos de conversión fallan, manejar el caso de error
+                throw new InvalidOperationException(String.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
                     }
 
-                    // Manejar el caso en que la cadena de fecha es vacía
-                    return false;
+            // Manejar el caso en que la cadena de fecha es vacía
+            return false;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
                 .Cast<JObject>();
 
             return Ok(y);
         }
+
 
 
 
