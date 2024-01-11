@@ -32,34 +32,19 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/OrganizationalUnits")]
         public IHttpActionResult OrganizationalUnits()
         {
-            try
-            {
-                DateTime currentDate = DateTime.Now;
+            // Obtener la fecha actual
+            DateTime currentDate = DateTime.Now;
 
-                var costCenters = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                    .OrderBy(item => item["PrcName"].ToString())
-                    .ToList(); // Convierte la lista a una lista de diccionarios
+            // Consulta a la base de datos con ordenación y filtración
+            var result = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                .Where(entry => entry.ValidTo > currentDate) // Filtrar por ValidTo mayor que la fecha actual
+                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .Cast<JObject>();
 
-                var validCostCenters = costCenters
-                    .Where(item =>
-                    {
-                // Obtener el valor directamente usando la notación de punto
-                var validToValue = item["ValidTo"];
-
-                // Comparar las cadenas directamente
-                return String.Compare(validToValue.ToString(), currentDate.ToString("dd/MM/yyyy h:mm:ss tt")) > 0;
-                    })
-                    .ToList();
-
-                return Ok(validCostCenters);
-            }
-            catch (Exception ex)
-            {
-                // Registrar la excepción para análisis posterior
-                return InternalServerError(ex);
-            }
+            return Ok(result);
         }
 
+    }
 
 
 
@@ -75,49 +60,51 @@ namespace UcbBack.Controllers
 
 
 
-        //[HttpGet]
-        //[Route("api/CostCenters/PEI")]
-        //public IHttpActionResult PEI()
-        //{
-        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
-        //    return Ok(y);
-        //}
-        //[HttpGet]
-        //[Route("api/CostCenters/PEI")]
-        //public IHttpActionResult PEI()
-        //{
-        //    DateTime currentDate = DateTime.Now;
 
-        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-        //                 .Where(item =>
-        //                 {
-        //                     string validToString = item["ValidTo"].ToString();
 
-        //                     if (!string.IsNullOrWhiteSpace(validToString))
-        //                     {
-        //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-        //                         {
-        //                             return validToDate > currentDate;
-        //                         }
-        //                         else
-        //                         {
-        //                             // Manejar el caso en que la conversión de fecha falla
-        //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
-        //                         }
-        //                     }
-        //                     else
-        //                     {
-        //                 // Manejar el caso en que la cadena de fecha es vacía
-        //                 return false;
-        //                     }
-        //                 })
-        //                 .OrderBy(item => item["PrcName"].ToString())
-        //                 .Cast<JObject>();
+    //[HttpGet]
+    //[Route("api/CostCenters/PEI")]
+    //public IHttpActionResult PEI()
+    //{
+    //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
+    //    return Ok(y);
+    //}
+    //[HttpGet]
+    //[Route("api/CostCenters/PEI")]
+    //public IHttpActionResult PEI()
+    //{
+    //    DateTime currentDate = DateTime.Now;
 
-        //    return Ok(y);
-        //}
+    //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+    //                 .Where(item =>
+    //                 {
+    //                     string validToString = item["ValidTo"].ToString();
 
-        [HttpGet]
+    //                     if (!string.IsNullOrWhiteSpace(validToString))
+    //                     {
+    //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+    //                         {
+    //                             return validToDate > currentDate;
+    //                         }
+    //                         else
+    //                         {
+    //                             // Manejar el caso en que la conversión de fecha falla
+    //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+    //                         }
+    //                     }
+    //                     else
+    //                     {
+    //                 // Manejar el caso en que la cadena de fecha es vacía
+    //                 return false;
+    //                     }
+    //                 })
+    //                 .OrderBy(item => item["PrcName"].ToString())
+    //                 .Cast<JObject>();
+
+    //    return Ok(y);
+    //}
+
+    [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
         public IHttpActionResult PlanDeEstudios()
         {
