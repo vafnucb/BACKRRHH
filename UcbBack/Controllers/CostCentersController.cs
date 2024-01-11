@@ -45,12 +45,14 @@ namespace UcbBack.Controllers
 
                         if (TryParseDateTime(validToString, out validToDate))
                         {
+                    // Ajusta el formato de la fecha aquí
+                    item["ValidTo"] = validToDate.ToString("yyyy-MM-ddTHH:mm:ss");
+
                             return validToDate > currentDate;
                         }
 
                         // Si todos los intentos de conversión fallan, manejar el caso de error
                         throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
-
                     }
 
                     // Manejar el caso en que la cadena de fecha es vacía
@@ -61,6 +63,7 @@ namespace UcbBack.Controllers
 
             return Ok(y);
         }
+
 
         private bool TryParseDateTime(string dateString, out DateTime result)
         {
