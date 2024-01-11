@@ -37,50 +37,21 @@ namespace UcbBack.Controllers
             var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
                 .Where(item =>
                 {
-                    string validToString = item["ValidTo"].ToString();
+                    DateTime validToDate;
 
-                    if (!string.IsNullOrWhiteSpace(validToString))
+                    if (DateTime.TryParseExact(item["ValidTo"].ToString(), "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate))
                     {
-                        DateTime validToDate;
-
-                        if (TryParseDateTime(validToString, out validToDate))
-                        {
-                    // Ajusta el formato de la fecha aquí
-                    item["ValidTo"] = validToDate.ToString("yyyy-MM-ddTHH:mm:ss");
-
-                            return validToDate > currentDate;
-                        }
-
-                        // Si todos los intentos de conversión fallan, manejar el caso de error
-                        throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+                        return validToDate > currentDate;
                     }
 
-                    // Manejar el caso en que la cadena de fecha es vacía
-                    return false;
+            // Si la conversión falla, también puedes tratar este caso como fechas mayores a la actual
+            return false;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
                 .Cast<JObject>();
 
             return Ok(y);
         }
-
-
-        private bool TryParseDateTime(string dateString, out DateTime result)
-        {
-            string[] dateFormats = { "dd/MM/yyyy hh:mm:ss tt", "dd/MM/yyyy hh:mm:ss a. m.", "dd/MM/yyyy h:mm:ss tt", "dd/MM/yyyy h:mm:ss a. m." };
-
-            foreach (var format in dateFormats)
-            {
-                if (DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out result))
-                {
-                    return true;
-                }
-            }
-
-            result = DateTime.MinValue;
-            return false;
-        }
-
 
 
 
@@ -92,41 +63,40 @@ namespace UcbBack.Controllers
         //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
         //    return Ok(y);
         //}
-        //[HttpGet]
-        //[Route("api/CostCenters/PEI")]
-        //public IHttpActionResult PEI()
-        //{
-        //    DateTime currentDate = DateTime.Now;
+        [HttpGet]
+        [Route("api/CostCenters/PEI")]
+        public IHttpActionResult PEI()
+        {
+            DateTime currentDate = DateTime.Now;
 
-        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-        //                 .Where(item =>
-        //                 {
-        //                     string validToString = item["ValidTo"].ToString();
+            var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+                         .Where(item =>
+                         {
+                             string validToString = item["ValidTo"].ToString();
 
-        //                     if (!string.IsNullOrWhiteSpace(validToString))
-        //                     {
-        //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-        //                         {
-        //                             return validToDate > currentDate;
-        //                         }
-        //                         else
-        //                         {
-        //                             // Manejar el caso en que la conversión de fecha falla
-        //                             throw new InvalidOperationException("No se puede convertir la cadena '" + validToString + "' en un valor DateTime válido.");
+                             if (!string.IsNullOrWhiteSpace(validToString))
+                             {
+                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                                 {
+                                     return validToDate > currentDate;
+                                 }
+                                 else
+                                 {
+                                     // Manejar el caso en que la conversión de fecha falla
+                                     throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
+                                 }
+                             }
+                             else
+                             {
+                         // Manejar el caso en que la cadena de fecha es vacía
+                         return false;
+                             }
+                         })
+                         .OrderBy(item => item["PrcName"].ToString())
+                         .Cast<JObject>();
 
-        //                         }
-        //                     }
-        //                     else
-        //                     {
-        //                 // Manejar el caso en que la cadena de fecha es vacía
-        //                 return false;
-        //                     }
-        //                 })
-        //                 .OrderBy(item => item["PrcName"].ToString())
-        //                 .Cast<JObject>();
-
-        //    return Ok(y);
-        //}
+            return Ok(y);
+        }
 
         [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
