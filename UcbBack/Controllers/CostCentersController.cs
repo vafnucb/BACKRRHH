@@ -42,19 +42,19 @@ namespace UcbBack.Controllers
                            && validToDate > currentDate;
                 })
                 .OrderBy(item => item["PrcName"].ToString())
-                .ToList(); // Convierte la lista a una lista de diccionarios
+                .ToList(); // Convierte la lista a una lista de objetos anónimos
 
             var y = costCenters.Select(item =>
             {
-                // Crear un nuevo diccionario con las propiedades necesarias
-                return new Dictionary<string, object>
-        {
-            { "PrcCode", item["PrcCode"].ToString() },
-            { "PrcName", item["PrcName"].ToString() },
-            { "ValidFrom", item["ValidFrom"].ToString() },
-            { "ValidTo", item["ValidTo"].ToString() },
-            { "U_TipoUnidadO", item["U_TipoUnidadO"].ToString() },
-        };
+                // Crear un nuevo objeto anónimo con las propiedades necesarias
+                return new
+                {
+                    PrcCode = item["PrcCode"].ToString(),
+                    PrcName = item["PrcName"].ToString(),
+                    ValidFrom = item["ValidFrom"].ToString(),
+                    ValidTo = item["ValidTo"].ToString(),
+                    U_TipoUnidadO = item["U_TipoUnidadO"].ToString(),
+                };
             });
 
             return Ok(y);
