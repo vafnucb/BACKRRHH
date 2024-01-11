@@ -44,7 +44,7 @@ namespace UcbBack.Controllers
             return Ok(result);
         }
 
-    }
+    
 
 
 
