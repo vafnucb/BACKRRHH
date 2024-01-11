@@ -37,7 +37,7 @@ namespace UcbBack.Controllers
 
             // Consulta a la base de datos con ordenación y filtración
             var result = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                .Where(entry => DateTime.Parse(entry.ValidTo) > currentDate) // Intenta convertir a DateTime y compara
+                .Where(entry => DateTime.ParseExact(entry.ValidTo, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture) > currentDate)
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
                 .Cast<JObject>();
 
