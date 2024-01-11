@@ -43,17 +43,27 @@ namespace UcbBack.Controllers
                 {
                     PrcName = entry.PrcName,
             // Agregar otras propiedades según sea necesario
-        });
+        })
+                .ToList(); // Convertir a lista antes de devolver
 
             return Ok(result);
         }
 
-        // Método auxiliar para verificar si la fecha es válida
-        private bool IsValidDate(string dateStr, DateTime currentDate)
+        private bool IsValidDate(dynamic validTo, DateTime currentDate)
         {
-            DateTime validToDate;
-            return DateTime.TryParseExact(dateStr, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate) && validToDate > currentDate;
+            // Implementa la lógica para verificar si la fecha es válida
+            // Puedes utilizar TryParseExact u otras lógicas de acuerdo a tus necesidades
+            // Devuelve true si la fecha es válida, false si no lo es
+            // Aquí tienes un ejemplo básico:
+
+            if (DateTime.TryParseExact(validTo.ToString(), "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+            {
+                return validToDate > currentDate;
+            }
+
+            return false;
         }
+
 
 
 
