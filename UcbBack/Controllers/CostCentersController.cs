@@ -51,12 +51,10 @@ namespace UcbBack.Controllers
         // Método auxiliar para verificar si la fecha es válida
         private bool IsValidDate(string dateStr, DateTime currentDate)
         {
-            if (DateTime.TryParseExact(dateStr, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-            {
-                return validToDate > currentDate;
-            }
-            return false;
+            DateTime validToDate;
+            return DateTime.TryParseExact(dateStr, "dd/MM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out validToDate) && validToDate > currentDate;
         }
+
 
 
 
