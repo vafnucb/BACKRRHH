@@ -14,6 +14,7 @@ using UcbBack.Models.Not_Mapped.CustomDataAnnotations;
 using UcbBack.Models.Not_Mapped.ViewMoldes;
 using System.Configuration;
 using UcbBack.Models.Not_Mapped;
+using System.Globalization;
 
 namespace UcbBack.Controllers
 {
@@ -31,18 +32,81 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/OrganizationalUnits")]
         public IHttpActionResult OrganizationalUnits()
         {
-            var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*").Cast<JObject>();
-            //var y = getOrganizationalUnit();
+            DateTime currentDate = DateTime.Now;
+
+            var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                         .Where(item =>
+                         {
+                             string validToString = item["ValidTo"].ToString();
+
+                             if (!string.IsNullOrWhiteSpace(validToString))
+                             {
+                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                                 {
+                                     return validToDate > currentDate;
+                                 }
+                                 else
+                                 {
+                             // Manejar el caso en que la conversión de fecha falla
+                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                                 }
+                             }
+                             else
+                             {
+                         // Manejar el caso en que la cadena de fecha es vacía
+                         return false;
+                             }
+                         })
+                         .OrderBy(item => item["PrcName"].ToString())
+                         .Cast<JObject>();
+
             return Ok(y);
         }
 
+
+
+        //[HttpGet]
+        //[Route("api/CostCenters/PEI")]
+        //public IHttpActionResult PEI()
+        //{
+        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
+        //    return Ok(y);
+        //}
         [HttpGet]
         [Route("api/CostCenters/PEI")]
         public IHttpActionResult PEI()
         {
-            var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
+            DateTime currentDate = DateTime.Now;
+
+            var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+                         .Where(item =>
+                         {
+                             string validToString = item["ValidTo"].ToString();
+
+                             if (!string.IsNullOrWhiteSpace(validToString))
+                             {
+                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
+                                 {
+                                     return validToDate > currentDate;
+                                 }
+                                 else
+                                 {
+                             // Manejar el caso en que la conversión de fecha falla
+                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
+                                 }
+                             }
+                             else
+                             {
+                         // Manejar el caso en que la cadena de fecha es vacía
+                         return false;
+                             }
+                         })
+                         .OrderBy(item => item["PrcName"].ToString())
+                         .Cast<JObject>();
+
             return Ok(y);
         }
+
         [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
         public IHttpActionResult PlanDeEstudios()
@@ -69,7 +133,9 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/Proyectos")]
         public IHttpActionResult Proyectos()
         {
-            var y = B1conn.getProjects("*");
+            var y = B1conn.getProjects("*")
+                            .OrderBy(item => item["PrjCode"].ToString())
+                            .Cast<JObject>();
             return Ok(y);
         }
         [HttpGet]
@@ -78,7 +144,9 @@ namespace UcbBack.Controllers
         {
             ValidateAuth auth = new ValidateAuth();
             CustomUser user = auth.getUser(Request);
-            var y = B1conn.getBusinessPartners("*", user: user);
+            var y = B1conn.getBusinessPartners("*", user: user)
+                            .OrderBy(item => item["CardName"].ToString())
+                            .Cast<JObject>();
             return Ok(y);
         }
         //----------------------------- Endpoints accesibles a usuarios NO Admin -----------------------------------
