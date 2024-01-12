@@ -41,23 +41,6 @@ namespace UcbBack.Controllers
                 {
                     try
                     {
-<<<<<<< HEAD
-                // Intentar convertir la cadena ValidTo a un objeto DateTime
-                DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
-
-                // Verificar si la fecha es mayor que la fecha actual
-                return validToDate > currentDate;
-                    }
-                    catch (FormatException)
-                    {
-                // Manejar el caso en el que ValidTo no es una cadena válida para la fecha
-                return false;
-                    }
-                })
-                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
-                .ToList(); // Convertir a lista antes de devolver
-
-=======
                         // Intentar convertir la cadena ValidTo a un objeto DateTime
                         DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
 
@@ -73,28 +56,8 @@ namespace UcbBack.Controllers
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
                 .ToList(); // Convertir a lista antes de devolver
 
->>>>>>> devBack
             return Ok(result);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -105,42 +68,12 @@ namespace UcbBack.Controllers
         //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*").Cast<JObject>();
         //    return Ok(y);
         //}
-        //[HttpGet]
-        //[Route("api/CostCenters/PEI")]
-        //public IHttpActionResult PEI()
-        //{
-        //    DateTime currentDate = DateTime.Now;
+        [HttpGet]
+        [Route("api/CostCenters/PEI")]
+        public IHttpActionResult PEI()
+        {
+            DateTime currentDate = DateTime.Now;
 
-<<<<<<< HEAD
-        //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-        //                 .Where(item =>
-        //                 {
-        //                     string validToString = item["ValidTo"].ToString();
-
-        //                     if (!string.IsNullOrWhiteSpace(validToString))
-        //                     {
-        //                         if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-        //                         {
-        //                             return validToDate > currentDate;
-        //                         }
-        //                         else
-        //                         {
-        //                             // Manejar el caso en que la conversión de fecha falla
-        //                             throw new InvalidOperationException(string.Format("No se puede convertir la cadena '{0}' en un valor DateTime válido.", validToString));
-        //                         }
-        //                     }
-        //                     else
-        //                     {
-        //                 // Manejar el caso en que la cadena de fecha es vacía
-        //                 return false;
-        //                     }
-        //                 })
-        //                 .OrderBy(item => item["PrcName"].ToString())
-        //                 .Cast<JObject>();
-
-        //    return Ok(y);
-        //}
-=======
             var result = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
                 //.Where(entry =>
                 //{
@@ -174,7 +107,6 @@ namespace UcbBack.Controllers
 
             return Ok(result);
         }
->>>>>>> devBack
 
         [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
@@ -220,19 +152,19 @@ namespace UcbBack.Controllers
             var y = B1conn.getProjects("*")
                             .OrderBy(item => item["PrjCode"].ToString())
                             .Select(entry => new
-                             {
-                                 entry.PrjCode,
-                                 entry.PrjName,
-                                 entry.ValidTo,
-                                 entry.Active,
-                                 entry.U_ModalidadProy,
-                                 entry.U_Sucursal,
-                                 entry.U_Tipo,
-                                 entry.U_UORGANIZA,
-                                 entry.U_PEI_PO
-                                 
-                                 // Agregar otras propiedades según sea necesario
-                             })
+                            {
+                                entry.PrjCode,
+                                entry.PrjName,
+                                entry.ValidTo,
+                                entry.Active,
+                                entry.U_ModalidadProy,
+                                entry.U_Sucursal,
+                                entry.U_Tipo,
+                                entry.U_UORGANIZA,
+                                entry.U_PEI_PO
+
+                                // Agregar otras propiedades según sea necesario
+                            })
 
                 .ToList();
             return Ok(y);
@@ -265,7 +197,7 @@ namespace UcbBack.Controllers
                 + " on br.\"Abr\" = b.\"U_CODIGO_SEGMENTO\" "
                 + " WHERE a.\"DimCode\" = " + 3;
             var rawresult = _context.Database.SqlQuery<CostCenterCarrera>(query).OrderBy(x => x.PrcCode);
-            
+
             var user = auth.getUser(Request);
 
             var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList().OrderBy(x => x.PrcCode);
