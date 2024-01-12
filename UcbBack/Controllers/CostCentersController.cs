@@ -32,35 +32,31 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/OrganizationalUnits")]
         public IHttpActionResult OrganizationalUnits()
         {
+            // Obtener la fecha actual
             DateTime currentDate = DateTime.Now;
 
-            var y = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
-                         .Where(item =>
-                         {
-                             string validToString = item["ValidTo"].ToString();
+            // Consulta a la base de datos con ordenación y filtración
+            var result = B1conn.getCostCenter(B1Connection.Dimension.OrganizationalUnit, col: "*")
+                .Where(entry =>
+                {
+                    try
+                    {
+                        // Intentar convertir la cadena ValidTo a un objeto DateTime
+                        DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
 
-                             if (!string.IsNullOrWhiteSpace(validToString))
-                             {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-                                 {
-                                     return validToDate > currentDate;
-                                 }
-                                 else
-                                 {
-                             // Manejar el caso en que la conversión de fecha falla
-                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
-                                 }
-                             }
-                             else
-                             {
-                         // Manejar el caso en que la cadena de fecha es vacía
-                         return false;
-                             }
-                         })
-                         .OrderBy(item => item["PrcName"].ToString())
-                         .Cast<JObject>();
+                        // Verificar si la fecha es mayor que la fecha actual
+                        return validToDate > currentDate;
+                    }
+                    catch (FormatException)
+                    {
+                        // Manejar el caso en el que ValidTo no es una cadena válida para la fecha
+                        return false;
+                    }
+                })
+                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .ToList(); // Convertir a lista antes de devolver
 
-            return Ok(y);
+            return Ok(result);
         }
 
 
@@ -78,33 +74,38 @@ namespace UcbBack.Controllers
         {
             DateTime currentDate = DateTime.Now;
 
-            var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
-                         .Where(item =>
-                         {
-                             string validToString = item["ValidTo"].ToString();
+            var result = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+                //.Where(entry =>
+                //{
+                //    try
+                //    {
+                //// Intentar convertir la cadena ValidTo a un objeto DateTime
+                //DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
 
-                             if (!string.IsNullOrWhiteSpace(validToString))
-                             {
-                                 if (DateTime.TryParseExact(validToString, "dd/MM/yyyy h:mm:ss tt", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime validToDate))
-                                 {
-                                     return validToDate > currentDate;
-                                 }
-                                 else
-                                 {
-                             // Manejar el caso en que la conversión de fecha falla
-                             throw new InvalidOperationException($"No se puede convertir la cadena '{validToString}' en un valor DateTime válido.");
-                                 }
-                             }
-                             else
-                             {
-                         // Manejar el caso en que la cadena de fecha es vacía
-                         return false;
-                             }
-                         })
-                         .OrderBy(item => item["PrcName"].ToString())
-                         .Cast<JObject>();
+                //// Verificar si la fecha es mayor que la fecha actual
+                //return validToDate > currentDate;
+                //    }
+                //    catch (FormatException)
+                //    {
+                //// Manejar el caso en el que ValidTo no es una cadena válida para la fecha
+                //return false;
+                //    }
+                //})
+                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .Select(entry => new
+                {
+                    entry.PrcCode,
+                    PrcName = entry.PrcName,
+                    entry.U_GestionCC,
+                    entry.ValidFrom,
+                    entry.ValidTo,
+                    entry.U_AmbitoPEI,
+                    entry.U_DirectrizPEI
+                    // Agregar otras propiedades según sea necesario
+                })
+                .ToList(); // Convertir a lista antes de devolver
 
-            return Ok(y);
+            return Ok(result);
         }
 
         [HttpGet]
@@ -119,7 +120,22 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/Paralelo")]
         public IHttpActionResult Paralelo()
         {
-            var y = B1conn.getCostCenter(B1Connection.Dimension.Paralelo, col: "*").Cast<JObject>();
+            var y = B1conn.getCostCenter(B1Connection.Dimension.Paralelo, col: "*")
+                .Select(entry => new
+                {
+                    entry.PrcCode,
+                    entry.PrcName,
+                    entry.U_PeriodoPARALELO,
+                    entry.U_Sigla,
+                    entry.U_Materia,
+                    entry.U_Paralelo,
+                    entry.U_NivelParalelo,
+                    entry.U_TipoParalelo
+
+                    // Agregar otras propiedades según sea necesario
+                })
+
+                .ToList();
             return Ok(y);
         }
         [HttpGet]
@@ -135,7 +151,22 @@ namespace UcbBack.Controllers
         {
             var y = B1conn.getProjects("*")
                             .OrderBy(item => item["PrjCode"].ToString())
-                            .Cast<JObject>();
+                            .Select(entry => new
+                             {
+                                 entry.PrjCode,
+                                 entry.PrjName,
+                                 entry.ValidTo,
+                                 entry.Active,
+                                 entry.U_ModalidadProy,
+                                 entry.U_Sucursal,
+                                 entry.U_Tipo,
+                                 entry.U_UORGANIZA,
+                                 entry.U_PEI_PO
+                                 
+                                 // Agregar otras propiedades según sea necesario
+                             })
+
+                .ToList();
             return Ok(y);
         }
         [HttpGet]
