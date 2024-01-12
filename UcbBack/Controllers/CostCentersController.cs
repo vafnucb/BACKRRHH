@@ -41,6 +41,7 @@ namespace UcbBack.Controllers
                 {
                     try
                     {
+<<<<<<< HEAD
                 // Intentar convertir la cadena ValidTo a un objeto DateTime
                 DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
 
@@ -56,6 +57,23 @@ namespace UcbBack.Controllers
                 .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
                 .ToList(); // Convertir a lista antes de devolver
 
+=======
+                        // Intentar convertir la cadena ValidTo a un objeto DateTime
+                        DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
+
+                        // Verificar si la fecha es mayor que la fecha actual
+                        return validToDate > currentDate;
+                    }
+                    catch (FormatException)
+                    {
+                        // Manejar el caso en el que ValidTo no es una cadena válida para la fecha
+                        return false;
+                    }
+                })
+                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .ToList(); // Convertir a lista antes de devolver
+
+>>>>>>> devBack
             return Ok(result);
         }
 
@@ -93,6 +111,7 @@ namespace UcbBack.Controllers
         //{
         //    DateTime currentDate = DateTime.Now;
 
+<<<<<<< HEAD
         //    var y = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
         //                 .Where(item =>
         //                 {
@@ -121,6 +140,41 @@ namespace UcbBack.Controllers
 
         //    return Ok(y);
         //}
+=======
+            var result = B1conn.getCostCenter(B1Connection.Dimension.PEI, col: "*")
+                //.Where(entry =>
+                //{
+                //    try
+                //    {
+                //// Intentar convertir la cadena ValidTo a un objeto DateTime
+                //DateTime validToDate = DateTime.Parse(entry.ValidTo.ToString());
+
+                //// Verificar si la fecha es mayor que la fecha actual
+                //return validToDate > currentDate;
+                //    }
+                //    catch (FormatException)
+                //    {
+                //// Manejar el caso en el que ValidTo no es una cadena válida para la fecha
+                //return false;
+                //    }
+                //})
+                .OrderBy(entry => entry.PrcName) // Ordenar por la columna PrcName
+                .Select(entry => new
+                {
+                    entry.PrcCode,
+                    PrcName = entry.PrcName,
+                    entry.U_GestionCC,
+                    entry.ValidFrom,
+                    entry.ValidTo,
+                    entry.U_AmbitoPEI,
+                    entry.U_DirectrizPEI
+                    // Agregar otras propiedades según sea necesario
+                })
+                .ToList(); // Convertir a lista antes de devolver
+
+            return Ok(result);
+        }
+>>>>>>> devBack
 
         [HttpGet]
         [Route("api/CostCenters/PlanDeEstudios")]
@@ -134,7 +188,22 @@ namespace UcbBack.Controllers
         [Route("api/CostCenters/Paralelo")]
         public IHttpActionResult Paralelo()
         {
-            var y = B1conn.getCostCenter(B1Connection.Dimension.Paralelo, col: "*").Cast<JObject>();
+            var y = B1conn.getCostCenter(B1Connection.Dimension.Paralelo, col: "*")
+                .Select(entry => new
+                {
+                    entry.PrcCode,
+                    entry.PrcName,
+                    entry.U_PeriodoPARALELO,
+                    entry.U_Sigla,
+                    entry.U_Materia,
+                    entry.U_Paralelo,
+                    entry.U_NivelParalelo,
+                    entry.U_TipoParalelo
+
+                    // Agregar otras propiedades según sea necesario
+                })
+
+                .ToList();
             return Ok(y);
         }
         [HttpGet]
@@ -150,7 +219,22 @@ namespace UcbBack.Controllers
         {
             var y = B1conn.getProjects("*")
                             .OrderBy(item => item["PrjCode"].ToString())
-                            .Cast<JObject>();
+                            .Select(entry => new
+                             {
+                                 entry.PrjCode,
+                                 entry.PrjName,
+                                 entry.ValidTo,
+                                 entry.Active,
+                                 entry.U_ModalidadProy,
+                                 entry.U_Sucursal,
+                                 entry.U_Tipo,
+                                 entry.U_UORGANIZA,
+                                 entry.U_PEI_PO
+                                 
+                                 // Agregar otras propiedades según sea necesario
+                             })
+
+                .ToList();
             return Ok(y);
         }
         [HttpGet]
