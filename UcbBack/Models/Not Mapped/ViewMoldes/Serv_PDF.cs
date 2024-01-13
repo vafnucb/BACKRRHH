@@ -87,6 +87,9 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         [DisplayName("Objeto del Contrato")]
         public string Objeto_del_Contrato { get; set; }
 
+        [DisplayName("SAPId")]
+        public string SAPId { get; set; }
+
         public int BranchesId { get; set; }
     }
 }
