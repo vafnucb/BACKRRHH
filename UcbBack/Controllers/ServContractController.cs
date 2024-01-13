@@ -129,9 +129,9 @@ namespace UcbBack.Controllers
                 x.PEI,
                 x.ServiceName,
                 x.ContractAmount,
-                x.IUE,
+                RCIVA=x.IUE,
                 x.IT,
-                 x.TotalAmount,
+                x.TotalAmount,
                 x.Branch,
                 x.FileType,
                 x.SAPId,
@@ -557,8 +557,8 @@ namespace UcbBack.Controllers
                             "\r\ndep.\"Cod\" \"Cod_Dependencia\",\r\nou.\"Cod\" \"Cod_UO\",\r\nsv.\"PEI\" \"PEI_PO\"," +
                             "\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"ContractObjective\" \"Objeto_del_Contrato\"," +
                             "\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
-                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
-                            "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"\r\n" +
+                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
+                            "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"SAPId\"\r\n" +
                             "from " +CustomSchema.Schema + ".\"Serv_Varios\" sv" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
@@ -567,7 +567,7 @@ namespace UcbBack.Controllers
                             "\r\nunion\r\nselect sum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n''" +
                             " \"Cod_Dependencia\", \r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n''" +
                             " \"Objeto_del_Contrato\",\r\n'' \"Cuenta_Asignada\",\r\nsum(sv.\"ContractAmount\") \"Monto_Contrato\"," +
-                            "\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\") " +
+                            "\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\" " +
                             "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Varios\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\nwhere \"Serv_ProcessId\" =" +id +
@@ -580,7 +580,7 @@ namespace UcbBack.Controllers
                     query = "select\r\nsv.\"Id\",\r\nsv.\"CardCode\" \"Codigo_Socio\",\r\nsv.\"CardName\" \"Nombre_Socio\",\r\ndep.\"Cod\" \"Cod_Dependencia\",\r\nou.\"Cod\" \"Cod_UO\"," +
                             "\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"Carrera\" \"Codigo_Carrera\",\r\nsv.\"DocumentNumber\" \"Documento_Base\"," +
                             "\r\nsv.\"Student\" \"Postulante\",\r\nsv.\"AssignedJob\" \"Tarea_Asignada\",\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
-                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
+                            "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"SAPId\"" +
                             "from " +CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
@@ -590,7 +590,7 @@ namespace UcbBack.Controllers
                             "\r\n select\r\nsum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n'' " +
                             "\"Cod_Dependencia\",\r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n'' \"Codigo_Carrera\",\r\n'' " +
                             "\"Documento_Base\",\r\n'' \"Postulante\",\r\n'' \"Tipo_Tarea_Asignada\",\r\n'' \"Cuenta_Asignada\",\r\nsum(sv.\"ContractAmount\") " +
-                            "\"Monto_Contrato\",\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\nsum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\") " +
+                            "\"Monto_Contrato\",\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\nsum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\" " +
                             "\r\nfrom  " + CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\n where \"Serv_ProcessId\" = "+id+"\r\n order by \"Id\"";
@@ -602,8 +602,8 @@ namespace UcbBack.Controllers
                     query = "select\r\nsv.\"Id\",\r\nsv.\"CardCode\" \"Codigo_Socio\",\r\nsv.\"CardName\" \"Nombre_Socio\",\r\ndep.\"Cod\" \"Cod_Dependencia\",\r\nou.\"Cod\" \"Cod_UO\"," +
                             "\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"Periodo\" \"Periodo_Academico\",\r\nsv.\"Sigla\" \"Sigla_Asignatura\"," +
                             "\r\nsv.\"ParalelNumber\" \"Paralelo\",\r\nsv.\"ParalelSAP\" \"Codigo_Paralelo_SAP\",\r\nsv.\"AssignedAccount\" \"Cuenta\"," +
-                            "\r\nsv.\"ContractAmount\" \"Contrato\",\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
-                            "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\"" +
+                            "\r\nsv.\"ContractAmount\" \"Contrato\",\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
+                            "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"SAPId\"" +
                             "from " +CustomSchema.Schema + ".\"Serv_Paralelo\" sv" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
@@ -613,7 +613,7 @@ namespace UcbBack.Controllers
                             "\r\n select \r\n sum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n'' \"Cod_Dependencia\"," +
                             "\r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n'' \"Periodo_Academico\",\r\n'' \"Sigla_Asignatura\"," +
                             "\r\n'' \"Paralelo\",\r\n'' \"Codigo_Paralelo_SAP\",\r\n'' \"Cuenta_Asignada\",\r\n  sum(sv.\"ContractAmount\") \"Monto_Contrato\"," +
-                            "\r\n  sum(sv.\"IUE\") \"Monto_IUE\",\r\n  sum(sv.\"IT\") \"Monto_IT\",\r\n  sum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\")" +
+                            "\r\n  sum(sv.\"IUE\") \"Monto_IUE\",\r\n  sum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"IUEExterior\") \"IUEExterior\",\r\n  sum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\nwhere \"Serv_ProcessId\" = " + id +
@@ -625,15 +625,15 @@ namespace UcbBack.Controllers
                     query = "\r\nselect\r\nsv.\"Id\",\r\nsv.\"CardCode\" \"Codigo_Socio\",\r\nsv.\"CardName\" \"Nombre_Socio\",\r\ndep.\"Cod\" \"Cod_Dependencia\"," +
                             "\r\nou.\"Cod\" \"Cod_UO\",\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"ProjectSAPCode\" \"Codigo_Proyecto_SAP\"," +
                             "\r\nsv.\"ProjectSAPName\" \"Nombre_del_Proyecto\",\r\nsv.\"Version\",\r\nsv.\"AssignedJob\" \"Tarea_Asignada\",\r\nsv.\"AssignedAccount\" \"Cuenta\"," +
-                            "\r\nsv.\"ContractAmount\" \"Contrato\",\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" " +
-                            "\"Observaciones\", sp.\"BranchesId\"" +
+                            "\r\nsv.\"ContractAmount\" \"Contrato\",\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" " +
+                            "\"Observaciones\", sp.\"BranchesId\", sp.\"SAPId\"" +
                             "from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
                             "\r\nwhere \"Serv_ProcessId\" = "+id+
                             "\r\nunion" +
-                            "\r\nselect \r\nsum(sv.\"Id\"), \r\n'' \"Codigo_Socio\", \r\n'' \"Nombre_Socio\", \r\nnull \"Cod_Dependencia\", \r\nnull \"Cod_UO\", \r\n'' \"PEI_PO\", \r\n'' \"Nombre_del_Servicio\", \r\n'' \"Codigo_Proyecto_SAP\", \r\n'' \"Nombre_del_Proyecto\", \r\nnull \"Version\", \r\n'' \"Tipo_Tarea_Asignada\", \r\n'' \"Cuenta_Asignada\", \r\n sum(sv.\"ContractAmount\") \"Monto_Contrato\", \r\n sum(sv.\"IUE\") \"Monto_IUE\", \r\n sum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"TotalAmount\") \"Monto_a_Pagar\", \r\n'' \"Observaciones\", max(sp.\"BranchesId\")" +
+                            "\r\nselect \r\nsum(sv.\"Id\"), \r\n'' \"Codigo_Socio\", \r\n'' \"Nombre_Socio\", \r\nnull \"Cod_Dependencia\", \r\nnull \"Cod_UO\", \r\n'' \"PEI_PO\", \r\n'' \"Nombre_del_Servicio\", \r\n'' \"Codigo_Proyecto_SAP\", \r\n'' \"Nombre_del_Proyecto\", \r\nnull \"Version\", \r\n'' \"Tipo_Tarea_Asignada\", \r\n'' \"Cuenta_Asignada\", \r\n sum(sv.\"ContractAmount\") \"Monto_Contrato\", \r\n sum(sv.\"IUE\") \"Monto_IUE\", \r\n sum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"IUEExterior\") \"IUEExterior\", \r\n sum(sv.\"TotalAmount\") \"Monto_a_Pagar\", \r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
                             "\r\n where \"Serv_ProcessId\" = " + id + " \r\norder by \"Id\" asc ";
@@ -650,7 +650,8 @@ namespace UcbBack.Controllers
                 var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Id,
-                    x.Nombre_Socio,
+                    x.SAPId,
+                    Docente = x.Nombre_Socio,
                     x.Cod_UO,
                     x.PEI_PO,
                     x.Nombre_del_Servicio,
@@ -672,9 +673,10 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Id,
-                    x.Nombre_Socio,
+                    x.SAPId,
+                    Docente = x.Nombre_Socio,
                     x.Cod_UO,
-                    x.PEI_PO,
+                    // x.PEI_PO,
                     x.Nombre_del_Servicio,
                     x.Codigo_Carrera,
                     x.Documento_Base,
@@ -695,7 +697,8 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Id,
-                    x.Nombre_Socio,
+                    x.SAPId,
+                    Docente =x.Nombre_Socio,
                     x.Cod_UO,
                     x.PEI_PO,
                     x.Nombre_del_Servicio,
@@ -717,7 +720,8 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Id,
-                    x.Nombre_Socio,
+                    x.SAPId,
+                    Docente = x.Nombre_Socio,
                     x.Cod_UO,
                     x.PEI_PO,
                     x.Nombre_del_Servicio,

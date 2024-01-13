@@ -2312,11 +2312,12 @@ namespace UcbBack.Controllers
             return Ok(filteredList);
         }
         [HttpGet]
-        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}/{tPag}")]
-        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro, string tPag)
+        [Route("api/BusquedaAvanzadaIsaac/{carrera}/{docente}/{modalidad}/{tarea}/{estudiante}/{mes}/{gestion}/{origenFiltro}/{tPag}/{minB}/{maxB}/{minN}/{maxN}")]
+        public IHttpActionResult BusquedaAvanzadaIsaac(string carrera, string docente, string modalidad, string tarea, string estudiante, string mes, string gestion, string origenFiltro, string tPag, int minB, int maxB, int minN, int maxN)
         {
             try
             {
+                Console.WriteLine("AQUI OBTENGO TODO EN ORDEN: ", carrera, docente, modalidad, tarea, estudiante, mes, gestion, origenFiltro, tPag);
                 // Siguientes lineas para realizar el filtro por regional directamente dentro del query segun las regionales a las que tenga acceso el usuario
                 var user = auth.getUser(Request);
                 ADClass ad = new ADClass();
@@ -2409,13 +2410,13 @@ namespace UcbBack.Controllers
                 {
                     pag = "and ad.\"TipoPago\" ='" + tPag + "'";
                 }
-                // Construir las condiciones de rango para TotalBruto y TotalNeto
-                // var condicionesRangoBruto = (minBruto >= 0 && maxBruto >= minBruto) ? " AND ad.\"TotalBruto\" BETWEEN " + minBruto + " AND " + maxBruto : "";
-                // var condicionesRangoNeto = (minNeto >= 0 && maxNeto >= minNeto) ? " AND ad.\"TotalNeto\" BETWEEN " + minNeto + " AND " + maxNeto : "";
+                ////// Construir las condiciones de rango para TotalBruto y TotalNeto
+                var condicionesRangoBruto = (minB >= 0 && maxB>= minB) ? " AND ad.\"TotalBruto\" BETWEEN " + minB + " AND " + maxB : "";
+                var condicionesRangoNeto = (minN >= 0 && maxN >= minN) ? " AND ad.\"TotalNeto\" BETWEEN " + minN + " AND " + maxN : "";
 
                 string order = " order by \"Id\",\"Gestion\", \"Mes\", \"TeacherFullName\" ,\"StudentFullName\"";
-                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag;
-                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag;
+                string query = cabecera + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
+                string querysubTotal = cabeceraSubTotal + queryCuerpo + regionalesUser + car + orgF + doc + mod + tar + est + mesO + ges + pag + condicionesRangoBruto + condicionesRangoNeto;
                 string QueryOriginal = "(" + query + ") UNION (" + querysubTotal + ")" + order;
                 var reportOG = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(query).ToList();
                 report = _context.Database.SqlQuery<AsesoriaDocenteReportViewModel>(QueryOriginal).ToList();
@@ -2436,7 +2437,7 @@ namespace UcbBack.Controllers
                         x.Gestion,
                         x.TotalBruto,
                         x.Deduccion,
-                        x.IUE,
+                        RCIVA = x.IUE,
                         x.IUEExterior,
                         x.IT,
                         x.TotalNeto,
