@@ -169,6 +169,7 @@ namespace UcbBack.Controllers
                 .ToList();
             return Ok(y);
         }
+
         [HttpGet]
         [Route("api/CostCenters/BusinessPartners")]
         public IHttpActionResult BP()
@@ -180,6 +181,40 @@ namespace UcbBack.Controllers
                             .Cast<JObject>();
             return Ok(y);
         }
+
+
+        //[HttpGet]
+        //[Route("api/CostCenters/BusinessPartners")]
+        //public IHttpActionResult BP()
+        //{
+        //    ValidateAuth auth = new ValidateAuth();
+        //    CustomUser user = auth.getUser(Request);
+
+        //    // Consulta original para obtener la información de los Business Partners
+        //    var businessPartners = B1conn.getBusinessPartners("*", user: user)
+        //                                .OrderBy(item => item["CardName"].ToString())
+        //                                .Cast<JObject>();
+
+        //    // Consulta adicional utilizando Entity Framework
+        //    var additionalData = _context.Database.SqlQuery<JObject>(
+        //        "SELECT C.\"BPLName\" AS SEDE " +
+        //        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd A " +
+        //        "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".crd8 B ON A.\"CardCode\" = B.\"CardCode\" " +
+        //        "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".obpl C ON B.\"BPLId\" = C.\"BPLId\"")
+        //        .OrderBy(item => item.Value<string>("BPLName") ?? "");
+
+
+        //    // Combina los resultados de ambas consultas
+        //    var combinedResults = businessPartners.Concat(additionalData);
+        //    Console.WriteLine("AGH", additionalData);
+
+        //    return Ok(combinedResults);
+        //}
+
+
+
+
+
         //----------------------------- Endpoints accesibles a usuarios NO Admin -----------------------------------
         // Los endpoints de arriba se utilizan en la pestaña de dimensiones SAP solamente
         [HttpGet]
