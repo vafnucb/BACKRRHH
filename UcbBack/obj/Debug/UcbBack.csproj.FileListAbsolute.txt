@@ -340,7 +340,6 @@ C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Securi
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Google.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Twitter.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.MicrosoftAccount.xml
-C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csprojAssemblyReference.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.Migrations.FirstMigration.resources
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.GenerateResource.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.CoreCompileInputs.cache

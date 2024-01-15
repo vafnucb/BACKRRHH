@@ -1388,8 +1388,22 @@ namespace UcbBack.Controllers
                 //            break;
                 //            // Añade más casos según los posibles orígenes
                 //    }
-                //}
+                //} 
                 //Carrera y Dep
+                var dep = _context.Database.SqlQuery<int>("select de.\"Cod\" " +
+                                        "from " +
+                                        "   " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprc op " +
+                                        "inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"@T_GEN_CARRERAS\" tg " +
+                                        "    on op.\"PrcCode\" = tg.\"U_CODIGO_CARRERA\" " +
+                                        "inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou " +
+                                        "    on tg.\"U_CODIGO_DEPARTAMENTO\"=ou.\"Cod\" " +
+                                        "inner join " + CustomSchema.Schema + ".\"Dependency\" de " +
+                                        "    on ou.\"Id\"=de.\"OrganizationalUnitId\" " +
+                                        "where " +
+                                            "op.\"DimCode\"=3 " +
+                                            "and op.\"PrcCode\" ='" + asesoria.Carrera + "' " +
+                                            "and de.\"BranchesId\"=" + asesoria.BranchesId).FirstOrDefault().ToString();
+                asesoria.DependencyCod = dep;
                 thisAsesoria.DependencyCod = asesoria.DependencyCod;
                 thisAsesoria.Carrera = asesoria.Carrera;
                 //Docente
