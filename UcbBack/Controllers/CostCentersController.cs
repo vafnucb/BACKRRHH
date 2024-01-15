@@ -130,7 +130,8 @@ namespace UcbBack.Controllers
                     entry.U_Materia,
                     entry.U_Paralelo,
                     entry.U_NivelParalelo,
-                    entry.U_TipoParalelo
+                    entry.U_TipoParalelo,
+                    entry.U_Unidad_Organizacional
 
                     // Agregar otras propiedades según sea necesario
                 })
@@ -170,46 +171,46 @@ namespace UcbBack.Controllers
             return Ok(y);
         }
 
-        [HttpGet]
-        [Route("api/CostCenters/BusinessPartners")]
-        public IHttpActionResult BP()
-        {
-            ValidateAuth auth = new ValidateAuth();
-            CustomUser user = auth.getUser(Request);
-            var y = B1conn.getBusinessPartners("*", user: user)
-                            .OrderBy(item => item["CardName"].ToString())
-                            .Cast<JObject>();
-            return Ok(y);
-        }
-
-
         //[HttpGet]
         //[Route("api/CostCenters/BusinessPartners")]
         //public IHttpActionResult BP()
         //{
         //    ValidateAuth auth = new ValidateAuth();
         //    CustomUser user = auth.getUser(Request);
-
-        //    // Consulta original para obtener la información de los Business Partners
-        //    var businessPartners = B1conn.getBusinessPartners("*", user: user)
-        //                                .OrderBy(item => item["CardName"].ToString())
-        //                                .Cast<JObject>();
-
-        //    // Consulta adicional utilizando Entity Framework
-        //    var additionalData = _context.Database.SqlQuery<JObject>(
-        //        "SELECT C.\"BPLName\" AS SEDE " +
-        //        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd A " +
-        //        "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".crd8 B ON A.\"CardCode\" = B.\"CardCode\" " +
-        //        "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".obpl C ON B.\"BPLId\" = C.\"BPLId\"")
-        //        .OrderBy(item => item.Value<string>("BPLName") ?? "");
-
-
-        //    // Combina los resultados de ambas consultas
-        //    var combinedResults = businessPartners.Concat(additionalData);
-        //    Console.WriteLine("AGH", additionalData);
-
-        //    return Ok(combinedResults);
+        //    var y = B1conn.getBusinessPartners("*", user: user)
+        //                    .OrderBy(item => item["CardName"].ToString())
+        //                    .Cast<JObject>();
+        //    return Ok(y);
         //}
+
+
+        [HttpGet]
+        [Route("api/CostCenters/BusinessPartners")]
+        public IHttpActionResult BP()
+        {
+            ValidateAuth auth = new ValidateAuth();
+            CustomUser user = auth.getUser(Request);
+
+            // Consulta original para obtener la información de los Business Partners
+            var businessPartners = B1conn.getBusinessPartners("*", user: user)
+                                        .OrderBy(item => item["CardName"].ToString())
+                                        .Cast<JObject>();
+
+            // Consulta adicional utilizando Entity Framework
+            var additionalData = _context.Database.SqlQuery<JObject>(
+                "SELECT C.\"BPLName\" " +
+                "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd A " +
+                "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".crd8 B ON A.\"CardCode\" = B.\"CardCode\" " +
+                "INNER JOIN " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".obpl C ON B.\"BPLId\" = C.\"BPLId\"")
+                .OrderBy(item => item.Value<string>("BPLName") ?? "");
+
+
+            // Combina los resultados de ambas consultas
+            var combinedResults = businessPartners.Concat(additionalData);
+            Console.WriteLine("AGH", additionalData);
+
+            return Ok(combinedResults);
+        }
 
 
 

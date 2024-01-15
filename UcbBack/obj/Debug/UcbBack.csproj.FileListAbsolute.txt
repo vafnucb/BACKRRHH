@@ -340,7 +340,18 @@ C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\EntityFramework.SqlSe
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.Core.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.Owin.xml
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.AspNet.Identity.EntityFramework.xml
+<<<<<<< HEAD
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csprojAssemblyReference.cache
+=======
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Host.SystemWeb.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Facebook.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Cookies.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.OAuth.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Google.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.Twitter.xml
+C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\bin\Microsoft.Owin.Security.MicrosoftAccount.xml
+>>>>>>> devBack
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.Migrations.FirstMigration.resources
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.GenerateResource.cache
 C:\Users\Juanpi\Desktop\AmbienteDeveloper\Back\UcbBack\obj\Debug\UcbBack.csproj.CoreCompileInputs.cache
