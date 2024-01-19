@@ -143,7 +143,7 @@ namespace UcbBack.Controllers
                 return Ok(filteredList);
 
             }
-            else if (by.Equals("REGISTRADO-DEP"))
+            else if (by.Equals("REGISTRADO-DEPEN"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
@@ -291,7 +291,7 @@ namespace UcbBack.Controllers
                     });
                 return Ok(filteredList);
             }
-            else if (by.Equals("VERIFICADO-DEP"))
+            else if (by.Equals("VERIFICADO-DEPEN"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
@@ -474,7 +474,8 @@ namespace UcbBack.Controllers
                     // obtiene el cuerpo de la tabla para el PDF
                     // join para el nombre de la carrera
                     query = "select " +
-                            "\"TeacherFullName\", \"Origen\", " +
+                            "\"TeacherFullName\", " +
+                            "a.\"Origen\", " +
                             "m.\"Abr\" as \"Modalidad\", " +
                             "t.\"Abr\" as \"TipoTarea\", " +
                             "a.\"Carrera\" ||" + " ' ' " + "|| op.\"PrcName\" as \"Carrera\" " + ", \"StudentFullName\" , " +
@@ -482,7 +483,7 @@ namespace UcbBack.Controllers
                             "\"Horas\", \"MontoHora\", " +
                             "\"TotalBruto\" , " +
                             "\"Deduccion\" , " +
-                            "\"NumeroContrato\" , " +
+                            "a.\"NumeroContrato\" , " +
                             "tp.\"Nombre\" as \"TipoPago\", " +
                             "case when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "case when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
@@ -1717,7 +1718,7 @@ namespace UcbBack.Controllers
                 return Ok(filteredList);
 
             }
-            else if (by.Equals("REGISTRADO-DEP"))
+            else if (by.Equals("REGISTRADO-DEPEN"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
@@ -1783,7 +1784,7 @@ namespace UcbBack.Controllers
                     });
                 return Ok(filteredList);
             }
-            else if (by.Equals("VERIFICADO-DEP"))
+            else if (by.Equals("VERIFICADO-DEPEN"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;

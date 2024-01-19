@@ -157,7 +157,7 @@ namespace UcbBack.Controllers
                 return Ok(filteredList);
 
             }
-            else if (by.Equals("REGISTRADO-DEP"))
+            else if (by.Equals("REGISTRADO-DEPEN"))
             {
                 //para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' and a.\"Factura\"=false " + orderBy;
