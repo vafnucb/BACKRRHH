@@ -19,6 +19,7 @@ namespace UcbBack.Models
         public decimal? ContractAmount { get; set; }
         public decimal? IUE { get; set; }
         public decimal? IT { get; set; }
+        public decimal? IUEExterior { get; set; }
         public decimal? TotalAmount { get; set; }
         public int BranchesId { set; get; }
         public string Regional { set; get; }
@@ -28,5 +29,6 @@ namespace UcbBack.Models
         public string InSAPAt { set; get; }
         public string Comments { set; get; }
         public string Dependency { set; get; }
+        public string TipoDocente { set; get; }
     }
 }
