@@ -1199,7 +1199,7 @@ namespace UcbBack.Logic.B1
                     businessObject.TaxDate = date;
                     businessObject.Series = Int32.Parse(process.Branches.SerieComprobanteContalbeSAP);
                     businessObject.DueDate = date;
-                    businessObject.Reference2 = "SARAI LOTE N. " + process.Id;
+                    businessObject.Reference = "SARAI LOTE N. " + process.Id;
 
                     // add lines Journal Entrie Approved:
                     businessObject.Lines.SetCurrentLine(0);

@@ -103,11 +103,10 @@ namespace UcbBack.Controllers
             string query = "select a.\"Id\", a.\"TeacherCUNI\", a.\"TeacherBP\", \r\na.\"BranchesId\", br.\"Abr\" as \"Regional\", a.\"Proyecto\"," +
                            "a.\"Modulo\", a.\"DependencyCod\", a.\"Horas\", \r\na.\"MontoHora\", a.\"TotalNeto\", a.\"TotalBruto\", a.\"Mes\"," +
                            " a.\"Gestion\", \r\na.\"Observaciones\", a.\"Deduccion\", t.\"Abr\" as \"TipoTarea\", \r\nnull as \"MesLiteral\", " +
-                           "a.\"Origen\", tp.\"Nombre\" as \"TipoPago\", \r\ncase when fn.\"FullName\" is null then c.\"CardName\"\r\nwhen c.\"CardName\" is null then fn.\"FullName\"\r\nend as \"TeacherFullName\", " +
+                           "a.\"Origen\", \r\ncase when fn.\"FullName\" is null then c.\"CardName\"\r\nwhen c.\"CardName\" is null then fn.\"FullName\"\r\nend as \"TeacherFullName\", " +
                            "case when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\", a.\"Origen\"" +
                            "\r\nfrom "+CustomSchema.Schema+".\"AsesoriaPostgrado\" a " +
                            "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t \r\non a.\"TipoTareaId\"=t.\"Id\" " +
-                           "\r\ninner join " + CustomSchema.Schema + ".\"TipoPago\" tp \r\non a.\"TipoPago\"=tp.\"Id\" " +
                            "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non a.\"BranchesId\"=br.\"Id\" " +
                            "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\" " +
                            "\r\nleft join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c\r\non a.\"TeacherBP\"=c.\"CardCode\"";
@@ -131,7 +130,6 @@ namespace UcbBack.Controllers
                         Mes = x.MesLiteral,
                         x.Gestion,
                         x.Origen,
-                        x.TipoPago,
                         Dup = x.Ignored
                     });
                 return Ok(filteredList);
@@ -157,7 +155,7 @@ namespace UcbBack.Controllers
                 return Ok(filteredList);
 
             }
-            else if (by.Equals("REGISTRADO-DEP"))
+            else if (by.Equals("REGISTRADO-DEPEN"))
             {
                 //para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' and a.\"Factura\"=false " + orderBy;
@@ -179,7 +177,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-INDEP"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='INDEP' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -198,7 +196,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-OR"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='OR' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -217,7 +215,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-FAC"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Factura\"=true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -236,7 +234,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("REGISTRADO-EXT"))
             {
-                //para la pantalla de aprobación nos interesan los registrados nada más
+                // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='EXT' and a.\"Factura\"=false " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
@@ -376,13 +374,13 @@ namespace UcbBack.Controllers
                             "\r\na.\"MontoHora\", " +
                             "\r\na.\"TotalBruto\", " +
                             "\r\na.\"Deduccion\", " +
-                            "\r\na.\"IUE\"," +
-                            "\r\na.\"IT\"," +
-                            "\r\na.\"IUEExterior\"," +
+                            "\r\ncase when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
+                            "\r\ncase when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
+                            "\r\ncase when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
                             "\r\na.\"StudentFullName\"," +
                             "\r\na.\"TotalNeto\", " +
                             "\r\na.\"Observaciones\", " +
-                            "\r\ncase when a.\"StudentFullName\" is null or a.\"StudentFullName\" = '' then 'No Asignado' else a.\"StudentFullName\" end as \"StudentFullName\", " +
+                            "\r\ncase when a.\"StudentFullName\" is null then 'ND' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                             "\r\ncase when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodModule\"=a.\"Modulo\" and pm.\"CodProject\" = a.\"Proyecto\" " +
@@ -405,9 +403,9 @@ namespace UcbBack.Controllers
                             "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" \"Proyecto\"," +
                             "\r\nsum(a.\"TotalBruto\") \"TotalBruto\", " +
                             "\r\nsum(a.\"Deduccion\") \"Deduccion\", " +
-                            "\r\nsum(a.\"IUE\") \"IUE\"," +
-                            "\r\nsum(a.\"IT\") \"IT\"," +
-                            "\r\nsum(a.\"IUEExterior\") \"IUEExterior\"," +
+                            "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
+                            "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "\r\nsum(a.\"TotalNeto\") \"TotalNeto\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodModule\"=a.\"Modulo\" and pm.\"CodProject\" = a.\"Proyecto\" " +
@@ -429,9 +427,9 @@ namespace UcbBack.Controllers
                     query = "select " +
                             "sum(\"TotalBruto\") as \"TotalBruto\", " +
                             "sum(\"Deduccion\") as \"Deduccion\", " +
-                            "sum(\"IUE\") as \"IUE\", " +
-                            "sum(\"IT\") as \"IT\", " +
-                            "sum(\"IUEExterior\") as \"IUEExterior\", " +
+                            "case when sum(\"IUE\") is null then 0 else sum(\"IUE\") end as \"IUE\",  " +
+                            "case when sum(\"IT\") is null then 0 else sum(\"IT\") end as \"IT\", " +
+                            "case when sum(\"IUEExterior\") is null then 0 else sum(\"IUEExterior\") end as \"IUEExterior\", " +
                             "sum(\"TotalNeto\") as \"TotalNeto\", \"BranchesId\"" +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
@@ -465,7 +463,7 @@ namespace UcbBack.Controllers
                     x.Deduccion,
                     x.IUE,
                     x.IT,
-                    x.IUEExterior,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.Observaciones,
                     Dup = x.Ignored,
@@ -484,7 +482,7 @@ namespace UcbBack.Controllers
                     x.Deduccion,
                     x.IUE,
                     x.IT,
-                    x.IUEExterior,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     x.BranchesId
                 });
@@ -499,7 +497,7 @@ namespace UcbBack.Controllers
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
-                    x.IUEExterior,
+                    IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                 });
                 return Ok(filteredListResult);

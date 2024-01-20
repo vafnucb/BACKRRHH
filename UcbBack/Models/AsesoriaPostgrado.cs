@@ -19,6 +19,7 @@ namespace UcbBack.Models
         public string TeacherCUNI { get; set; }
         public string TeacherBP { get; set; }
         public int? TipoTareaId { get; set; }
+        public int? TipoPago { get; set; }
         public int BranchesId { get; set; }
         public string Proyecto { get; set; }
         public string Modulo { get; set; }
@@ -44,6 +45,7 @@ namespace UcbBack.Models
         public int? UserCreate { get; set; }
         public int? UserUpdate { get; set; }
         public int? UserAuth { get; set; }
+        public string NumeroContrato { get; set; }
 
         public static int GetNextId(ApplicationDbContext _context)
         {
