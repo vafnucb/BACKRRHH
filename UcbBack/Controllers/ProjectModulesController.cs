@@ -44,7 +44,7 @@ namespace UcbBack.Controllers
         public IHttpActionResult Get()
         {
             // datos para la tabla histórica
-            string query = "SELECT DISTINCT pm.\"NameModule\" AS \"PrjAbr\", pj.*, b.\"Abr\", ou.\"Name\", ou.\"Cod\"" +
+            string query = "SELECT DISTINCT pm.\"NameModule\" \"PrjAbr\", pj.*, b.\"Abr\", ou.\"Name\", ou.\"Cod\"" +
                 "\r\nFROM " + CustomSchema.Schema + ".\"ProjectModules\" pj" +
                 "\r\nINNER JOIN  " + CustomSchema.Schema + ".\"Branches\" b ON b.\"Id\" = pj.\"BranchesId\"" +
                 "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm ON pm.\"CodProject\" = pj.\"CodProject\"" +

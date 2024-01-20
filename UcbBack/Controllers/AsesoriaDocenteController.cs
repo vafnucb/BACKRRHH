@@ -118,7 +118,7 @@ namespace UcbBack.Controllers
                 // Mes a literal
                 rawresult = mesLiteral(customQuery);
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
-                    .Select(x => new { x.Id, x.Origen, x.Acta, x.Carrera, Profesor = x.TeacherFullName, Estudiante = x.StudentFullName, Tarea = x.TipoTarea, x.Gestion, x.Mes });
+                    .Select(x => new { x.Id, x.Origen, x.Acta, x.Carrera, Profesor = x.TeacherFullName, Estudiante = x.StudentFullName, Tarea = x.TipoTarea, x.Gestion, Mes = x.MesLiteral });
                 return Ok(filteredList);
 
             }
