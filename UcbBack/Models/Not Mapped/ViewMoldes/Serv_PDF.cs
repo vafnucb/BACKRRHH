@@ -90,6 +90,9 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         [DisplayName("SAPId")]
         public string SAPId { get; set; }
 
+        [DisplayName("FileType")]
+        public string FileType { get; set; }
+
         public int BranchesId { get; set; }
     }
 }
