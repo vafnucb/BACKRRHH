@@ -374,6 +374,7 @@ namespace UcbBack.Controllers
                             "\r\na.\"MontoHora\", " +
                             "\r\na.\"TotalBruto\", " +
                             "\r\na.\"Deduccion\", " +
+                            "\r\na.\"Origen\", " +
                             "\r\ncase when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "\r\ncase when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
                             "\r\ncase when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
@@ -453,6 +454,7 @@ namespace UcbBack.Controllers
                 var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.TeacherFullName,
+                    x.Origen,
                     Alumno = x.StudentFullName,
                     x.TipoTarea,
                     x.Proyecto,
