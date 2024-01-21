@@ -726,7 +726,7 @@ namespace UcbBack.Controllers
                     U_O = x.Cod_UO,
                     // x.PEI_PO,
                     Servicio = x.Nombre_del_Servicio,
-                    Codig_SAP = x.Codigo_Proyecto_SAP,
+                    Codigo_SAP = x.Codigo_Proyecto_SAP,
                     Proyecto = x.Nombre_del_Proyecto,
                     // x.Version,
                     Tarea = x.Tarea_Asignada,
