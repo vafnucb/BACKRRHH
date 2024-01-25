@@ -1232,23 +1232,23 @@ namespace UcbBack.Controllers
                 thisAsesoria.TeacherCUNI = asesoria.TeacherCUNI;
                 thisAsesoria.TeacherBP = asesoria.TeacherBP;
                 thisAsesoria.Origen = asesoria.Origen;
+                thisAsesoria.NumeroContrato = asesoria.NumeroContrato;
                 //Estudiante
                 //Sobre la tutoria
                 thisAsesoria.TipoTareaId = asesoria.TipoTareaId;
+                thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
                 thisAsesoria.MontoHora = asesoria.MontoHora;
                 thisAsesoria.TotalBruto = asesoria.TotalBruto;
                 thisAsesoria.TotalNeto = asesoria.TotalNeto;
-                if (asesoria.Origen == "INDEP")
-                {
-                    asesoria.Deduccion = asesoria.IUE + asesoria.IT;
-                }
                 thisAsesoria.Deduccion = asesoria.Deduccion;
                 thisAsesoria.Observaciones = asesoria.Observaciones;
                 thisAsesoria.IUE = asesoria.IUE;
                 thisAsesoria.IT = asesoria.IT;
+                thisAsesoria.IUEExterior = asesoria.IUEExterior;
+
                 thisAsesoria.BranchesId = asesoria.BranchesId;
                 //Modifica su estado
                 thisAsesoria.Estado = asesoria.Estado;
@@ -1810,7 +1810,9 @@ namespace UcbBack.Controllers
             string qOrigen = "";
             if (origin == "FAC")
             {
-                qOrigen = " and a.\"Origen\" = 'INDEP' and a.\"Factura\" = true ";
+                // qOrigen = " and a.\"Origen\" = 'INDEP' and a.\"Factura\" = true ";
+                qOrigen = " and (a.\"Origen\" = 'INDEP' or a.\"Origen\" = 'EXT') and a.\"Factura\" = true ";
+
             }
             else
             {
@@ -1831,7 +1833,7 @@ namespace UcbBack.Controllers
                         "\r\na.\"TotalBruto\" , " +
                         "\r\na.\"Deduccion\" , " +
                         "\r\na.\"StudentFullName\" , " +
-                        "\r\ncase when a.\"StudentFullName\" is null or a.\"StudentFullName\" = '' then 'No Asignado' else a.\"StudentFullName\" end as \"StudentFullName\", " +
+                        "\r\ncase when TRIM(a.\"StudentFullName\") = '' or a.\"StudentFullName\" is null then 'ND' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                         "\r\ncase when a.\"IUE\" is null then 0 else a.\"IUE\" end as \"IUE\", " +
                         "\r\ncase when a.\"IT\" is null then 0 else a.\"IT\" end as \"IT\", " +
                         "\r\ncase when a.\"IUEExterior\" is null then 0 else a.\"IUEExterior\" end as \"IUEExterior\", " +
