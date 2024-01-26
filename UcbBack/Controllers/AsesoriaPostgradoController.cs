@@ -251,6 +251,102 @@ namespace UcbBack.Controllers
                     }); ; ;
                 return Ok(filteredList);
             }
+            else if (by.Equals("VERIFICADO-INDEP"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='INDEP' and a.\"Factura\"=false " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    }); ; ;
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-OR"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='OR' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-DEPEN"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    }); ; ;
+                return Ok(filteredList);
+
+            }
+            else if (by.Equals("VERIFICADO-FAC"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"= true " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='EXT' and a.\"Factura\"=false " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.TeacherFullName,
+                        x.Proyecto,
+                        x.Modulo,
+                        x.TipoTarea,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
+                        x.Ignored
+                    }); ; ;
+                return Ok(filteredList);
+            }
             else
             {
                 return BadRequest();
@@ -1440,6 +1536,54 @@ namespace UcbBack.Controllers
             }
         }
 
+        [HttpPut]
+        [Route("api/ToVerificacionPost")]
+        public IHttpActionResult ToVerificacionPost([FromUri] string myArray)
+        {
+            if (myArray == null)
+            {
+                return BadRequest("No se ha seleccionado ningún registro para aprobación");
+            }
+            else
+            {
+                var countRegister = 0;
+                int[] array = Array.ConvertAll(myArray.Split(','), int.Parse);
+                int[] failedUpdates = new int[array.Length];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    int currentElement = array[i];
+                    var thisAsesoria = _context.AsesoriaPostgrado.FirstOrDefault(x => x.Id == currentElement);
+                    if (thisAsesoria != null)
+                    {
+
+                        thisAsesoria.Estado = "VERIFICADO";
+                        _context.SaveChanges();
+                    }
+                    else
+                    {
+                        //Hubieron elementos del array que no se pudieron actualizar
+                        failedUpdates[countRegister] = array[i];
+                        countRegister += 1;
+                    }
+                }
+                //Si tenemos todos los Ids
+                if (countRegister == 0)
+                {
+                    return Ok("Se actualizaron los registros exitosamente");
+                }
+                //Si fallan todos los Ids
+                else if (countRegister == array.Length)
+                {
+                    return BadRequest("No se pudo actualizar ningún registro");
+                }
+                //Si solo fallan algunos
+                else
+                {
+                    return Ok("No se pudieron actualizar los siguientes registros:" + failedUpdates);//aquí meterle el concat por comas
+                }
+            }
+        }
+
         [HttpGet]
         [Route("api/BusquedaAvanzadaIsaacPost/{Proyecto}/{Modulo}/{Docente}/{Origen}/{tarea}/{mes}/{gestion}/{minB}/{maxB}/{minN}/{maxN}/{tpago}")]
         public IHttpActionResult BusquedaAvanzadaPost(string Proyecto, string Modulo, string Docente,
@@ -1723,7 +1867,7 @@ namespace UcbBack.Controllers
                 return Ok(filteredList);
 
             }
-            else if (by.Equals("REGISTRADO-DEP"))
+            else if (by.Equals("REGISTRADO-DEPEN"))
             {
                 //para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
@@ -1787,6 +1931,72 @@ namespace UcbBack.Controllers
                     {
                         x.Cod,
                         x.Proyecto
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-DEPEN"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='DEPEN' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+
+            }
+            else if (by.Equals("VERIFICADO-INDEP"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='INDEP' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-OR"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='OR' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-FAC"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"=true " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
+                    });
+                return Ok(filteredList);
+            }
+            else if (by.Equals("VERIFICADO-EXT"))
+            {
+                // para la pantalla de aprobación nos interesan los registrados nada más
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='EXT' " + orderBy;
+                rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                    .Select(x => new
+                    {
+                        x.Cod,
+                        x.Carrera
                     });
                 return Ok(filteredList);
             }
