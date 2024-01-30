@@ -1062,7 +1062,7 @@ namespace UcbBack.Controllers
             // La posicion para el comienzo del stream
             ms.Seek(0, SeekOrigin.Begin);
 
-            /**
+            
             //-----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
             //Actualizar con la fecha a los registros pre-aprobados
             var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
@@ -1077,7 +1077,7 @@ namespace UcbBack.Controllers
                 docente.UserAuth = user.Id;
             }
 
-            _context.SaveChanges(); **/
+            _context.SaveChanges();
 
             return response;
         }
@@ -1161,7 +1161,7 @@ namespace UcbBack.Controllers
             // La posicion para el comienzo del stream
             ms.Seek(0, SeekOrigin.Begin);
 
-            /**
+            
             //-----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
             // Actualizar con la fecha a los registros pre-aprobados
             var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
@@ -1176,7 +1176,7 @@ namespace UcbBack.Controllers
                 docente.UserAuth = user.Id;
             }
 
-            _context.SaveChanges();**/
+            _context.SaveChanges();
 
             return response;
         }
