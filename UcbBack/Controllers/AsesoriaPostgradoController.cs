@@ -1076,21 +1076,21 @@ namespace UcbBack.Controllers
                 //La posicion para el comienzo del stream
                 ms.Seek(0, SeekOrigin.Begin);
 
-                ////-----------------------------------------------------Cambios en PRE-APROBADOS EXT ---------------------------------------------------------------------
-                ////Actualizar con la fecha a los registros pre-aprobados
-                //var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
-                //var docentesPorAprobar = _context.AsesoriaPostgrado.Where(x => x.Origen.Equals("EXT") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId && x.Proyecto == proy).ToList();
-                ////Se sobrescriben los registros con la fecha actual y el nuevo estado
-                //foreach (var docente in docentesPorAprobar)
-                //{
-                //    docente.Mes = Convert.ToInt16(mes);
-                //    docente.Gestion = Convert.ToInt16(gestion);
-                //    docente.Estado = "APROBADO";
-                //    docente.ToAuthAt = DateTime.Now;
-                //    docente.UserAuth = user.Id;
-                //}
+                //-----------------------------------------------------Cambios en PRE-APROBADOS EXT ---------------------------------------------------------------------
+                //Actualizar con la fecha a los registros pre-aprobados
+                var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
+                var docentesPorAprobar = _context.AsesoriaPostgrado.Where(x => x.Origen.Equals("EXT") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId && x.Proyecto == proy).ToList();
+                //Se sobrescriben los registros con la fecha actual y el nuevo estado
+                foreach (var docente in docentesPorAprobar)
+                {
+                    docente.Mes = Convert.ToInt16(mes);
+                    docente.Gestion = Convert.ToInt16(gestion);
+                    docente.Estado = "APROBADO";
+                    docente.ToAuthAt = DateTime.Now;
+                    docente.UserAuth = user.Id;
+                }
 
-                //_context.SaveChanges();
+                _context.SaveChanges();
 
                 return response;
             }
