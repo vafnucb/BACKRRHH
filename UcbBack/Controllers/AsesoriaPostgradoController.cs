@@ -130,6 +130,8 @@ namespace UcbBack.Controllers
                         Mes = x.MesLiteral,
                         x.Gestion,
                         x.Origen,
+                        TotalNeto = string.Format("{0,00}", x.TotalNeto),
+                        TotalBruto = string.Format("{0,00}", x.TotalBruto),
                         Dup = x.Ignored
                     });
                 return Ok(filteredList);
@@ -575,6 +577,8 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     x.Proyecto,
+                    x.TeacherFullName,
+                    x.Origen,
                     Alumno = x.StudentFullName,
                     Total_Bruto = x.TotalBruto,
                     x.Deduccion,
@@ -591,6 +595,8 @@ namespace UcbBack.Controllers
                 var filteredListResult = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
                 {
                     Total_Bruto = x.TotalBruto,
+                    x.TeacherFullName,
+                    x.Origen,
                     Alumno = x.StudentFullName,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
@@ -1943,7 +1949,7 @@ namespace UcbBack.Controllers
                     .Select(x => new
                     {
                         x.Cod,
-                        x.Carrera
+                        x.Proyecto
                     });
                 return Ok(filteredList);
 
@@ -1957,7 +1963,7 @@ namespace UcbBack.Controllers
                     .Select(x => new
                     {
                         x.Cod,
-                        x.Carrera
+                        x.Proyecto
                     });
                 return Ok(filteredList);
             }
@@ -1970,7 +1976,7 @@ namespace UcbBack.Controllers
                     .Select(x => new
                     {
                         x.Cod,
-                        x.Carrera
+                        x.Proyecto
                     });
                 return Ok(filteredList);
             }
@@ -1983,7 +1989,7 @@ namespace UcbBack.Controllers
                     .Select(x => new
                     {
                         x.Cod,
-                        x.Carrera
+                        x.Proyecto
                     });
                 return Ok(filteredList);
             }
@@ -1996,7 +2002,7 @@ namespace UcbBack.Controllers
                     .Select(x => new
                     {
                         x.Cod,
-                        x.Carrera
+                        x.Proyecto
                     });
                 return Ok(filteredList);
             }
@@ -2035,7 +2041,7 @@ namespace UcbBack.Controllers
                     // obtiene el cuerpo de la tabla para el PDF
                     // join para el nombre de la carrera
                     query =
-                        "select \r\ncase when a.\"Origen\" = 'INDEP' then ocrd.\"CardName\" else fn.\"FullName\" end as \"TeacherFullName\"," +
+                        "select \r\ncase when a.\"Origen\" = 'INDEP' or a.\"Origen\" = 'EXT' then ocrd.\"CardName\" else fn.\"FullName\" end as \"TeacherFullName\"," +
                         "\r\nt.\"Abr\" as \"TipoTarea\", " +
                         "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" as \"Proyecto\" , " +
                         "\r\na.\"Modulo\" || ' ' || pm.\"NameModule\" as \"Modulo\"," +
@@ -2043,6 +2049,7 @@ namespace UcbBack.Controllers
                         "\r\na.\"TotalBruto\" , " +
                         "\r\na.\"Deduccion\" , " +
                         "\r\na.\"StudentFullName\" , " +
+                        "\r\na.\"Origen\" , " +
                         "\r\ncase when TRIM(a.\"StudentFullName\") = '' or a.\"StudentFullName\" is null then 'ND' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                         "\r\ncase when a.\"IUE\" is null then 0 else a.\"IUE\" end as \"IUE\", " +
                         "\r\ncase when a.\"IT\" is null then 0 else a.\"IT\" end as \"IT\", " +
@@ -2124,6 +2131,7 @@ namespace UcbBack.Controllers
                     Proyecto = x.Proyecto,
                     Alumno = x.StudentFullName,
                     Docente = x.TeacherFullName,
+                    Origen = x.Origen,
                     Tarea = x.TipoTarea,
                     x.Modulo,
                     Horas = x.Horas,
@@ -2147,6 +2155,8 @@ namespace UcbBack.Controllers
                     Proyecto = x.Proyecto,
                     Total_Bruto = x.TotalBruto,
                     Alumno = x.StudentFullName,
+                    Docente = x.TeacherFullName,
+                    Origen = x.Origen,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
@@ -2162,6 +2172,8 @@ namespace UcbBack.Controllers
                 {
                     Total_Bruto = x.TotalBruto,
                     Alumno = x.StudentFullName,
+                    Docente = x.TeacherFullName,
+                    Origen = x.Origen,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
                     IT = x.IT,
