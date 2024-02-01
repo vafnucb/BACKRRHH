@@ -46,10 +46,10 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public Decimal Contrato { get; set; }
 
         [DisplayName("Importe Deducción IUE")]
-        public Decimal IUE { get; set; }
+        public Decimal? IUE { get; set; }
 
         [DisplayName("Importe Deducción I.T.")]
-        public Decimal IT { get; set; }
+        public Decimal? IT { get; set; }
 
         [DisplayName("IUEExterior")]
         public Decimal? IUEExterior { get; set; }

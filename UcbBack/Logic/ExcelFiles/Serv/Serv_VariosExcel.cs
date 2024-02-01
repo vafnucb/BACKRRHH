@@ -26,6 +26,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
             new Excelcol("Monto Contrato", typeof(double)),
             new Excelcol("Monto IUE", typeof(double)),
             new Excelcol("Monto IT", typeof(double)),
+            new Excelcol("IUEExterior", typeof(double)),
             new Excelcol("Monto a Pagar", typeof(double)),
             new Excelcol("Observaciones", typeof(string)),
         };
@@ -77,8 +78,9 @@ namespace UcbBack.Logic.ExcelFiles.Serv
             data.ContractAmount = Math.Round(Decimal.Parse(wb.Worksheet(sheet).Cell(row, 8).Value.ToString()), 2);
             data.IUE = Math.Round(Decimal.Parse(wb.Worksheet(sheet).Cell(row, 9).Value.ToString()), 2);
             data.IT = Math.Round(Decimal.Parse(wb.Worksheet(sheet).Cell(row, 10).Value.ToString()), 2);
-            data.TotalAmount = Math.Round(Decimal.Parse(wb.Worksheet(sheet).Cell(row, 11).Value.ToString()), 2);
-            data.Comments = wb.Worksheet(sheet).Cell(row, 12).Value.ToString();
+            data.IUEExterior = Decimal.Parse(wb.Worksheet(sheet).Cell(row, 11).Value.ToString());
+            data.TotalAmount = Math.Round(Decimal.Parse(wb.Worksheet(sheet).Cell(row, 12).Value.ToString()), 2);
+            data.Comments = wb.Worksheet(sheet).Cell(row, 13).Value.ToString();
             data.Serv_ProcessId = process.Id;
             return data;
         }
@@ -120,7 +122,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 bool v7 = VerifyTotal();
                 bool v8 = true;
                 //Verifica que ninguna columna entre vacia
-                foreach (var i in new List<int>() { 1,2,3,4,5,6,7,8,9,10,11})
+                foreach (var i in new List<int>() { 1,2,3,4,5,6,7,8,9,10,11,12,13})
                 {
                     v8 = VerifyNotEmpty(i) && v8 ;
                 }
@@ -144,11 +146,23 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 decimal contrato = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 8).Value.ToString()), 2);
                 decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 9).Value.ToString()), 2);
                 decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 10).Value.ToString()), 2);
-                decimal total = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 11).Value.ToString()), 2);
-                if (contrato-IUE-IT != total)
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 11).Value.ToString()), 2);
+                decimal total = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 12).Value.ToString()), 2);
+                if (IUEExterior == 0)
                 {
-                    res = false;
-                    paintXY(11, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar)");
+                    if (contrato - IUE - IT != total)
+                    {
+                        res = false;
+                        paintXY(12, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
+                    }
+                }
+                else
+                {
+                    if (contrato - IUEExterior != total)
+                    {
+                        res = false;
+                        paintXY(12, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
+                    }
                 }
             }
 

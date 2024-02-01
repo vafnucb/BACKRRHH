@@ -313,6 +313,7 @@ namespace UcbBack.Controllers
                     || !((IDictionary<string, object>)o).ContainsKey("FileType")
                     || !((IDictionary<string, object>)o).ContainsKey("fileName")
                     || !((IDictionary<string, object>)o).ContainsKey("excelStream")
+                    || !((IDictionary<string, object>)o).ContainsKey("TipoDocente")
                     || !o.fileName.ToString().EndsWith(".xlsx"))
                 {
                     //escribir aquí los parámetros del excel que quiero ver||en qué parte del excel se manda eso y como es que el fonrtend sube la info del excel si solo pasa las branches , el nombre 'file' y el filetype CC_XXX
@@ -341,7 +342,7 @@ namespace UcbBack.Controllers
                 var user = auth.getUser(Request);
 
                 int userid = Int32.Parse(Request.Headers.GetValues("id").First());
-                ServProcess file = AddFileToProcess(Int32.Parse(o.BranchesId.ToString()), o.FileType.ToString(), userid);
+                ServProcess file = AddFileToProcess(Int32.Parse(o.BranchesId.ToString()), o.FileType.ToString(), userid, o.TipoDocente.ToString());
 
                 if (file == null)
                 {
@@ -775,6 +776,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = x.ContractAmount,
                             Monto_IUE = x.IUE,
                             Monto_IT = x.IT,
+                            IUEExterior = x.IUEExterior,
                             Monto_a_Pagar = x.TotalAmount,
                             Observaciones = x.Comments,
                         }).OrderBy(x => x.Id);
@@ -824,6 +826,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = x.ContractAmount,
                             Monto_IUE = x.IUE,
                             Monto_IT = x.IT,
+                            IUEExterior = x.IUEExterior,
                             Monto_a_Pagar = x.TotalAmount,
                             Observaciones = x.Comments,
                         }).OrderBy(x => x.Id);
@@ -850,6 +853,7 @@ namespace UcbBack.Controllers
                             Monto_Contrato = x.ContractAmount,
                             Monto_IUE = x.IUE,
                             Monto_IT = x.IT,
+                            IUEExterior = x.IUEExterior,
                             Monto_a_Pagar = x.TotalAmount,
                             Observaciones = x.Comments,
                         }).OrderBy(x => x.Id);
@@ -1231,6 +1235,10 @@ namespace UcbBack.Controllers
                 {
                     res.FileType = contentPart.ReadAsStringAsync().Result.ToString();
                 }
+                else if (varname == "\"TipoDocente\"")
+                {
+                    res.TipoDocente = await contentPart.ReadAsStringAsync();
+                }
                 else if (varname == "\"file\"")
                 {
                     Stream stream = await contentPart.ReadAsStreamAsync();
@@ -1251,7 +1259,7 @@ namespace UcbBack.Controllers
         }
 
         [NonAction]
-        private ServProcess AddFileToProcess(int BranchesId, string FileType, int userid)
+        private ServProcess AddFileToProcess(int BranchesId, string FileType, int userid, string TipoDocente)
         {
             var processInDB = _context.ServProcesses.FirstOrDefault(p =>
                     p.BranchesId == BranchesId && p.FileType == FileType && p.State == ServProcess.Serv_FileState.Started);
@@ -1269,6 +1277,7 @@ namespace UcbBack.Controllers
             process.State = ServProcess.Serv_FileState.Started;
             process.CreatedBy = userid;
             process.BranchesId = BranchesId;
+            process.TipoDocente = TipoDocente;
 
             _context.ServProcesses.Add(process);
             _context.SaveChanges();

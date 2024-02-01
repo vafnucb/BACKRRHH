@@ -168,19 +168,20 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 bool v10 = VerifyTotal2();
                 //Verifica que el comentario solo tenga 300 caracteres
                 bool v14 = VerifyLength(16, 300);
-                bool v20 = verifyTipoDocente();
+                bool v20 = verifyTipoDocente(process.TipoDocente);
 
-                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9 && v12 && v13 && v15 && v11 && v10 && v14 && v20;
+                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9 && v12 && v13 && v15 && v10 && v11 && v14 && v20;
             }
 
             return false;
 
         }
 
-        private bool verifyTipoDocente()
+        private bool verifyTipoDocente(string tipoDocente)
         {
             bool res = true;
             int sheet = 1;
+            string td = tipoDocente;
 
             IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
             for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
@@ -192,13 +193,18 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 if (IUEExterior > 0 && process.TipoDocente == "INDEP")
                 {
                     res = false;
-                    addError("Error de archivo", "Subió un archivo de extranjero como tipo de docente independiente");
+                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
                 }
                 if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
                 {
                     res = false;
-                    addError("Error de archivo", "Subió un archivo de independiente como tipo de docente extranjero");
+                    paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
                 }
+            }
+            valid = valid && res;
+            if (!res)
+            {
+                addError("Error de archivo", "Subió un archivo de un tipo de docente erróneo");
             }
             return res;
         }
