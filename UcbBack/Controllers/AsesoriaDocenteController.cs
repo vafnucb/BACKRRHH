@@ -2425,6 +2425,20 @@ namespace UcbBack.Controllers
                 {
                     pag = "and ad.\"TipoPago\" ='" + tPag + "'";
                 }
+                if (minN > maxN && minB > maxB)
+                {
+                    return BadRequest("Los importes mínimos, bruto y neto no pueden ser mayores a los máximos");
+                }
+
+                if (minB > maxB)
+                {
+                    return BadRequest("El importe bruto mínimo no puede ser mayor al importe bruto máximo.");
+                }
+
+                if (minN > maxN)
+                {
+                    return BadRequest("El importe neto mínimo no puede ser mayor al importe neto máximo.");
+                }
                 ////// Construir las condiciones de rango para TotalBruto y TotalNeto
                 var condicionesRangoBruto = (minB >= 0 && maxB>= minB) ? " AND ad.\"TotalBruto\" BETWEEN " + minB + " AND " + maxB : "";
                 var condicionesRangoNeto = (minN >= 0 && maxN >= minN) ? " AND ad.\"TotalNeto\" BETWEEN " + minN + " AND " + maxN : "";
