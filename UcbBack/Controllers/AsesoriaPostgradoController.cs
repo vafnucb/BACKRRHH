@@ -1698,8 +1698,25 @@ namespace UcbBack.Controllers
                     pag = " and ad.\"TipoPago\" = " + tpago + "";
                 }
 
-                // Construir las condiciones de rango para TotalBruto y TotalNeto
-                var condicionesRangoBruto = (minB >= 0 && maxB >= minB) ? " AND ad.\"TotalBruto\" BETWEEN " + minB + " AND " + maxB : "";
+                if (minN > maxN && minB > maxB)
+                {
+                    return BadRequest("Los importes mínimos, bruto y neto no pueden ser mayores a los máximos");
+                }
+
+                if (minB > maxB)
+                {
+                    return BadRequest("El importe bruto mínimo no puede ser mayor al importe bruto máximo.");
+                }
+
+                if (minN > maxN)
+                {
+                    return BadRequest("El importe neto mínimo no puede ser mayor al importe neto máximo.");
+                }
+
+                
+
+                    // Construir las condiciones de rango para TotalBruto y TotalNeto
+                    var condicionesRangoBruto = (minB >= 0 && maxB >= minB) ? " AND ad.\"TotalBruto\" BETWEEN " + minB + " AND " + maxB : "";
                 var condicionesRangoNeto = (minN >= 0 && maxN >= minN) ? " AND ad.\"TotalNeto\" BETWEEN " + minN + " AND " + maxN : "";
                 string order = " order by \"Id\",\"Gestion\", \"Mes\", \"TeacherFullName\"";
                 string group = " group by ad.\"TeacherCUNI\", \r\nad.\"TeacherBP\", \r\nad.\"DependencyCod\", \r\nad.\"Proyecto\",\r\nad.\"Modulo\",\r\nad.\"Origen\", \r\ntt.\"Tarea\", \r\ntp.\"Nombre\", \r\nad.\"Observaciones\",\r\nad.\"TotalBruto\", \r\nad.\"IUE\",\r\nad.\"IT\", \r\nad.\"IUEExterior\",  \r\nad.\"Deduccion\", \r\nad.\"TotalNeto\",\r\nad.\"Mes\",\r\nad.\"Gestion\", \r\nbr.\"Abr\", \r\nad.\"BranchesId\", \r\nad.\"Ignore\",\r\nx.\"TeacherFullName\"";

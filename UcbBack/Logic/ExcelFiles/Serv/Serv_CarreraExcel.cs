@@ -171,14 +171,18 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 if (IUEExterior > 0 && process.TipoDocente == "INDEP")
                 {
                     res = false;
-                    addError("Error de archivo", "Subió un archivo de extranjero como tipo de docente independiente");
+                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
                 }
                 if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
                 {
                     res = false;
-                    addError("Error de archivo", "Subió un archivo de independiente como tipo de docente extranjero");
+                    paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
                 }
-                return res;
+            }
+            valid = valid && res;
+            if (!res)
+            {
+                addError("Error de archivo", "Subió un archivo de un tipo de docente erróneo");
             }
             return res;
         }
