@@ -171,7 +171,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 if (IUEExterior > 0 && process.TipoDocente == "INDEP")
                 {
                     res = false;
-                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
+                    paintXY(14, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
                 }
                 if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
                 {
@@ -230,7 +230,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                     if (contrato - IUE - IT != total)
                     {
                         res = false;
-                        paintXY(11, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
+                        paintXY(15, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
                     }
                 }
                 else
@@ -238,7 +238,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                     if (contrato - IUEExterior != total)
                     {
                         res = false;
-                        paintXY(11, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
+                        paintXY(15, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
                     }
                 }
             }
