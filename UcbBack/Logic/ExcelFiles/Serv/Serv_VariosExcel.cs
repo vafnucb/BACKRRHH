@@ -122,7 +122,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 bool v7 = VerifyTotal();
                 bool v8 = true;
                 //Verifica que ninguna columna entre vacia
-                foreach (var i in new List<int>() { 1,2,3,4,5,6,7,8,9,10,11,12,13})
+                foreach (var i in new List<int>() { 1,2,3,4,5,6,7,8,12,13})
                 {
                     v8 = VerifyNotEmpty(i) && v8 ;
                 }
