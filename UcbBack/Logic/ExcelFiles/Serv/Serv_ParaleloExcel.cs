@@ -103,6 +103,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
             }
             return aux;
         }
+
         public override bool ValidateFile()
         {
             if (isValid())
@@ -144,12 +145,43 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 }
                 //Verifica que el comentario solo tenga 300 caracteres
                 bool v10 = VerifyLength(15, 300);
-                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9 && v10;
+                bool v20 = verifyTipoDocente(process.TipoDocente);
+                return v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9 && v10 && v20;
             }
 
             return false;
         }
+        private bool verifyTipoDocente(string tipoDocente)
+        {
+            bool res = true;
+            int sheet = 1;
+            string td = tipoDocente;
 
+            IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
+            for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
+            {
+                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
+                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 15).Value.ToString()), 2);
+
+                if (IUEExterior > 0 && process.TipoDocente == "INDEP")
+                {
+                    res = false;
+                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
+                }
+                if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
+                {
+                    res = false;
+                    paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
+                }
+            }
+            valid = valid && res;
+            if (!res)
+            {
+                addError("Error de archivo", "Subió un archivo de un tipo de docente erróneo");
+            }
+            return res;
+        }
         private bool VerifyTotal()
         {
             bool res = true;
