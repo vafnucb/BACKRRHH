@@ -143,19 +143,19 @@ namespace UcbBack.Logic.ExcelFiles.Serv
             IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
             for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
             {
-                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
-                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
-                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 15).Value.ToString()), 2);
+                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 9).Value.ToString()), 2);
+                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 10).Value.ToString()), 2);
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 11).Value.ToString()), 2);
 
                 if (IUEExterior > 0 && process.TipoDocente == "INDEP")
                 {
                     res = false;
-                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
+                    paintXY(11, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
                 }
                 if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
                 {
                     res = false;
-                    paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
+                    paintXY(10, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
                 }
             }
             valid = valid && res;

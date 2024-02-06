@@ -160,14 +160,14 @@ namespace UcbBack.Logic.ExcelFiles.Serv
             IXLRange UsedRange = wb.Worksheet(sheet).RangeUsed();
             for (int i = headerin + 1; i <= UsedRange.LastRow().RowNumber(); i++)
             {
-                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
-                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
-                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 15).Value.ToString()), 2);
+                decimal IUE = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 12).Value.ToString()), 2);
+                decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
+                decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
 
                 if (IUEExterior > 0 && process.TipoDocente == "INDEP")
                 {
                     res = false;
-                    paintXY(15, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
+                    paintXY(14, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
                 }
                 if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
                 {
@@ -201,7 +201,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                         if (contrato - IUE - IT != total)
                         {
                             res = false;
-                            paintXY(12, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
+                            paintXY(15, i, XLColor.Red, "Este valor no cuadra (Contrato - IUE - IT != Monto a Pagar para independientes)");
                         }
                     }
                     else
@@ -209,7 +209,7 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                         if (contrato - IUEExterior != total)
                         {
                             res = false;
-                            paintXY(12, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
+                            paintXY(15, i, XLColor.Red, "Este valor no cuadra (Contrato - IUEExterior != Monto a Pagar para extranjeros)");
                         }
                     }
                 }
