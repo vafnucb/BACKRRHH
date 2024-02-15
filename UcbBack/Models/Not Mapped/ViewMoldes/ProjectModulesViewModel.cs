@@ -32,6 +32,7 @@ namespace UcbBack.Models
         public DateTime? UpdatedAt { get; set; }
         public string Cod { get; set; }
         public string Name { get; set; }
+        public string U_UORGANIZA { get; set; }
         public static int GetNextId(ApplicationDbContext _context)
         {
             return _context.Database.SqlQuery<int>("SELECT \"" + CustomSchema.Schema + "\".\"rrhh_ProjectModules_sqs\".nextval FROM DUMMY;").ToList()[0];
