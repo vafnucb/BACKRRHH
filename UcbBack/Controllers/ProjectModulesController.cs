@@ -43,17 +43,13 @@ namespace UcbBack.Controllers
         [Route("api/ProjectModules/")]
         public IHttpActionResult Get()
         {
-            // datos para la tabla histórica
-            string query = "SELECT DISTINCT pm.\"NameModule\" \"PrjAbr\", pj.*, b.\"Abr\", ou.\"Name\", ou.\"Cod\"" +
-                "\r\nFROM " + CustomSchema.Schema + ".\"ProjectModules\" pj" +
-                "\r\nINNER JOIN  " + CustomSchema.Schema + ".\"Branches\" b ON b.\"Id\" = pj.\"BranchesId\"" +
-                "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm ON pm.\"CodProject\" = pj.\"CodProject\"" +
-                "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" ap ON ap.\"Proyecto\" = pj.\"CodProject\"" +
-                "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON d.\"Cod\" = ap.\"DependencyCod\"" +
-                "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON ou.\"Id\" = d.\"OrganizationalUnitId\"" +
-                "\r\nWHERE pm.\"CodModule\" = '0'" +
-                "\r\nORDER BY pj.\"CodProject\", pj.\"CodModule\"";
-
+            //datos para la tabla histórica
+            string query = "select pm.\"NameModule\" \"PrjAbr\", pj.* , b.\"Abr\"" +
+                           "\r\nfrom " + CustomSchema.Schema + ".\"ProjectModules\" pj" +
+                           "\r\ninner join  " + CustomSchema.Schema + ".\"Branches\" b on b.\"Id\" = pj.\"BranchesId\"" +
+                           "\r\nleft join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodProject\" = pj.\"CodProject\"" +
+                           "\r\nwhere pm.\"CodModule\" = '0'" +
+                           "\r\norder by pj.\"CodProject\", pj.\"CodModule\"";
 
             var rawResult = _context.Database.SqlQuery<ProjectModulesViewModel>(query).Select(x => new
             {
@@ -69,9 +65,7 @@ namespace UcbBack.Controllers
                 x.MontoHora,
                 x.FechaInicio,
                 x.FechaFin,
-                x.Observaciones,
-                x.Cod,
-                x.Name
+                x.Observaciones
 
             }).AsQueryable();
 
@@ -89,13 +83,69 @@ namespace UcbBack.Controllers
                 x.MontoHora,
                 Fecha_Inicio = x.FechaInicio != null ? x.FechaInicio.ToString("dd-MM-yyyy") : null,
                 Fecha_Fin = x.FechaFin != null ? x.FechaFin.ToString("dd-MM-yyyy") : null,
-                x.Observaciones,
-                x.Cod,
-                x.Name
+                x.Observaciones
             }).ToList();
 
             return Ok(result);
         }
+        // Corregir con Rodrigo Tejada y analizar el query. De momento funciona bien, pero se debe optimizar y evitar duplicados, REVISAR SAP, error de unidad organizacional!!!.
+        //[HttpGet]
+        //[Route("api/ProjectModules/")]
+        //public IHttpActionResult Get()
+        //{
+        
+        //    string query = "SELECT DISTINCT pm.\"NameModule\" \"PrjAbr\", pj.*, b.\"Abr\", ou.\"Name\", ou.\"Cod\"" +
+        //        "\r\nFROM " + CustomSchema.Schema + ".\"ProjectModules\" pj" +
+        //        "\r\nINNER JOIN  " + CustomSchema.Schema + ".\"Branches\" b ON b.\"Id\" = pj.\"BranchesId\"" +
+        //        "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm ON pm.\"CodProject\" = pj.\"CodProject\"" +
+        //        "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" ap ON ap.\"Proyecto\" = pj.\"CodProject\"" +
+        //        "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON d.\"Cod\" = ap.\"DependencyCod\"" +
+        //        "\r\nLEFT JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON ou.\"Id\" = d.\"OrganizationalUnitId\"" +
+        //        "\r\nWHERE pm.\"CodModule\" = '0'" +
+        //        "\r\nORDER BY pj.\"CodProject\", pj.\"CodModule\"";
+
+
+        //    var rawResult = _context.Database.SqlQuery<ProjectModulesViewModel>(query).Select(x => new
+        //    {
+        //        x.Id,
+        //        x.BranchesId,
+        //        x.CodModule,
+        //        x.CodProject,
+        //        x.PrjAbr,
+        //        x.NameModule,
+        //        x.TeacherFullName,
+        //        x.TeacherCI,
+        //        x.Horas,
+        //        x.MontoHora,
+        //        x.FechaInicio,
+        //        x.FechaFin,
+        //        x.Observaciones,
+        //        x.Cod,
+        //        x.Name
+
+        //    }).AsQueryable();
+
+        //    var user = auth.getUser(Request);
+
+        //    var result = auth.filerByRegional(rawResult, user).ToList().Select(x => new
+        //    {
+        //        x.Id,
+        //        Cod_Proyecto = x.CodProject,
+        //        Nombre_Proyecto = x.PrjAbr,
+        //        Cod_Modulo = x.CodModule,
+        //        Nombre_Modulo = x.NameModule,
+        //        Docente = x.TeacherFullName,
+        //        x.Horas,
+        //        x.MontoHora,
+        //        Fecha_Inicio = x.FechaInicio != null ? x.FechaInicio.ToString("dd-MM-yyyy") : null,
+        //        Fecha_Fin = x.FechaFin != null ? x.FechaFin.ToString("dd-MM-yyyy") : null,
+        //        x.Observaciones,
+        //        x.Cod,
+        //        x.Name
+        //    }).ToList();
+
+        //    return Ok(result);
+        //}
 
         [HttpGet]
         [Route("api/GetUnitName/{cod}")]
