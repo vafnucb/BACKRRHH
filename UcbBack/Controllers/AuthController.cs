@@ -134,7 +134,8 @@ namespace UcbBack.Controllers
             //response.Headers.Add("RefreshToken", user.RefreshToken);
             //return ResponseMessage(response);
             var rols = activeDirectory.getUserRols(user);
-            var principalrol = rols.OrderByDescending(x => x.Level).FirstOrDefault();
+            // var principalrol = rols.OrderByDescending(x => x.Level).FirstOrDefault(); -->> Original con problema
+            var principalrol = rols.OrderBy(x => x.Level).FirstOrDefault();
             if (principalrol==null)
             {
                 return Unauthorized();
