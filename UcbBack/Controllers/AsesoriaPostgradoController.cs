@@ -1150,6 +1150,11 @@ namespace UcbBack.Controllers
             var ProyReg = _context.Database.SqlQuery<string>("select \"U_Sucursal\" from " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj where \"PrjCode\" = '" + asesoria.Proyecto + "'").FirstOrDefault();
             var PeopleRegCUNI = _context.Database.SqlQuery<string>("select \"Branches\" from " + CustomSchema.Schema + ".lastcontracts where cuni = '" + asesoria.TeacherCUNI + "'").FirstOrDefault();
             var PeopleRegBP = _context.Database.SqlQuery<string>("select b.\"Abr\" from " + CustomSchema.Schema + ".\"Civil\" c inner join " + CustomSchema.Schema + ".\"Branches\" b on b.\"Id\" = c.\"BranchesId\" where \"SAPId\" = '" + asesoria.TeacherBP + "'").FirstOrDefault();
+            
+            if (asesoria.TipoPago == null)
+            {
+                return BadRequest("Debe ingresar un tipo de pago!");
+            }
             if (string.IsNullOrEmpty(asesoria.Proyecto) || string.IsNullOrEmpty(asesoria.Modulo))
             {
                 return BadRequest("No se pueden ingresar datos con valores vacios o iguales a 0.");
