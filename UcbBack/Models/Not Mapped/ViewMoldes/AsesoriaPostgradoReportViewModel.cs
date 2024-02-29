@@ -27,6 +27,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string Modulo { get; set; }
         public string Estado { get; set; }
         public string Origen { get; set; }
+        public string NumeroContrato { get; set; }
         public string DependencyCod { get; set; }
         public string Observaciones { get; set; }
         public int? Horas { get; set; }
