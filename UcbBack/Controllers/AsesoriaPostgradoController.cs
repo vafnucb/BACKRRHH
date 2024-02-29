@@ -473,6 +473,7 @@ namespace UcbBack.Controllers
                             "\r\na.\"TotalBruto\", " +
                             "\r\na.\"Deduccion\", " +
                             "\r\na.\"Origen\", " +
+                            "\r\na.\"NumeroContrato\", " +
                             "\r\ncase when \"IUE\" is null then 0 else \"IUE\" end as \"IUE\", " +
                             "\r\ncase when \"IT\" is null then 0 else \"IT\" end as \"IT\", " +
                             "\r\ncase when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
@@ -557,6 +558,7 @@ namespace UcbBack.Controllers
                     x.TipoTarea,
                     x.Proyecto,
                     x.Modulo,
+                    x.NumeroContrato,
                     x.Horas,
                     x.MontoHora,
                     Total_Bruto = x.TotalBruto,
@@ -2071,6 +2073,7 @@ namespace UcbBack.Controllers
                         "\r\na.\"Deduccion\" , " +
                         "\r\na.\"StudentFullName\" , " +
                         "\r\na.\"Origen\" , " +
+                        "\r\na.\"NumeroContrato\" , " +
                         "\r\ncase when TRIM(a.\"StudentFullName\") = '' or a.\"StudentFullName\" is null then 'ND' else a.\"StudentFullName\" end as \"StudentFullName\", " +
                         "\r\ncase when a.\"IUE\" is null then 0 else a.\"IUE\" end as \"IUE\", " +
                         "\r\ncase when a.\"IT\" is null then 0 else a.\"IT\" end as \"IT\", " +
@@ -2147,7 +2150,7 @@ namespace UcbBack.Controllers
             var user = auth.getUser(Request);
             if (section.Equals("Body"))
             {
-                var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x => new
+                var filteredListBody = auth.filerByRegional(report.AsQueryable(), user).ToList().Select(x =>            new
                 {
                     Proyecto = x.Proyecto,
                     Alumno = x.StudentFullName,
@@ -2155,6 +2158,7 @@ namespace UcbBack.Controllers
                     Origen = x.Origen,
                     Tarea = x.TipoTarea,
                     x.Modulo,
+                    x.NumeroContrato,
                     Horas = x.Horas,
                     Costo_Hora = x.MontoHora,
                     Total_Bruto = x.TotalBruto,
