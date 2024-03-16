@@ -138,7 +138,8 @@ namespace UcbBack.Controllers
                         x.Modalidad,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
-                        Duplicado = x.Ignore
+                        Duplicado = x.Ignore,
+                        x.Origen
                     }); ;
                 return Ok(filteredList);
 
@@ -1007,7 +1008,8 @@ namespace UcbBack.Controllers
                 "from " +
                     CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
                     "inner join " + CustomSchema.Schema + ".\"Civil\" c " +
-                    "on a.\"TeacherBP\"=c.\"SAPId\" " +
+                    "ON a.\"TeacherBP\" = c.\"SAPId\" " +
+                    "AND a.\"BranchesId\" = c.\"BranchesId\" " +
                     "inner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
                     "on a.\"TipoTareaId\"=t.\"Id\" " +
                     "inner join " + CustomSchema.Schema + ".\"Branches\" br " +
@@ -1096,7 +1098,7 @@ namespace UcbBack.Controllers
             string gestion = info[2];
             // El query genera el archivo PREGRADO de SALOMON en base a los datos de las tutorías PRE-APROBADAS
             string query =
-                "select " +
+                "SELECT " +
                     "a.\"TeacherBP\" as \"Codigo_Socio\", a.\"TeacherFullName\" as \"Nombre_Socio\", " +
                     "a.\"DependencyCod\" as \"Cod_Dependencia\", 'PO' as \"PEI_PO\", " +
                     "'Servicios de Tutoria Relatoria en Pregrado' \"Nombre_del_Servicio\", a.\"Carrera\" as \"Codigo_Carrera\" ,a.\"Acta\" as \"Documento_Base\", " +
@@ -1105,8 +1107,9 @@ namespace UcbBack.Controllers
                     "a.\"Observaciones\" " +
                 "from " +
                     CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
-                    "inner join " + CustomSchema.Schema + ".\"Civil\" c " +
-                    "on a.\"TeacherBP\"=c.\"SAPId\" " +
+                    "INNER JOIN " + CustomSchema.Schema + ".\"Civil\" c " +
+                    "ON a.\"TeacherBP\" = c.\"SAPId\" " +
+                    "AND a.\"BranchesId\" = c.\"BranchesId\" " +
                     "inner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
                     "on a.\"TipoTareaId\"=t.\"Id\" " +
                     "inner join " + CustomSchema.Schema + ".\"Branches\" br " +
@@ -1164,9 +1167,9 @@ namespace UcbBack.Controllers
             
             //-----------------------------------------------------Cambios en PRE-APROBADOS INDEP ---------------------------------------------------------------------
             // Actualizar con la fecha a los registros pre-aprobados
-            var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
-            var docentesPorAprobar = _context.AsesoriaDocente.Where(x => x.Origen.Equals("EXT") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId).ToList();
-            //Se sobrescriben los registros con la fecha actual y el nuevo estado
+             var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
+             var docentesPorAprobar = _context.AsesoriaDocente.Where(x => x.Origen.Equals("EXT") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId).ToList();
+            // Se sobrescriben los registros con la fecha actual y el nuevo estado
             foreach (var docente in docentesPorAprobar)
             {
                 docente.Mes = Convert.ToInt16(mes);
