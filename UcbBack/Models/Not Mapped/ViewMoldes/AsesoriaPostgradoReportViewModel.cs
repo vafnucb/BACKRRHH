@@ -30,7 +30,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string NumeroContrato { get; set; }
         public string DependencyCod { get; set; }
         public string Observaciones { get; set; }
-        public int? Horas { get; set; }
+        public decimal? Horas { get; set; }
         public decimal? MontoHora { get; set; }
         public decimal? TotalNeto { get; set; }
         public decimal? IUE { get; set; }
