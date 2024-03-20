@@ -129,6 +129,7 @@ namespace UcbBack.Controllers
                         Tarea = x.TipoTarea,
                         Mes = x.MesLiteral,
                         x.Gestion,
+                        x.Horas,
                         x.Origen,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -148,6 +149,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -189,6 +191,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -208,6 +211,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -227,6 +231,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -246,6 +251,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -265,6 +271,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -284,6 +291,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -303,6 +311,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -323,6 +332,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -342,6 +352,7 @@ namespace UcbBack.Controllers
                         x.TeacherFullName,
                         x.Proyecto,
                         x.Modulo,
+                        x.Horas,
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
@@ -2068,7 +2079,8 @@ namespace UcbBack.Controllers
                         "\r\nt.\"Abr\" as \"TipoTarea\", " +
                         "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" as \"Proyecto\" , " +
                         "\r\na.\"Modulo\" || ' ' || pm.\"NameModule\" as \"Modulo\"," +
-                        "\r\na.\"Horas\", a.\"MontoHora\", " +
+                        "\r\na.\"Horas\", " +
+                        "\r\na.\"MontoHora\", " +
                         "\r\na.\"TotalBruto\" , " +
                         "\r\na.\"Deduccion\" , " +
                         "\r\na.\"StudentFullName\" , " +
@@ -2181,6 +2193,7 @@ namespace UcbBack.Controllers
                     Total_Bruto = x.TotalBruto,
                     Alumno = x.StudentFullName,
                     Docente = x.TeacherFullName,
+                    x.Horas,
                     Origen = x.Origen,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
@@ -2198,6 +2211,7 @@ namespace UcbBack.Controllers
                     Total_Bruto = x.TotalBruto,
                     Alumno = x.StudentFullName,
                     Docente = x.TeacherFullName,
+                    x.Horas,
                     Origen = x.Origen,
                     Deduccion = x.Deduccion,
                     IUE = x.IUE,
