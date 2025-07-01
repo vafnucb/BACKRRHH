@@ -71,18 +71,18 @@ namespace UcbBack.Controllers
                 return Unauthorized();
 
             var res2 = (from r in res
-                join b in _context.Branch.ToList()
-                    on r.BranchesId equals b.Id
-                select new
-                {
-                    r.Id,
-                    r.BranchesId,
-                    Branches = b.Name,
-                    r.FileType,
-                    r.State,
-                    r.SAPId,
-                    CreatedAt = r.CreatedAt.ToString("dd MMM yyyy")
-                }).ToList();
+                        join b in _context.Branch.ToList()
+                            on r.BranchesId equals b.Id
+                        select new
+                        {
+                            r.Id,
+                            r.BranchesId,
+                            Branches = b.Name,
+                            r.FileType,
+                            r.State,
+                            r.SAPId,
+                            CreatedAt = r.CreatedAt.ToString("dd MMM yyyy")
+                        }).ToList();
             return Ok(res2);
         }
 
@@ -97,7 +97,7 @@ namespace UcbBack.Controllers
                         "\r\nfrom" +
                         "(\r\nselect \"Serv_ProcessId\",\r\n\"CardCode\",\r\n\"CardName\",\r\n\"DependencyId\",\r\n\"PEI\",\r\n\"ServiceName\"," +
                         "\r\n\"ContractAmount\",\r\n\"IUE\",\r\n\"IT\",\r\n\"IUEExterior\",\r\n\"TotalAmount\",\r\n\"Comments\"" +
-                        "\r\nfrom "+CustomSchema.Schema+".\"Serv_Carrera\"" +
+                        "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Carrera\"" +
                         "\r\nunion" +
                         "\r\nselect \"Serv_ProcessId\",\r\n\"CardCode\",\r\n\"CardName\",\r\n\"DependencyId\",\r\n\"PEI\",\r\n\"ServiceName\"," +
                         "\r\n\"ContractAmount\",\r\n\"IUE\",\r\n\"IT\",\r\n\"IUEExterior\",\r\n\"TotalAmount\",\r\n\"Comments\"" +
@@ -130,7 +130,7 @@ namespace UcbBack.Controllers
                 x.PEI,
                 x.ServiceName,
                 x.ContractAmount,
-                RCIVA=x.IUE,
+                RCIVA = x.IUE,
                 x.IT,
                 x.IUEExterior,
                 x.TotalAmount,
@@ -144,7 +144,7 @@ namespace UcbBack.Controllers
 
             if (res.Count() == 0)
                 return Unauthorized();
-           
+
             return Ok(res);
         }
 
@@ -240,7 +240,7 @@ namespace UcbBack.Controllers
         public IHttpActionResult Get(int id)
         {
             var user = auth.getUser(Request);
-            var rawresult = _context.ServProcesses.Where(x=>x.Id==id);
+            var rawresult = _context.ServProcesses.Where(x => x.Id == id);
 
             if (rawresult.Count() == 0)
                 return NotFound();
@@ -352,7 +352,7 @@ namespace UcbBack.Controllers
                     return response;
                 }
 
-                DynamicExcelToDB(o.FileType,o,file,user,out response);
+                DynamicExcelToDB(o.FileType, o, file, user, out response);
                 return response;
             }
             catch (System.ArgumentException e)
@@ -466,14 +466,14 @@ namespace UcbBack.Controllers
             }
             if (query == null)
                 return NotFound();
-            
+
             //IEnumerable<Serv_Voucher> voucher = _context.Database.SqlQuery<Serv_Voucher>(query).ToList();
 
             var voucher = _context.Database.SqlQuery<Serv_Voucher>(query).ToList();
             var filteredList = voucher
                 .Select(x => new
                 {
-                    x.CardName, 
+                    x.CardName,
                     x.CardCode,
                     x.OU,
                     x.PEI,
@@ -505,7 +505,7 @@ namespace UcbBack.Controllers
             if (upload["FileType"] == null || upload["BranchesId"] == null || !Int32.TryParse(upload["BranchesId"].ToString(), out branchid) || upload["ProcessId"] == null || upload["TipoDocente"] == null)
                 return BadRequest("Debes enviar Tipo de Archivo, segmentoOrigen");
 
-      
+
             var FileType = upload["FileType"].ToString();
             var TipoDocente = upload["TipoDocente"].ToString();
 
@@ -562,18 +562,18 @@ namespace UcbBack.Controllers
                             "\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
                             "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
                             "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"FileType\", sp.\"SAPId\"\r\n" +
-                            "from " +CustomSchema.Schema + ".\"Serv_Varios\" sv" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
+                            "from " + CustomSchema.Schema + ".\"Serv_Varios\" sv" +
+                            "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
-                            "\r\nwhere \"Serv_ProcessId\" = "+id+
+                            "\r\ninner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
+                            "\r\nwhere \"Serv_ProcessId\" = " + id +
                             "\r\nunion\r\nselect sum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n''" +
                             " \"Cod_Dependencia\", \r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n''" +
                             " \"Objeto_del_Contrato\",\r\n'' \"Cuenta_Asignada\",\r\nsum(sv.\"ContractAmount\") \"Monto_Contrato\"," +
                             "\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\", \r\n'' \"FileType\" " +
                             "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Varios\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\nwhere \"Serv_ProcessId\" =" +id +
+                            "\r\nwhere \"Serv_ProcessId\" =" + id +
                             "\r\norder by \"Id\" asc ";
                     report = _context.Database.SqlQuery<Serv_PDF>(query).ToList();
                     break;
@@ -584,11 +584,11 @@ namespace UcbBack.Controllers
                             "\r\nsv.\"PEI\" \"PEI_PO\",\r\nsv.\"ServiceName\" \"Nombre_del_Servicio\",\r\nsv.\"Carrera\" \"Codigo_Carrera\",\r\nsv.\"DocumentNumber\" \"Documento_Base\"," +
                             "\r\nsv.\"Student\" \"Postulante\",\r\nsv.\"AssignedJob\" \"Tarea_Asignada\",\r\nsv.\"AssignedAccount\" \"Cuenta\",\r\nsv.\"ContractAmount\" \"Contrato\"," +
                             "\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\",\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"FileType\", sp.\"SAPId\"" +
-                            "from " +CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
+                            "from " + CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
+                            "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
+                            "\r\ninner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\nwhere \"Serv_ProcessId\" = "+id+
+                            "\r\nwhere \"Serv_ProcessId\" = " + id +
                             "\r\n union" +
                             "\r\n select\r\nsum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n'' " +
                             "\"Cod_Dependencia\",\r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n'' \"Codigo_Carrera\",\r\n'' " +
@@ -596,7 +596,7 @@ namespace UcbBack.Controllers
                             "\"Monto_Contrato\",\r\nsum(sv.\"IUE\") \"Monto_IUE\",\r\nsum(sv.\"IT\") \"Monto_IT\", \r\nsum(sv.\"IUEExterior\") \"IUEExterior\",\r\nsum(sv.\"TotalAmount\") \"Monto_a_Pagar\",\r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\", \r\n'' \"FileType\" " +
                             "\r\nfrom  " + CustomSchema.Schema + ".\"Serv_Carrera\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\n where \"Serv_ProcessId\" = "+id+"\r\n order by \"Id\"";
+                            "\r\n where \"Serv_ProcessId\" = " + id + "\r\n order by \"Id\"";
                     report = _context.Database.SqlQuery<Serv_PDF>(query).ToList();
                     break;
 
@@ -607,11 +607,11 @@ namespace UcbBack.Controllers
                             "\r\nsv.\"ParalelNumber\" \"Paralelo\",\r\nsv.\"ParalelSAP\" \"Codigo_Paralelo_SAP\",\r\nsv.\"AssignedAccount\" \"Cuenta\"," +
                             "\r\nsv.\"ContractAmount\" \"Contrato\",\r\nsv.\"IUE\" \"IUE\",\r\nsv.\"IT\" \"IT\",\r\nsv.\"IUEExterior\" \"IUEExterior\",\r\nsv.\"TotalAmount\" \"xPagar\"," +
                             "\r\nsv.\"Comments\" \"Observaciones\", sp.\"BranchesId\", sp.\"FileType\", sp.\"SAPId\"" +
-                            "from " +CustomSchema.Schema + ".\"Serv_Paralelo\" sv" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
+                            "from " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv" +
+                            "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
                             "\r\ninner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\nwhere \"Serv_ProcessId\" = "+id+
+                            "\r\nwhere \"Serv_ProcessId\" = " + id +
                             "\r\nunion" +
                             "\r\n select \r\n sum(sv.\"Id\"),\r\n'' \"Codigo_Socio\",\r\n'' \"Nombre_Socio\",\r\n'' \"Cod_Dependencia\"," +
                             "\r\n'' \"Cod_UO\",\r\n'' \"PEI_PO\",\r\n'' \"Nombre_del_Servicio\",\r\n'' \"Periodo_Academico\",\r\n'' \"Sigla_Asignatura\"," +
@@ -632,9 +632,9 @@ namespace UcbBack.Controllers
                             "\"Observaciones\", sp.\"BranchesId\", sp.\"FileType\", sp.\"SAPId\"" +
                             "from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv" +
                             " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\"= sp.\"Id\"" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
-                            "\r\ninner join " +CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
-                            "\r\nwhere \"Serv_ProcessId\" = "+id+
+                            "\r\ninner join " + CustomSchema.Schema + ".\"Dependency\" dep\r\non dep.\"Id\" = sv.\"DependencyId\"" +
+                            "\r\ninner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou\r\non ou.\"Id\" = dep.\"OrganizationalUnitId\"" +
+                            "\r\nwhere \"Serv_ProcessId\" = " + id +
                             "\r\nunion" +
                             "\r\nselect \r\nsum(sv.\"Id\"), \r\n'' \"Codigo_Socio\", \r\n'' \"Nombre_Socio\", \r\nnull \"Cod_Dependencia\", \r\nnull \"Cod_UO\", \r\n'' \"PEI_PO\", \r\n'' \"Nombre_del_Servicio\", \r\n'' \"Codigo_Proyecto_SAP\", \r\n'' \"Nombre_del_Proyecto\", \r\nnull \"Version\", \r\n'' \"Tipo_Tarea_Asignada\", \r\n'' \"Cuenta_Asignada\", \r\n sum(sv.\"ContractAmount\") \"Monto_Contrato\", \r\n sum(sv.\"IUE\") \"Monto_IUE\", \r\n sum(sv.\"IT\") \"Monto_IT\", \r\n sum(sv.\"IUEExterior\") \"IUEExterior\", \r\n sum(sv.\"TotalAmount\") \"Monto_a_Pagar\", \r\n'' \"Observaciones\", max(sp.\"BranchesId\"), \r\n'' \"SAPId\", \r\n'' \"FileType\"" +
                             "\r\nfrom " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv" +
@@ -700,7 +700,7 @@ namespace UcbBack.Controllers
                 {
                     x.Id,
                     x.SAPId,
-                    Docente =x.Nombre_Socio,
+                    Docente = x.Nombre_Socio,
                     U_O = x.Cod_UO,
                     x.PEI_PO,
                     Servicio = x.Nombre_del_Servicio,
@@ -745,7 +745,7 @@ namespace UcbBack.Controllers
 
         [HttpGet]
         [Route("api/ServContract/GetDistribution/{id}")]
-        public HttpResponseMessage GetDistribution (int id)
+        public HttpResponseMessage GetDistribution(int id)
         {
             HttpResponseMessage response = new HttpResponseMessage();
 
@@ -957,7 +957,7 @@ namespace UcbBack.Controllers
             processes = auth.filerByRegional(processes, user).Cast<ServProcess>();
             var process = processes.FirstOrDefault();
 
-            if (process==null)
+            if (process == null)
                 return Unauthorized();
 
             process.State = ServProcess.Serv_FileState.PendingApproval;
@@ -1038,7 +1038,7 @@ namespace UcbBack.Controllers
             CultureInfo.InvariantCulture,
             DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);*/
 
-           
+
             process.InSAPAt = date;
 
             var data = process.getVoucherData(_context);
@@ -1104,7 +1104,7 @@ namespace UcbBack.Controllers
                 }).ToList();
 
                 List<Serv_Voucher> dist1 = ppagar.Union(rest).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
-                Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process );
+                Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process);
                 B1.addServVoucher(user.Id, dist1.ToList(), process);
             }
 
@@ -1119,7 +1119,7 @@ namespace UcbBack.Controllers
         }
 
         [NonAction]
-        private DataTable getData(List<int> list,string type)
+        private DataTable getData(List<int> list, string type)
         {
             var d = new Distribution();
 
@@ -1127,93 +1127,93 @@ namespace UcbBack.Controllers
             {
                 case ServProcess.Serv_FileType.Varios:
                     var res = (from bp in _context.Civils
-                        where list.Contains(bp.Id)
-                        select new Serv_VariosViewModel()
-                        {
-                            Codigo_Socio = bp.SAPId,
-                            Nombre_Socio = bp.FullName,
-                            Cod_Dependencia = "",
-                            PEI_PO = "",
-                            Nombre_del_Servicio = "",
-                            Objeto_del_Contrato = "",
-                            Cuenta_Asignada = "",
-                            Monto_Contrato = 0,
-                            Monto_IUE = 0,
-                            Monto_IT = 0,
-                            IUEExterior = 0,
-                            Monto_a_Pagar = 0,
-                            Observaciones = "",
-                        }).ToList();
+                               where list.Contains(bp.Id)
+                               select new Serv_VariosViewModel()
+                               {
+                                   Codigo_Socio = bp.SAPId,
+                                   Nombre_Socio = bp.FullName,
+                                   Cod_Dependencia = "",
+                                   PEI_PO = "",
+                                   Nombre_del_Servicio = "",
+                                   Objeto_del_Contrato = "",
+                                   Cuenta_Asignada = "",
+                                   Monto_Contrato = 0,
+                                   Monto_IUE = 0,
+                                   Monto_IT = 0,
+                                   IUEExterior = 0,
+                                   Monto_a_Pagar = 0,
+                                   Observaciones = "",
+                               }).ToList();
                     return d.CreateDataTable(res);
                 case ServProcess.Serv_FileType.Carrera:
                     var res1 = (from bp in _context.Civils
-                        where list.Contains(bp.Id)
-                        select new Serv_PregradoViewModel()
-                        {
-                            Codigo_Socio = bp.SAPId,
-                            Nombre_Socio = bp.FullName,
-                            Cod_Dependencia = "",
-                            PEI_PO = "",
-                            Nombre_del_Servicio = "",
-                            Codigo_Carrera = "",
-                            Documento_Base = "",
-                            Postulante = "",
-                            Tipo_Tarea_Asignada= "",
-                            Cuenta_Asignada = "",
-                            Monto_Contrato = 0,
-                            Monto_IUE = 0,
-                            Monto_IT = 0,
-                            IUEExterior = 0,
-                            Monto_a_Pagar = 0,
-                            Observaciones = "",
-                        }).ToList();
+                                where list.Contains(bp.Id)
+                                select new Serv_PregradoViewModel()
+                                {
+                                    Codigo_Socio = bp.SAPId,
+                                    Nombre_Socio = bp.FullName,
+                                    Cod_Dependencia = "",
+                                    PEI_PO = "",
+                                    Nombre_del_Servicio = "",
+                                    Codigo_Carrera = "",
+                                    Documento_Base = "",
+                                    Postulante = "",
+                                    Tipo_Tarea_Asignada = "",
+                                    Cuenta_Asignada = "",
+                                    Monto_Contrato = 0,
+                                    Monto_IUE = 0,
+                                    Monto_IT = 0,
+                                    IUEExterior = 0,
+                                    Monto_a_Pagar = 0,
+                                    Observaciones = "",
+                                }).ToList();
                     return d.CreateDataTable(res1);
                 case ServProcess.Serv_FileType.Paralelo:
                     var res2 = (from bp in _context.Civils
-                        where list.Contains(bp.Id)
-                        select new Serv_ReemplazoViewModel()
-                        {
-                            Codigo_Socio = bp.SAPId,
-                            Nombre_Socio = bp.FullName,
-                            Cod_Dependencia = "",
-                            PEI_PO = "",
-                            Nombre_del_Servicio = "",
-                            Periodo_Academico = "",
-                            Sigla_Asignatura = "",
-                            Paralelo = "",
-                            Código_Paralelo_SAP = "",
-                            Cuenta_Asignada = "",
-                            Monto_Contrato = 0,
-                            Monto_IUE = 0,
-                            Monto_IT = 0,
-                            IUEExterior = 0,
-                            Monto_a_Pagar = 0,
-                            Observaciones = "",
-                        }).ToList();
+                                where list.Contains(bp.Id)
+                                select new Serv_ReemplazoViewModel()
+                                {
+                                    Codigo_Socio = bp.SAPId,
+                                    Nombre_Socio = bp.FullName,
+                                    Cod_Dependencia = "",
+                                    PEI_PO = "",
+                                    Nombre_del_Servicio = "",
+                                    Periodo_Academico = "",
+                                    Sigla_Asignatura = "",
+                                    Paralelo = "",
+                                    Código_Paralelo_SAP = "",
+                                    Cuenta_Asignada = "",
+                                    Monto_Contrato = 0,
+                                    Monto_IUE = 0,
+                                    Monto_IT = 0,
+                                    IUEExterior = 0,
+                                    Monto_a_Pagar = 0,
+                                    Observaciones = "",
+                                }).ToList();
                     return d.CreateDataTable(res2);
                 case ServProcess.Serv_FileType.Proyectos:
                     var res3 = (from bp in _context.Civils
-                        where list.Contains(bp.Id)
-                        select new Serv_ProyectosViewModel()
-                        {
-                            Codigo_Socio = bp.SAPId,
-                            Nombre_Socio = bp.FullName,
-                            Cod_Dependencia = "",
-                            PEI_PO = "",
-                            Nombre_del_Servicio = "",
-                            Código_Proyecto_SAP = "",
-                            Nombre_del_Proyecto = "",
-                            Versión = "",
-                            Periodo_Académico = "",
-                            Tipo_Tarea_Asignada = "",
-                            Cuenta_Asignada = "",
-                            Monto_Contrato = 0,
-                            Monto_IUE = 0,
-                            Monto_IT = 0,
-                            IUEExterior = 0,
-                            Monto_a_Pagar = 0,
-                            Observaciones = "",
-                        }).ToList();
+                                where list.Contains(bp.Id)
+                                select new Serv_ProyectosViewModel()
+                                {
+                                    Codigo_Socio = bp.SAPId,
+                                    Nombre_Socio = bp.FullName,
+                                    Cod_Dependencia = "",
+                                    PEI_PO = "",
+                                    Nombre_del_Servicio = "",
+                                    Código_Proyecto_SAP = "",
+                                    Nombre_del_Proyecto = "",
+                                    Versión = "",
+                                    Periodo_Académico = "",
+                                    Tipo_Tarea_Asignada = "",
+                                    Cuenta_Asignada = "",
+                                    Monto_Contrato = 0,
+                                    Monto_IUE = 0,
+                                    Monto_IT = 0,
+                                    IUEExterior = 0,
+                                    Monto_a_Pagar = 0,
+                                    Observaciones = "",
+                                }).ToList();
                     return d.CreateDataTable(res3);
             }
             return null;
@@ -1265,7 +1265,7 @@ namespace UcbBack.Controllers
                     p.BranchesId == BranchesId && p.FileType == FileType && p.State == ServProcess.Serv_FileState.Started);
 
             //if exist a process of the same type, cancel and create a new one
-            if (processInDB != null )
+            if (processInDB != null)
             {
                 processInDB.State = ServProcess.Serv_FileState.Canceled;
             }
@@ -1285,13 +1285,13 @@ namespace UcbBack.Controllers
         }
 
         [NonAction]
-        private void DynamicExcelToDB(string FileType, dynamic o, ServProcess file,CustomUser user,  out HttpResponseMessage response)
+        private void DynamicExcelToDB(string FileType, dynamic o, ServProcess file, CustomUser user, out HttpResponseMessage response)
         {
             response = new HttpResponseMessage();
             switch (FileType)
             {
                 case ServProcess.Serv_FileType.Varios:
-                    Serv_VariosExcel ExcelFile = new Serv_VariosExcel(o.excelStream, _context, o.fileName,file,user,headerin:1,sheets:1);
+                    Serv_VariosExcel ExcelFile = new Serv_VariosExcel(o.excelStream, _context, o.fileName, file, user, headerin: 1, sheets: 1);
                     if (ExcelFile.ValidateFile())
                     {
                         ExcelFile.toDataBase();
@@ -1310,7 +1310,7 @@ namespace UcbBack.Controllers
                     break;
 
                 case ServProcess.Serv_FileType.Carrera:
-                    Serv_CarreraExcel ExcelFile2 = new Serv_CarreraExcel(o.excelStream, _context, o.fileName, file,user, headerin: 1, sheets: 1);
+                    Serv_CarreraExcel ExcelFile2 = new Serv_CarreraExcel(o.excelStream, _context, o.fileName, file, user, headerin: 1, sheets: 1);
                     if (ExcelFile2.ValidateFile())
                     {
                         ExcelFile2.toDataBase();
@@ -1329,7 +1329,7 @@ namespace UcbBack.Controllers
                     break;
 
                 case ServProcess.Serv_FileType.Proyectos:
-                    Serv_ProyectosExcel ExcelFile3 = new Serv_ProyectosExcel(o.excelStream, _context, o.fileName, file, user,headerin: 1, sheets: 1);
+                    Serv_ProyectosExcel ExcelFile3 = new Serv_ProyectosExcel(o.excelStream, _context, o.fileName, file, user, headerin: 1, sheets: 1);
                     if (ExcelFile3.ValidateFile())
                     {
                         ExcelFile3.toDataBase();
@@ -1347,7 +1347,7 @@ namespace UcbBack.Controllers
                     }
                     break;
                 case ServProcess.Serv_FileType.Paralelo:
-                    Serv_ParaleloExcel ExcelFile4 = new Serv_ParaleloExcel(o.excelStream, _context, o.fileName, file,user, headerin: 1, sheets: 1);
+                    Serv_ParaleloExcel ExcelFile4 = new Serv_ParaleloExcel(o.excelStream, _context, o.fileName, file, user, headerin: 1, sheets: 1);
                     if (ExcelFile4.ValidateFile())
                     {
                         ExcelFile4.toDataBase();
@@ -1367,7 +1367,7 @@ namespace UcbBack.Controllers
             }
         }
 
-        
+
 
     }
 }

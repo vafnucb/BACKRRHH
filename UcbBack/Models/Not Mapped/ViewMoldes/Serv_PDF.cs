@@ -9,7 +9,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
     public class Serv_PDF
     {
 
-        public int Id { get; set; }
+        public int? Id { get; set; }
         /*
         [DisplayName("Codigo Socio")]
         public string Codigo_Socio { get; set; }
@@ -43,7 +43,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string Cuenta{ get; set; }
 
         [DisplayName("Importe del Contrato")]
-        public Decimal Contrato { get; set; }
+        public Decimal? Contrato { get; set; }
 
         [DisplayName("Importe Deducción IUE")]
         public Decimal? IUE { get; set; }
@@ -55,7 +55,7 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public Decimal? IUEExterior { get; set; }
 
         [DisplayName("Monto a Pagar")]
-        public Decimal xPagar { get; set; }
+        public Decimal? xPagar { get; set; }
 
         [DisplayName("Observaciones")]
         public string Observaciones { get; set; }
@@ -93,6 +93,6 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         [DisplayName("FileType")]
         public string FileType { get; set; }
 
-        public int BranchesId { get; set; }
+        public int? BranchesId { get; set; }
     }
 }

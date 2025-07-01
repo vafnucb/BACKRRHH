@@ -442,7 +442,7 @@ namespace UcbBack.Controllers
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non crd8.\"BPLId\"=br.\"CodigoSAP\"" +
             "\r\nwhere ocrd.\"frozenFor\" = 'N') " +
             "order by \"FullName\" "
-            //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            
             ).ToList();
 
 
@@ -1281,6 +1281,7 @@ namespace UcbBack.Controllers
                 asesoria.DependencyCod = dep;
                 asesoria.StudentFullName = asesoria.StudentFullName.ToUpper();
                 asesoria.UserCreate = user.Id;
+                asesoria.CreatedAt = DateTime.Now;
                 // agregar el nuevo registro en el contexto
                 _context.AsesoriaDocente.Add(asesoria);
                 _context.SaveChanges();
@@ -2484,6 +2485,26 @@ namespace UcbBack.Controllers
                 return BadRequest("Ocurrió un problema. Comuniquese con el administrador. " + exception);
             }
         }
+
+        //See status of the records
+        [HttpGet]
+        [Route("api/AsesoriaDocente/Estado")]
+        public IHttpActionResult GetEstados()
+        {
+            var result = _context.AsesoriaDocente
+                .OrderByDescending(a => a.Id)
+                .ToList() 
+                .Select(a => new {
+                    a.Id,
+                    a.Estado,
+                    a.TeacherFullName,
+                    a.StudentFullName,
+                    CreatedAt = a.CreatedAt.HasValue ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
+                }).ToList();
+
+            return Ok(result);
+        }
+
 
         // info categoria y precio de docentes para el registro
         [HttpGet]

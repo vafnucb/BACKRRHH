@@ -41,19 +41,19 @@ namespace UcbBack.Controllers
             if (!Int32.TryParse(headerId.FirstOrDefault(), out userid))
                 return BadRequest();
 
-            var user = _context.CustomUsers.Include(x=>x.People).FirstOrDefault(cu => cu.Id == userid);
+            var user = _context.CustomUsers.Include(x => x.People).FirstOrDefault(cu => cu.Id == userid);
             if (user == null)
                 return Unauthorized();
             var uexist = DateTime.Now;
 
-            var rls = activeDirectory.getUserRols(user).Select(x=>x.Id);
+            var rls = activeDirectory.getUserRols(user).Select(x => x.Id);
             var ugetrols = DateTime.Now;
 
             var br = activeDirectory.getUserBranches(user);
             var ugetbr = DateTime.Now;
 
             List<Access> access;
-           // activeDirectory.AddUserToGroup("G.ARANA.M@UCB.BO", "Personas.Segmentos.Cochabamba");
+            // activeDirectory.AddUserToGroup("G.ARANA.M@UCB.BO", "Personas.Segmentos.Cochabamba");
             //if admin return all
             if (activeDirectory.memberOf(user, "Personas.Admin"))
             {
@@ -70,16 +70,16 @@ namespace UcbBack.Controllers
                     .Include(a => a.Access.Resource).ToList()
                     .Where(r => rls.Contains(r.Rolid)).Select(a => a.Access).ToList();
             }
-            
+
             List<dynamic> res = new List<dynamic>();
-            var listModules = access.Select(a=>a.Resource.Module).Distinct().OrderBy(x=>x.Id);
+            var listModules = access.Select(a => a.Resource.Module).Distinct().OrderBy(x => x.Id);
             var listResources = access.Select(a => a.Resource).Distinct().OrderBy(x => x.Id);
             foreach (var module in listModules)
             {
                 List<dynamic> children = new List<dynamic>();
-                foreach (var child in listResources.Where(c=>c.ModuleId==module.Id))
+                foreach (var child in listResources.Where(c => c.ModuleId == module.Id))
                 {
-                    var listmethods = access.Where(a => a.ResourceId == child.Id).Select(a=>a.Method).Distinct();
+                    var listmethods = access.Where(a => a.ResourceId == child.Id).Select(a => a.Method).Distinct();
                     dynamic c = new JObject();
                     c.name = child.Name;
                     c.path = child.Path;
@@ -96,17 +96,17 @@ namespace UcbBack.Controllers
             }
             var caljson = DateTime.Now;
 
-            var t1 = uexist - start; 
-            var t2 = ugetrols-uexist; 
-            var t3 = ugetbr - ugetrols; 
-            var t4 = caljson - ugetbr; 
+            var t1 = uexist - start;
+            var t2 = ugetrols - uexist;
+            var t3 = ugetbr - ugetrols;
+            var t4 = caljson - ugetbr;
             return Ok(res);
         }
 
         // POST: /api/auth/gettoken/
         [HttpPost]
         [Route("api/auth/GetToken")]
-        public IHttpActionResult GetToken([FromBody]JObject credentials) 
+        public IHttpActionResult GetToken([FromBody]JObject credentials)
         {
             if (credentials["username"] == null || credentials["password"] == null)
                 return BadRequest();
@@ -117,9 +117,9 @@ namespace UcbBack.Controllers
             CustomUser user = _context.CustomUsers.FirstOrDefault(u => u.UserPrincipalName == username);
 
             //if(user==null)
-           //     return Unauthorized();
+            //     return Unauthorized();
 
-            if (!activeDirectory.ActiveDirectoryAuthenticate(username,password))
+            if (!activeDirectory.ActiveDirectoryAuthenticate(username, password))
                 return Unauthorized();
 
             user.Token = validator.getToken(user);
@@ -136,7 +136,7 @@ namespace UcbBack.Controllers
             var rols = activeDirectory.getUserRols(user);
             var principalrol = rols.OrderByDescending(x => x.Level).FirstOrDefault();
             // var principalrol = rols.OrderBy(x => x.Level).FirstOrDefault();
-            if (principalrol==null)
+            if (principalrol == null)
             {
                 return Unauthorized();
             }
@@ -146,7 +146,7 @@ namespace UcbBack.Controllers
             respose.Token = user.Token;
             respose.RefreshToken = user.RefreshToken;
             respose.ExpiresIn = validateauth.tokenLife;
-            respose.RefreshExpiresIn = validateauth.refeshtokenLife;     
+            respose.RefreshExpiresIn = validateauth.refeshtokenLife;
             respose.AccessDefault = principalrol.Resource.Path;
             return Ok(respose);
         }
@@ -180,17 +180,17 @@ namespace UcbBack.Controllers
 
             user.Token = validator.getToken(user);
             user.TokenCreatedAt = DateTime.Now;
-            
+
             _context.SaveChanges();
 
             dynamic respose = new JObject();
             respose.Token = user.Token;
             respose.ExpiresIn = validateauth.tokenLife;
-            respose.RefreshExpiresIn = validateauth.refeshtokenLife-((int)DateTime.Now.Subtract(user.RefreshTokenCreatedAt.Value).TotalSeconds);
+            respose.RefreshExpiresIn = validateauth.refeshtokenLife - ((int)DateTime.Now.Subtract(user.RefreshTokenCreatedAt.Value).TotalSeconds);
 
             return Ok(respose);
         }
-       
+
         [HttpGet]
         [Route("api/auth/Logout/")]
         public IHttpActionResult Logout()
@@ -220,7 +220,8 @@ namespace UcbBack.Controllers
 
         [HttpGet]
         [Route("api/auth/UserData")]
-        public IHttpActionResult UserData() {
+        public IHttpActionResult UserData()
+        {
             var user = validateauth.getUser(Request).People.CUNI;
             string name = _context.Database.SqlQuery<string>("select \"FullName\" from " + CustomSchema.Schema + ".\"FullName\" where \"CUNI\" = '" + user + "'").FirstOrDefault();
             return Ok(name);

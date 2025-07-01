@@ -1249,8 +1249,9 @@ namespace UcbBack.Controllers
                 //asegura que no se junte el nuevo registro con los históricos
                 asesoria.Estado = "REGISTRADO";
                 asesoria.UserCreate = user.Id;
-                //identifica la dependencia del registro en base al nombre de la carrera y la regional
-                var dep = _context.Database.SqlQuery<int>("select dep.\"Cod\"" +
+                asesoria.CreatedAt = DateTime.Now;
+            //identifica la dependencia del registro en base al nombre de la carrera y la regional
+            var dep = _context.Database.SqlQuery<int>("select dep.\"Cod\"" +
                                                           "\r\n    from " +
                                                           ConfigurationManager.AppSettings["B1CompanyDB"] +
                                                           ".oprj op" +
@@ -1511,6 +1512,26 @@ namespace UcbBack.Controllers
                 return Ok("Se eliminó el registro exitosamente");
             }
         }
+
+        //API to delete the record no matter the status (To delete Aprobacion de lote postgrado records)
+        [HttpDelete]
+        [Route("api/DeleteRecordPostgradoLote/{id}")]
+        public IHttpActionResult DeleteRecordLote(int id)
+        {
+            var recordForDeletion = _context.AsesoriaPostgrado.FirstOrDefault(x => x.Id == id);
+
+            if (recordForDeletion == null)
+            {
+                return BadRequest("El registro no existe en BD");
+            }
+            else
+            {
+                _context.AsesoriaPostgrado.Remove(recordForDeletion);
+                _context.SaveChanges();
+                return Ok("Se eliminó el registro exitosamente");
+            }
+        }
+
 
         [HttpPut]
         [Route("api/SendHistoricPostgrado")]
@@ -2222,6 +2243,119 @@ namespace UcbBack.Controllers
                 return Ok(filteredListResult);
             }
         }
+
+        [HttpGet]
+        [Route("api/AsesoriaPostgrado/Estado")]
+        public IHttpActionResult GetEstados()
+        {
+            var result = _context.AsesoriaPostgrado
+                .OrderByDescending(a => a.Id)
+                .ToList()
+                .Select(a => new {
+                    a.Id,
+                    a.Estado,
+                    a.Proyecto,
+                    a.Modulo,
+                    CreatedAt = a.CreatedAt.HasValue ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
+                }).ToList();
+
+            return Ok(result);
+        }
+
+        /*
+        [HttpGet]
+        [Route("api/ReportExcel")]
+        public HttpResponseMessage ExportToExcel([FromUri] int? branchId = null, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            var query = _context.AsesoriaPostgrado.Where(x => x.Estado != "APROBADO");
+
+            if (branchId.HasValue)
+                query = query.Where(x => x.BranchesId == branchId);
+
+            if (startDate.HasValue && endDate.HasValue)
+                query = query.Where(x => x.CreatedAt >= startDate && x.CreatedAt <= endDate);
+
+            var list = query.ToList();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var ws = workbook.Worksheets.Add("AsesoriaPostgrado");
+                ws.Cell(1, 1).InsertTable(list);
+                ws.Columns().AdjustToContents();
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StreamContent(stream)
+                };
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = "AsesoriaPostgrado_Report.xlsx"
+                };
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return response;
+            }
+        }
+        
+        [HttpGet]
+        [Route("api/ReportPDF")]
+        public HttpResponseMessage ExportToPDF([FromUri] int? branchId = null, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            var query = _context.AsesoriaPostgrado.Where(x => x.Estado != "APROBADO");
+
+            if (branchId.HasValue)
+                query = query.Where(x => x.BranchesId == branchId);
+
+            if (startDate.HasValue && endDate.HasValue)
+                query = query.Where(x => x.CreatedAt >= startDate && x.CreatedAt <= endDate);
+
+            var list = query.ToList();
+
+            var stream = new MemoryStream();
+            var document = new Document(PageSize.A4, 25, 25, 30, 30);
+            PdfWriter.GetInstance(document, stream).CloseStream = false;
+            document.Open();
+
+            var table = new PdfPTable(5)
+            {
+                WidthPercentage = 100
+            };
+
+            table.AddCell("TeacherCUNI");
+            table.AddCell("TeacherBP");
+            table.AddCell("Proyecto");
+            table.AddCell("Modulo");
+            table.AddCell("TotalNeto");
+
+            foreach (var item in list)
+            {
+                table.AddCell(item.TeacherCUNI);
+                table.AddCell(item.TeacherBP);
+                table.AddCell(item.Proyecto);
+                table.AddCell(item.Modulo);
+                table.AddCell(item.TotalNeto?.ToString("F2") ?? "0.00");
+            }
+
+            document.Add(table);
+            document.Close();
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StreamContent(stream)
+            };
+            response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileName = "AsesoriaPostgrado_Report.pdf"
+            };
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            return response;
+        }*/
+
         [HttpGet]
         [Route("api/BusquedaPagosPost/{Proyecto}/{Modulo}/{Docente}/{Origen}/{tarea}/{mes}/{gestion}/{date1}/{date2}")]
         public IHttpActionResult BusquedaPagosPost(string Proyecto, string Modulo, string Docente,
