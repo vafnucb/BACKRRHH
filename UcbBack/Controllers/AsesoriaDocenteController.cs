@@ -2496,10 +2496,14 @@ namespace UcbBack.Controllers
                 .ToList() 
                 .Select(a => new {
                     a.Id,
+                    a.Origen,
                     a.Estado,
                     a.TeacherFullName,
                     a.StudentFullName,
-                    CreatedAt = a.CreatedAt.HasValue ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
+                    a.Carrera,
+                    a.TotalBruto,
+                    a.TotalNeto,
+                    UpdatedAt = a.UpdatedAt.HasValue ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
                 }).ToList();
 
             return Ok(result);

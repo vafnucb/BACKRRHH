@@ -2253,10 +2253,16 @@ namespace UcbBack.Controllers
                 .ToList()
                 .Select(a => new {
                     a.Id,
+                    a.Origen,
                     a.Estado,
                     a.Proyecto,
                     a.Modulo,
-                    CreatedAt = a.CreatedAt.HasValue ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
+                    a.StudentFullName,
+                    a.Horas,
+                    a.MontoHora,
+                    a.TotalBruto,
+                    a.TotalNeto,
+                    UpdatedAt = a.UpdatedAt.HasValue ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
                 }).ToList();
 
             return Ok(result);
