@@ -1284,6 +1284,154 @@ namespace UcbBack.Controllers
             return process;
         }
 
+
+
+        [HttpGet]
+        [Route("api/ServContract/Search")]
+        public IHttpActionResult GetAllBatchDetails()
+        {
+            var user = auth.getUser(Request);
+
+            // First get all batches (similar to History endpoint)
+            var batchesQuery = "SELECT * FROM " + CustomSchema.Schema + ".\"Serv_Process\" " +
+                              "WHERE \"State\" = '" + ServProcess.Serv_FileState.PendingApproval + "' " +
+                              "OR \"State\" = '" + ServProcess.Serv_FileState.INSAP + "' " +
+                              "OR \"State\" = '" + ServProcess.Serv_FileState.Rejected + "' " +
+                              "ORDER BY \"Id\" DESC";
+
+            var batches = _context.Database.SqlQuery<ServProcess>(batchesQuery).ToList();
+
+            // Filter by regional access
+            var authorizedBatches = auth.filerByRegional(batches.AsQueryable(), user).Cast<ServProcess>().ToList();
+
+            if (authorizedBatches.Count == 0)
+                return Unauthorized();
+
+            // Now get details for each batch
+            var results = new List<BatchDetailResult>();
+
+            foreach (var batch in authorizedBatches)
+            {
+                string detailQuery = null;
+
+                switch (batch.FileType)
+                {
+                    case ServProcess.Serv_FileType.Varios:
+                        detailQuery = BuildVariosQuery(batch.Id);
+                        break;
+                    case ServProcess.Serv_FileType.Carrera:
+                        detailQuery = BuildCarreraQuery(batch.Id);
+                        break;
+                    case ServProcess.Serv_FileType.Proyectos:
+                        detailQuery = BuildProyectosQuery(batch.Id);
+                        break;
+                    case ServProcess.Serv_FileType.Paralelo:
+                        detailQuery = BuildParaleloQuery(batch.Id);
+                        break;
+                }
+
+                if (detailQuery != null)
+                {
+                    var details = _context.Database.SqlQuery<Serv_Voucher>(detailQuery).ToList();
+
+                    results.AddRange(details.Select(d => new BatchDetailResult
+                    {
+                        BatchId = batch.Id,
+                        BatchState = batch.State,
+                        BatchFileType = batch.FileType,
+                        BatchSAPId = batch.SAPId,
+                        BatchCreatedAt = batch.CreatedAt.ToString("dd MMM yyyy"),
+                        BranchesId = batch.BranchesId,
+
+                        // Detail fields
+                        CardName = d.CardName,
+                        OU = d.OU,
+                        PEI = d.PEI,
+                        Memo = d.Memo,
+                        LineMemo = d.LineMemo,
+                        AssignedAccount = d.AssignedAccount,
+                        Debit = d.Debit,
+                        Credit = d.Credit
+                    }));
+                }
+            }
+
+            return Ok(results);
+        }
+
+        // Helper methods to build queries for each type
+        private string BuildVariosQuery(int batchId)
+        {
+            return "SELECT sv.\"CardName\", ou.\"Cod\" as \"OU\", sv.\"PEI\", sv.\"ServiceName\" as \"Memo\", " +
+                   "sv.\"ContractObjective\" as \"LineMemo\", sv.\"AssignedAccount\", sv.\"TotalAmount\" as \"Debit\", " +
+                   "sv.\"ContractAmount\" as \"Credit\" " +
+                   "FROM " + CustomSchema.Schema + ".\"Serv_Varios\" sv " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON sv.\"DependencyId\" = d.\"Id\" " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                   "WHERE \"Serv_ProcessId\" = " + batchId + " " +
+                   "ORDER BY sv.\"Id\" ASC";
+        }
+
+        private string BuildCarreraQuery(int batchId)
+        {
+            return "SELECT sv.\"CardName\", ou.\"Cod\" as \"OU\", sv.\"PEI\", sv.\"ServiceName\" as \"Memo\", " +
+                   "sv.\"AssignedJob\"||' '||sv.\"Carrera\"||' '||sv.\"Student\" as \"LineMemo\", sv.\"AssignedAccount\", " +
+                   "sv.\"TotalAmount\" as \"Debit\", sv.\"ContractAmount\" as \"Credit\" " +
+                   "FROM " + CustomSchema.Schema + ".\"Serv_Carrera\" sv " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON sv.\"DependencyId\" = d.\"Id\" " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                   "WHERE \"Serv_ProcessId\" = " + batchId + " " +
+                   "ORDER BY sv.\"Id\" ASC";
+        }
+
+        private string BuildProyectosQuery(int batchId)
+        {
+            return "SELECT sv.\"CardName\", ou.\"Cod\" as \"OU\", sv.\"PEI\", sv.\"ServiceName\" as \"Memo\", " +
+                   "sv.\"ProjectSAPName\" as \"LineMemo\", sv.\"AssignedAccount\", sv.\"TotalAmount\" as \"Debit\", " +
+                   "sv.\"ContractAmount\" as \"Credit\" " +
+                   "FROM " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON sv.\"DependencyId\" = d.\"Id\" " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                   "WHERE \"Serv_ProcessId\" = " + batchId + " " +
+                   "ORDER BY sv.\"Id\" ASC";
+        }
+
+        private string BuildParaleloQuery(int batchId)
+        {
+            return "SELECT sv.\"CardName\", ou.\"Cod\" as \"OU\", sv.\"PEI\", sv.\"ServiceName\" as \"Memo\", " +
+                   "sv.\"Sigla\" as \"LineMemo\", sv.\"AssignedAccount\", sv.\"TotalAmount\" as \"Debit\", " +
+                   "sv.\"ContractAmount\" as \"Credit\" " +
+                   "FROM " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"Dependency\" d ON sv.\"DependencyId\" = d.\"Id\" " +
+                   "INNER JOIN " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou ON d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                   "WHERE \"Serv_ProcessId\" = " + batchId + " " +
+                   "ORDER BY sv.\"Id\" ASC";
+        }
+
+        // Result model combining batch and detail information
+        public class BatchDetailResult
+        {
+            // From Serv_Process (batch info)
+            public int BatchId { get; set; }
+            public string BatchState { get; set; }
+            public string BatchFileType { get; set; }
+            public string BatchSAPId { get; set; }
+            public string BatchCreatedAt { get; set; }
+            public int BranchesId { get; set; }
+
+            // From detail records
+            public string CardName { get; set; }  // Docente
+            public string OU { get; set; }        // U.O.
+            public string PEI { get; set; }       // PEI
+            public string Memo { get; set; }      // Nombre Servicio
+            public string LineMemo { get; set; }  // Detalle
+            public string AssignedAccount { get; set; } // Cuenta Asignada
+            public decimal Debit { get; set; }    // Monto a Pagar
+            public decimal Credit { get; set; }   // MontoBruto
+        }
+
+
+
         [NonAction]
         private void DynamicExcelToDB(string FileType, dynamic o, ServProcess file, CustomUser user, out HttpResponseMessage response)
         {
