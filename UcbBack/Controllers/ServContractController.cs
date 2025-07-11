@@ -1288,75 +1288,93 @@ namespace UcbBack.Controllers
 
         [HttpGet]
         [Route("api/ServContract/Search")]
-        public IHttpActionResult GetAllBatchDetails()
+        public IHttpActionResult GetAllBatchDetails(string batchFileType = null, int? branchId = null)
         {
-            var user = auth.getUser(Request);
-
-            // First get all batches (similar to History endpoint)
-            var batchesQuery = "SELECT * FROM " + CustomSchema.Schema + ".\"Serv_Process\" " +
-                              "WHERE \"State\" = '" + ServProcess.Serv_FileState.PendingApproval + "' " +
-                              "OR \"State\" = '" + ServProcess.Serv_FileState.INSAP + "' " +
-                              "OR \"State\" = '" + ServProcess.Serv_FileState.Rejected + "' " +
-                              "ORDER BY \"Id\" DESC";
-
-            var batches = _context.Database.SqlQuery<ServProcess>(batchesQuery).ToList();
-
-            // Filter by regional access
-            var authorizedBatches = auth.filerByRegional(batches.AsQueryable(), user).Cast<ServProcess>().ToList();
-
-            if (authorizedBatches.Count == 0)
-                return Unauthorized();
-
-            // Now get details for each batch
-            var results = new List<BatchDetailResult>();
-
-            foreach (var batch in authorizedBatches)
+            try
             {
-                string detailQuery = null;
+                // Normalize file type to uppercase
+                batchFileType = batchFileType?.ToUpper();
 
-                switch (batch.FileType)
+                // Base query without state filtering
+                var batchesQuery = $"SELECT * FROM {CustomSchema.Schema}.\"Serv_Process\" WHERE 1=1";
+
+                // Apply filters
+                if (!string.IsNullOrEmpty(batchFileType))
                 {
-                    case ServProcess.Serv_FileType.Varios:
-                        detailQuery = BuildVariosQuery(batch.Id);
-                        break;
-                    case ServProcess.Serv_FileType.Carrera:
-                        detailQuery = BuildCarreraQuery(batch.Id);
-                        break;
-                    case ServProcess.Serv_FileType.Proyectos:
-                        detailQuery = BuildProyectosQuery(batch.Id);
-                        break;
-                    case ServProcess.Serv_FileType.Paralelo:
-                        detailQuery = BuildParaleloQuery(batch.Id);
-                        break;
+                    batchesQuery += $" AND \"FileType\" = '{batchFileType}'";
                 }
 
-                if (detailQuery != null)
+                if (branchId.HasValue)
                 {
-                    var details = _context.Database.SqlQuery<Serv_Voucher>(detailQuery).ToList();
+                    // BranchId is stored as string in DB
+                    batchesQuery += $" AND \"BranchesId\" = '{branchId.Value}'";
+                }
 
-                    results.AddRange(details.Select(d => new BatchDetailResult
+                batchesQuery += " ORDER BY \"Id\" DESC";
+
+                var batches = _context.Database.SqlQuery<ServProcess>(batchesQuery).ToList();
+
+                // Get branch abbreviations
+                var branchesQuery = $"SELECT \"Id\", \"Abr\" FROM {CustomSchema.Schema}.\"Branches\"";
+                var branches = _context.Database.SqlQuery<BranchAbbreviation>(branchesQuery)
+            .ToDictionary(b => b.Id.ToString(), b => b.Abr);
+
+                // Process all batch types
+                var results = new List<BatchDetailResult>();
+
+                foreach (var batch in batches)
+                {
+                    string detailQuery = null;
+
+                    switch (batch.FileType.ToUpper())
                     {
-                        BatchId = batch.Id,
-                        BatchState = batch.State,
-                        BatchFileType = batch.FileType,
-                        BatchSAPId = batch.SAPId,
-                        BatchCreatedAt = batch.CreatedAt.ToString("dd MMM yyyy"),
-                        BranchesId = batch.BranchesId,
+                        case "VARIOS":
+                            detailQuery = BuildVariosQuery(batch.Id);
+                            break;
+                        case "CARRERA":
+                            detailQuery = BuildCarreraQuery(batch.Id);
+                            break;
+                        case "PROYECTOS":
+                            detailQuery = BuildProyectosQuery(batch.Id);
+                            break;
+                        case "PARALELO":
+                            detailQuery = BuildParaleloQuery(batch.Id);
+                            break;
+                    }
 
-                        // Detail fields
-                        CardName = d.CardName,
-                        OU = d.OU,
-                        PEI = d.PEI,
-                        Memo = d.Memo,
-                        LineMemo = d.LineMemo,
-                        AssignedAccount = d.AssignedAccount,
-                        Debit = d.Debit,
-                        Credit = d.Credit
-                    }));
+                    if (detailQuery != null)
+                    {
+                        var details = _context.Database.SqlQuery<Serv_Voucher>(detailQuery).ToList();
+
+                        results.AddRange(details.Select(d => new BatchDetailResult
+                        {
+                            BatchId = batch.Id,
+                            BatchState = batch.State,
+                            BatchFileType = batch.FileType,
+                            BatchSAPId = batch.SAPId,
+                            BatchCreatedAt = batch.CreatedAt.ToString("dd MMM yyyy"),
+                            BranchAbr = branches.ContainsKey(batch.BranchesId.ToString()) ?
+            branches[batch.BranchesId.ToString()] : "N/A",
+
+                            // Detail fields
+                            CardName = d.CardName,
+                            OU = d.OU,
+                            PEI = d.PEI,
+                            Memo = d.Memo,
+                            LineMemo = d.LineMemo,
+                            AssignedAccount = d.AssignedAccount,
+                            Debit = d.Debit,
+                            Credit = d.Credit
+                        }));
+                    }
                 }
-            }
 
-            return Ok(results);
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
         }
 
         // Helper methods to build queries for each type
@@ -1409,6 +1427,13 @@ namespace UcbBack.Controllers
         }
 
         // Result model combining batch and detail information
+        public class BranchAbbreviation
+        {
+            public int Id { get; set; }
+            public string Abr { get; set; }
+        }
+
+        // Update the BatchDetailResult class to use BranchAbr instead of BranchesId
         public class BatchDetailResult
         {
             // From Serv_Process (batch info)
@@ -1417,7 +1442,7 @@ namespace UcbBack.Controllers
             public string BatchFileType { get; set; }
             public string BatchSAPId { get; set; }
             public string BatchCreatedAt { get; set; }
-            public int BranchesId { get; set; }
+            public string BranchAbr { get; set; } // Changed from BranchesId to BranchAbr
 
             // From detail records
             public string CardName { get; set; }  // Docente
