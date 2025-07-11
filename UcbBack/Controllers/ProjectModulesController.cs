@@ -651,7 +651,7 @@ namespace UcbBack.Controllers
         }
         [HttpGet]
         [Route("api/ProjectModules/PagosPendientes")]
-        public IHttpActionResult GetPagosPendientes()
+        public IHttpActionResult GetPagosPendientes(DateTime? fechaInicioFiltro = null, DateTime? fechaFinFiltro = null)
         {
             try
             {
@@ -679,29 +679,7 @@ namespace UcbBack.Controllers
 
                 // Get already paid modules with proper type handling
                 string paidQuery = "SELECT \"Proyecto\", \"Modulo\" FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\"";
-
-               
                 var paidModules = _context.Database.SqlQuery<PaidModuleRecord>(paidQuery).ToList();
-
-           
-                /* 
-                DataTable paidTable = new DataTable();
-                using (var cmd = _context.Database.Connection.CreateCommand())
-                {
-                    cmd.CommandText = paidQuery;
-                    _context.Database.Connection.Open();
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        paidTable.Load(reader);
-                    }
-                    _context.Database.Connection.Close();
-                }
-                var paidModules = paidTable.AsEnumerable()
-                    .Select(row => new {
-                        Proyecto = row.Field<string>("Proyecto"),
-                        Modulo = row.Field<string>("Modulo")
-                    }).ToList();
-                */
 
                 // Filter and format results
                 var pendingPayments = allModules
@@ -719,7 +697,22 @@ namespace UcbBack.Controllers
                         Fecha_Inicio = x.FechaInicio?.ToString("dd-MM-yyyy"),
                         Fecha_Fin = x.FechaFin?.ToString("dd-MM-yyyy"),
                         x.Observaciones
-                    }).ToList();
+                    });
+
+                // Apply date filters if provided
+                if (fechaInicioFiltro.HasValue)
+                {
+                    pendingPayments = pendingPayments.Where(x =>
+                        x.Fecha_Inicio != null &&
+                        DateTime.ParseExact(x.Fecha_Inicio, "dd-MM-yyyy", CultureInfo.InvariantCulture) >= fechaInicioFiltro.Value);
+                }
+
+                if (fechaFinFiltro.HasValue)
+                {
+                    pendingPayments = pendingPayments.Where(x =>
+                        x.Fecha_Fin != null &&
+                        DateTime.ParseExact(x.Fecha_Fin, "dd-MM-yyyy", CultureInfo.InvariantCulture) <= fechaFinFiltro.Value);
+                }
 
                 var user = auth.getUser(Request);
                 var filteredResults = auth.filerByRegional(pendingPayments.AsQueryable(), user).ToList();
