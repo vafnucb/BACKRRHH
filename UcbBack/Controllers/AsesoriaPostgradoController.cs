@@ -2243,30 +2243,178 @@ namespace UcbBack.Controllers
                 return Ok(filteredListResult);
             }
         }
+        public class AsesoriaPostgradoEstadoViewModel
+        {
+            public int Id { get; set; }
+            public string Estado { get; set; }
+            public string Proyecto { get; set; }
+            public string Modulo { get; set; }
+            public string NombreProyecto { get; set; }
+            public string TeacherBP { get; set; }
+            public string NombreModulo { get; set; }
+            public string Observaciones { get; set; }
+            public string StudentFullName { get; set; }
+            public int? TipoTareaId { get; set; }
+            public decimal? TotalBruto { get; set; }
+            public decimal? Deduccion { get; set; }
+            public decimal? IT { get; set; }
+            public decimal? IUE { get; set; }
+            public decimal? IUEExterior { get; set; }
+            public decimal? TotalNeto { get; set; }
+            public string NumeroContrato { get; set; }
+            public string Origen { get; set; }
+            public string UpdatedAt { get; set; }
+        }
+
 
         [HttpGet]
         [Route("api/AsesoriaPostgrado/Estado")]
-        public IHttpActionResult GetEstados()
+        public IHttpActionResult GetEstados(int? id = null)
         {
-            var result = _context.AsesoriaPostgrado
-                .OrderByDescending(a => a.Id)
-                .ToList()
-                .Select(a => new {
-                    a.Id,
-                    a.Origen,
-                    a.Estado,
-                    a.Proyecto,
-                    a.Modulo,
-                    a.StudentFullName,
-                    a.Horas,
-                    a.MontoHora,
-                    a.TotalBruto,
-                    a.TotalNeto,
-                    UpdatedAt = a.UpdatedAt.HasValue ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
-                }).ToList();
+            try
+            {
+                string baseQuery =
+                    "SELECT " +
+                    "ap.\"Id\", " +
+                    "ap.\"Origen\", " +
+                    "ap.\"Estado\", " +
+                    "ap.\"Proyecto\", " +
+                    "ap.\"Modulo\", " +
+                    "ap.\"StudentFullName\", " +
+                    "ap.\"TotalBruto\", " +
+                    "ap.\"TipoTareaId\", " +
+                    "ap.\"NumeroContrato\", " +
+                    "ap.\"Observaciones\", " +
+                    "ap.\"TotalNeto\", " +
+                    "ap.\"IT\", " +
+                    "ap.\"IUE\", " +
+                    "ap.\"Deduccion\", " +
+                    "ap.\"IUEExterior\", " +
+                    "ap.\"UpdatedAt\", " +
+                    "pm.\"NameModule\" AS \"NombreModulo\", " +
+                    "ap.\"TeacherBP\" " + // Added TeacherBP for full name lookup
+                    "FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" ap " +
+                    "LEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm " +
+                    "ON pm.\"CodProject\" = ap.\"Proyecto\" AND pm.\"CodModule\" = ap.\"Modulo\" ";
 
-            return Ok(result);
+                if (id.HasValue)
+                {
+                    baseQuery += $" WHERE ap.\"Id\" = {id.Value}";
+                }
+                else
+                {
+                    baseQuery += " ORDER BY ap.\"Id\" DESC";
+                }
+
+                var tareaDict = _context.TipoTarea
+                    .ToDictionary(m => m.Id, m => m.Tarea);
+
+                // Get the main data
+                var queryResult = _context.Database
+                    .SqlQuery<AsesoriaPostgradoEstadoViewModel>(baseQuery)
+                    .ToList();
+
+                // Get distinct project codes from the results
+                var projectCodes = queryResult.Select(a => a.Proyecto).Distinct().ToList();
+
+                // Get project names
+                var projectNames = new Dictionary<string, string>();
+                if (projectCodes.Any())
+                {
+                    string projectQuery =
+                        "SELECT o.\"PrjCode\", o.\"PrjName\" " +
+                        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
+                        "WHERE o.\"PrjCode\" IN (" + string.Join(",", projectCodes.Select(p => $"'{p}'")) + ")";
+
+                    var rawProjectNames = _context.Database.SqlQuery<OPRJ>(projectQuery).ToList();
+                    projectNames = rawProjectNames.ToDictionary(x => x.PrjCode, x => x.PrjName);
+                }
+
+                // Get distinct teacher BP codes for full name lookup
+                var teacherBPCodes = queryResult
+                    .Where(a => !string.IsNullOrEmpty(a.TeacherBP))
+                    .Select(a => a.TeacherBP)
+                    .Distinct()
+                    .ToList();
+
+                // Get teacher full names
+                var teacherNames = new Dictionary<string, string>();
+                if (teacherBPCodes.Any())
+                {
+                    string teacherNameQuery =
+                        "SELECT c.\"CardCode\", c.\"CardName\" " +
+                        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c " +
+                        "WHERE c.\"CardCode\" IN (" + string.Join(",", teacherBPCodes.Select(t => $"'{t}'")) + ")";
+
+                    var rawTeacherNames = _context.Database.SqlQuery<TeacherNameModel>(teacherNameQuery).ToList();
+                    teacherNames = rawTeacherNames.ToDictionary(x => x.CardCode, x => x.CardName);
+                }
+
+                var user = auth.getUser(Request);
+
+                var result = queryResult
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.Origen,
+                        a.Estado,
+                        a.Proyecto,
+                        a.Modulo,
+                        NombreProyecto = projectNames.ContainsKey(a.Proyecto)
+                            ? projectNames[a.Proyecto]
+                            : null,
+                        a.NombreModulo,
+                        a.StudentFullName,
+                        TeacherFullName = teacherNames.ContainsKey(a.TeacherBP)
+                            ? teacherNames[a.TeacherBP]
+                            : null,
+                        a.NumeroContrato,
+                        a.Observaciones,
+                        a.TotalBruto,
+                        a.IT,
+                        a.IUE,
+                        a.Deduccion,
+                        a.IUEExterior,
+                        a.TotalNeto,
+                        Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
+                            ? tareaDict[a.TipoTareaId.Value]
+                            : null,
+                        UpdatedAt = a.UpdatedAt
+                    });
+
+                /*Apply regional filter if needed
+                if (auth.filerByRegional != null)
+                {
+                    result = auth.filerByRegional(result.AsQueryable(), user).ToList();
+                }*/
+
+                // Return single object if ID was provided
+                if (id.HasValue)
+                {
+                    var singleResult = result.FirstOrDefault();
+                    if (singleResult == null)
+                    {
+                        return NotFound();
+                    }
+                    return Ok(singleResult);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
         }
+
+        // Add this class for teacher name mapping
+        public class TeacherNameModel
+        {
+            public string CardCode { get; set; }
+            public string CardName { get; set; }
+        }
+
+
 
         /*
         [HttpGet]

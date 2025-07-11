@@ -2489,11 +2489,24 @@ namespace UcbBack.Controllers
         //See status of the records
         [HttpGet]
         [Route("api/AsesoriaDocente/Estado")]
-        public IHttpActionResult GetEstados()
+        public IHttpActionResult GetEstados(int? id = null)
         {
-            var result = _context.AsesoriaDocente
+            var modalidadesDict = _context.Modalidades
+                .ToDictionary(m => m.Id, m => m.Modalidad);
+            var tareaDict = _context.TipoTarea.ToDictionary(m => m.Id, m => m.Tarea);
+
+            var query = _context.AsesoriaDocente
                 .OrderByDescending(a => a.Id)
-                .ToList() 
+                .AsQueryable();
+
+            // Filter by ID if provided
+            if (id.HasValue)
+            {
+                query = query.Where(a => a.Id == id.Value);
+            }
+
+            var result = query
+                .ToList()
                 .Select(a => new {
                     a.Id,
                     a.Origen,
@@ -2501,13 +2514,40 @@ namespace UcbBack.Controllers
                     a.TeacherFullName,
                     a.StudentFullName,
                     a.Carrera,
+                    a.Acta,
+                    a.NumeroContrato,
                     a.TotalBruto,
                     a.TotalNeto,
-                    UpdatedAt = a.UpdatedAt.HasValue ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss") : ""
-                }).ToList();
+                    a.Deduccion,
+                    a.IUE,
+                    a.IUEExterior,
+                    a.IT,
+                    Modalidad = a.ModalidadId.HasValue && modalidadesDict.ContainsKey(a.ModalidadId.Value)
+                                ? modalidadesDict[a.ModalidadId.Value]
+                                : null,
+                    Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
+                                ? tareaDict[a.TipoTareaId.Value]
+                                : null,
+                    a.Observaciones,
+                    UpdatedAt = a.UpdatedAt.HasValue
+                                ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                : ""
+                });
 
-            return Ok(result);
+            // Return single object if ID was provided, otherwise return list
+            if (id.HasValue)
+            {
+                var singleResult = result.FirstOrDefault();
+                if (singleResult == null)
+                {
+                    return NotFound();
+                }
+                return Ok(singleResult);
+            }
+
+            return Ok(result.ToList());
         }
+
 
 
         // info categoria y precio de docentes para el registro

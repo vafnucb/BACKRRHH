@@ -650,6 +650,106 @@ namespace UcbBack.Controllers
             return Ok(result);
         }
         [HttpGet]
+        [Route("api/ProjectModules/PagosPendientes")]
+        public IHttpActionResult GetPagosPendientes()
+        {
+            try
+            {
+                // Get all project modules
+                string modulesQuery = "SELECT " +
+                    "pm.\"Id\", " +
+                    "pm.\"BranchesId\", " +
+                    "pm.\"CodModule\", " +
+                    "pm.\"CodProject\", " +
+                    "pm.\"NameModule\", " +
+                    "pm.\"TeacherFullName\", " +
+                    "pm.\"TeacherCI\", " +
+                    "pm.\"Horas\", " +
+                    "pm.\"MontoHora\", " +
+                    "pm.\"FechaInicio\", " +
+                    "pm.\"FechaFin\", " +
+                    "pm.\"Observaciones\", " +
+                    "pj.\"NameModule\" as \"PrjAbr\" " +
+                    "FROM " + CustomSchema.Schema + ".\"ProjectModules\" pm " +
+                    "INNER JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pj " +
+                    "ON pj.\"CodProject\" = pm.\"CodProject\" AND pj.\"CodModule\" = '0' " +
+                    "WHERE pm.\"CodModule\" != '0'";
+
+                var allModules = _context.Database.SqlQuery<ProjectModulesViewModel>(modulesQuery).ToList();
+
+                // Get already paid modules with proper type handling
+                string paidQuery = "SELECT \"Proyecto\", \"Modulo\" FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\"";
+
+               
+                var paidModules = _context.Database.SqlQuery<PaidModuleRecord>(paidQuery).ToList();
+
+           
+                /* 
+                DataTable paidTable = new DataTable();
+                using (var cmd = _context.Database.Connection.CreateCommand())
+                {
+                    cmd.CommandText = paidQuery;
+                    _context.Database.Connection.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        paidTable.Load(reader);
+                    }
+                    _context.Database.Connection.Close();
+                }
+                var paidModules = paidTable.AsEnumerable()
+                    .Select(row => new {
+                        Proyecto = row.Field<string>("Proyecto"),
+                        Modulo = row.Field<string>("Modulo")
+                    }).ToList();
+                */
+
+                // Filter and format results
+                var pendingPayments = allModules
+                    .Where(m => !paidModules.Any(p => p.Proyecto == m.CodProject && p.Modulo == m.CodModule))
+                    .Select(x => new {
+                        x.Id,
+                        Cod_Proyecto = x.CodProject,
+                        Nombre_Proyecto = x.PrjAbr,
+                        Cod_Modulo = x.CodModule,
+                        Nombre_Modulo = x.NameModule,
+                        Docente = x.TeacherFullName,
+                        x.Horas,
+                        x.MontoHora,
+                        Total = x.Horas * x.MontoHora,
+                        Fecha_Inicio = x.FechaInicio?.ToString("dd-MM-yyyy"),
+                        Fecha_Fin = x.FechaFin?.ToString("dd-MM-yyyy"),
+                        x.Observaciones
+                    }).ToList();
+
+                var user = auth.getUser(Request);
+                var filteredResults = auth.filerByRegional(pendingPayments.AsQueryable(), user).ToList();
+
+                return Ok(filteredResults);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        // Add this class to your project if using Option 1
+        public class PaidModuleRecord
+        {
+            public string Proyecto { get; set; }
+            public string Modulo { get; set; }
+        }
+
+        private string GetTeacherBPCode(string teacherCI)
+        {
+            if (string.IsNullOrEmpty(teacherCI)) return null;
+
+            string query = "SELECT \"SAPId\" FROM " + CustomSchema.Schema + ".\"Civil\" WHERE \"Document\" = '" + teacherCI + "'";
+            return _context.Database.SqlQuery<string>(query).FirstOrDefault();
+        }
+
+       
+
+        [HttpGet]
         [Route("api/GetProjectInfo/{Cod}")]
         public IHttpActionResult GetProyectosInfo(string Cod)
         {
