@@ -1425,6 +1425,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.ModalidadId = asesoria.ModalidadId;
                 thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
+                thisAsesoria.Factura = asesoria.Factura;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
                 thisAsesoria.MontoHora = asesoria.MontoHora;
@@ -2495,6 +2496,10 @@ namespace UcbBack.Controllers
                 .ToDictionary(m => m.Id, m => m.Modalidad);
             var tareaDict = _context.TipoTarea.ToDictionary(m => m.Id, m => m.Tarea);
 
+            // Create dictionary for CustomUsers to lookup UserPrincipalName by Id
+            var usersDict = _context.CustomUsers
+                .ToDictionary(u => u.Id, u => u.UserPrincipalName);
+
             var query = _context.AsesoriaDocente
                 .OrderByDescending(a => a.Id)
                 .AsQueryable();
@@ -2522,6 +2527,19 @@ namespace UcbBack.Controllers
                     a.IUE,
                     a.IUEExterior,
                     a.IT,
+                    a.Factura,
+                    a.UserCreate,
+                    a.UserUpdate,
+                    UserCreateName = a.UserCreate.HasValue && usersDict.ContainsKey(a.UserCreate.Value)
+                                    ? usersDict[a.UserCreate.Value]
+                                    : null,
+                    UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
+                                    ? usersDict[a.UserUpdate.Value]
+                                    : null,
+                    ActaFecha = a.ActaFecha.HasValue ?
+                                a.ActaFecha.Value.ToString("dd/MM/yyyy")
+                                : "",
+                    a.Ignore,
                     Modalidad = a.ModalidadId.HasValue && modalidadesDict.ContainsKey(a.ModalidadId.Value)
                                 ? modalidadesDict[a.ModalidadId.Value]
                                 : null,
@@ -2529,6 +2547,9 @@ namespace UcbBack.Controllers
                                 ? tareaDict[a.TipoTareaId.Value]
                                 : null,
                     a.Observaciones,
+                    CreatedAt = a.CreatedAt.HasValue ?
+                                a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                : "",
                     UpdatedAt = a.UpdatedAt.HasValue
                                 ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
                                 : ""

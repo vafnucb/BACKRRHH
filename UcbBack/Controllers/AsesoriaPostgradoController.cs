@@ -2251,6 +2251,7 @@ namespace UcbBack.Controllers
             public string Modulo { get; set; }
             public string NombreProyecto { get; set; }
             public string TeacherBP { get; set; }
+            public string TeacherCUNI { get; set; }
             public string NombreModulo { get; set; }
             public string Observaciones { get; set; }
             public string StudentFullName { get; set; }
@@ -2263,7 +2264,12 @@ namespace UcbBack.Controllers
             public decimal? TotalNeto { get; set; }
             public string NumeroContrato { get; set; }
             public string Origen { get; set; }
+            public bool? Ignore { get; set; }
+            public bool? Factura { get; set; }
             public string UpdatedAt { get; set; }
+            public string CreatedAt { get; set; }
+            public int? UserCreate { get; set; }
+            public int? UserUpdate { get; set; }
         }
 
 
@@ -2290,9 +2296,15 @@ namespace UcbBack.Controllers
                     "ap.\"IUE\", " +
                     "ap.\"Deduccion\", " +
                     "ap.\"IUEExterior\", " +
+                    "ap.\"CreatedAt\", " +
                     "ap.\"UpdatedAt\", " +
+                    "ap.\"Factura\", " +
+                    "ap.\"Ignore\", " +
+                    "ap.\"UserCreate\", " +
+                    "ap.\"UserUpdate\", " +
                     "pm.\"NameModule\" AS \"NombreModulo\", " +
-                    "ap.\"TeacherBP\" " + // Added TeacherBP for full name lookup
+                    "ap.\"TeacherCUNI\", " +
+                    "ap.\"TeacherBP\" " +
                     "FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" ap " +
                     "LEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm " +
                     "ON pm.\"CodProject\" = ap.\"Proyecto\" AND pm.\"CodModule\" = ap.\"Modulo\" ";
@@ -2308,6 +2320,10 @@ namespace UcbBack.Controllers
 
                 var tareaDict = _context.TipoTarea
                     .ToDictionary(m => m.Id, m => m.Tarea);
+
+                // Create dictionary for CustomUsers to lookup UserPrincipalName by Id
+                var usersDict = _context.CustomUsers
+                    .ToDictionary(u => u.Id, u => u.UserPrincipalName);
 
                 // Get the main data
                 var queryResult = _context.Database
@@ -2337,8 +2353,8 @@ namespace UcbBack.Controllers
                     .Distinct()
                     .ToList();
 
-                // Get teacher full names
-                var teacherNames = new Dictionary<string, string>();
+                // Get teacher full names from BP (SAP)
+                var teacherBPNames = new Dictionary<string, string>();
                 if (teacherBPCodes.Any())
                 {
                     string teacherNameQuery =
@@ -2347,7 +2363,30 @@ namespace UcbBack.Controllers
                         "WHERE c.\"CardCode\" IN (" + string.Join(",", teacherBPCodes.Select(t => $"'{t}'")) + ")";
 
                     var rawTeacherNames = _context.Database.SqlQuery<TeacherNameModel>(teacherNameQuery).ToList();
-                    teacherNames = rawTeacherNames.ToDictionary(x => x.CardCode, x => x.CardName);
+                    teacherBPNames = rawTeacherNames.ToDictionary(x => x.CardCode, x => x.CardName);
+                }
+
+                // Get distinct teacher CUNI codes for full name lookup
+                var teacherCUNIs = queryResult
+                    .Where(a => !string.IsNullOrEmpty(a.TeacherCUNI))
+                    .Select(a => a.TeacherCUNI)
+                    .Distinct()
+                    .ToList();
+
+                // Get teacher full names from CUNI (People table)
+                var teacherCUNINames = new Dictionary<string, string>();
+                if (teacherCUNIs.Any())
+                {
+                    string teacherCUNIQuery =
+                        "SELECT p.\"CUNI\", p.\"Names\", p.\"FirstSurName\", p.\"SecondSurName\" " +
+                        "FROM " + CustomSchema.Schema + ".\"People\" p " +
+                        "WHERE p.\"CUNI\" IN (" + string.Join(",", teacherCUNIs.Select(t => $"'{t}'")) + ")";
+
+                    var rawTeacherCUNINames = _context.Database.SqlQuery<TeacherCUNIModel>(teacherCUNIQuery).ToList();
+                    teacherCUNINames = rawTeacherCUNINames.ToDictionary(
+                        x => x.CUNI,
+                        x => $"{x.Names?.Trim()} {x.FirstSurName?.Trim()} {x.SecondSurName?.Trim()}".Trim()
+                    );
                 }
 
                 var user = auth.getUser(Request);
@@ -2365,9 +2404,11 @@ namespace UcbBack.Controllers
                             : null,
                         a.NombreModulo,
                         a.StudentFullName,
-                        TeacherFullName = teacherNames.ContainsKey(a.TeacherBP)
-                            ? teacherNames[a.TeacherBP]
-                            : null,
+                        TeacherFullName = !string.IsNullOrEmpty(a.TeacherBP) && teacherBPNames.ContainsKey(a.TeacherBP)
+                            ? teacherBPNames[a.TeacherBP]
+                            : (!string.IsNullOrEmpty(a.TeacherCUNI) && teacherCUNINames.ContainsKey(a.TeacherCUNI)
+                                ? teacherCUNINames[a.TeacherCUNI]
+                                : null),
                         a.NumeroContrato,
                         a.Observaciones,
                         a.TotalBruto,
@@ -2376,17 +2417,20 @@ namespace UcbBack.Controllers
                         a.Deduccion,
                         a.IUEExterior,
                         a.TotalNeto,
+                        a.Factura,
+                        a.Ignore,
                         Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
                             ? tareaDict[a.TipoTareaId.Value]
                             : null,
-                        UpdatedAt = a.UpdatedAt
+                        a.UpdatedAt,
+                        a.CreatedAt,
+                        UserCreateName = a.UserCreate.HasValue && usersDict.ContainsKey(a.UserCreate.Value)
+                                        ? usersDict[a.UserCreate.Value]
+                                        : null,
+                        UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
+                                        ? usersDict[a.UserUpdate.Value]
+                                        : null
                     });
-
-                /*Apply regional filter if needed
-                if (auth.filerByRegional != null)
-                {
-                    result = auth.filerByRegional(result.AsQueryable(), user).ToList();
-                }*/
 
                 // Return single object if ID was provided
                 if (id.HasValue)
@@ -2405,6 +2449,15 @@ namespace UcbBack.Controllers
             {
                 return InternalServerError(ex);
             }
+        }
+
+        // Add this class for teacher CUNI name mapping
+        public class TeacherCUNIModel
+        {
+            public string CUNI { get; set; }
+            public string Names { get; set; }
+            public string FirstSurName { get; set; }
+            public string SecondSurName { get; set; }
         }
 
         // Add this class for teacher name mapping
