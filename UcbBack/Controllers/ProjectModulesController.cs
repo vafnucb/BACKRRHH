@@ -681,7 +681,7 @@ namespace UcbBack.Controllers
                 // Add branch filter if provided
                 if (branchesId.HasValue)
                 {
-                    modulesQuery += $" AND pm.\"BranchesId\" = {branchesId.Value}";
+                    modulesQuery += string.Format(" AND pm.\"BranchesId\" = {0}", branchesId.Value);
                 }
 
                 var allModules = _context.Database.SqlQuery<ProjectModulesViewModel>(modulesQuery).ToList();
