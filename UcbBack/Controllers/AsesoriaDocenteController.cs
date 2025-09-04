@@ -2496,7 +2496,6 @@ namespace UcbBack.Controllers
                 .ToDictionary(m => m.Id, m => m.Modalidad);
             var tareaDict = _context.TipoTarea.ToDictionary(m => m.Id, m => m.Tarea);
 
-            // Create dictionary for CustomUsers to lookup UserPrincipalName by Id
             var usersDict = _context.CustomUsers
                 .ToDictionary(u => u.Id, u => u.UserPrincipalName);
 
@@ -2510,11 +2509,13 @@ namespace UcbBack.Controllers
                 query = query.Where(a => a.Id == id.Value);
             }
 
+            // IMPORTANT: include BranchesId in the projection
             var result = query
                 .ToList()
                 .Select(a => new {
                     a.Id,
-                    a.Origen,
+                    a.BranchesId, // <--- add this
+            a.Origen,
                     a.Estado,
                     a.TeacherFullName,
                     a.StudentFullName,
@@ -2531,43 +2532,45 @@ namespace UcbBack.Controllers
                     a.UserCreate,
                     a.UserUpdate,
                     UserCreateName = a.UserCreate.HasValue && usersDict.ContainsKey(a.UserCreate.Value)
-                                    ? usersDict[a.UserCreate.Value]
-                                    : null,
+                                        ? usersDict[a.UserCreate.Value]
+                                        : null,
                     UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
-                                    ? usersDict[a.UserUpdate.Value]
-                                    : null,
-                    ActaFecha = a.ActaFecha.HasValue ?
-                                a.ActaFecha.Value.ToString("dd/MM/yyyy")
-                                : "",
+                                        ? usersDict[a.UserUpdate.Value]
+                                        : null,
+                    ActaFecha = a.ActaFecha.HasValue
+                                        ? a.ActaFecha.Value.ToString("dd/MM/yyyy")
+                                        : "",
                     a.Ignore,
                     Modalidad = a.ModalidadId.HasValue && modalidadesDict.ContainsKey(a.ModalidadId.Value)
-                                ? modalidadesDict[a.ModalidadId.Value]
-                                : null,
+                                        ? modalidadesDict[a.ModalidadId.Value]
+                                        : null,
                     Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
-                                ? tareaDict[a.TipoTareaId.Value]
-                                : null,
+                                        ? tareaDict[a.TipoTareaId.Value]
+                                        : null,
                     a.Observaciones,
-                    CreatedAt = a.CreatedAt.HasValue ?
-                                a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
-                                : "",
+                    CreatedAt = a.CreatedAt.HasValue
+                                        ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                        : "",
                     UpdatedAt = a.UpdatedAt.HasValue
-                                ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
-                                : ""
+                                        ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                        : ""
                 });
 
-            // Return single object if ID was provided, otherwise return list
+            // SIMPLE permission filter (same idea you already use elsewhere)
+            var user = auth.getUser(Request);
+            var secured = auth.filerByRegional(result.AsQueryable(), user); // expects a property named BranchesId
+
+            // Return single object if ID was provided, otherwise list
             if (id.HasValue)
             {
-                var singleResult = result.FirstOrDefault();
-                if (singleResult == null)
-                {
-                    return NotFound();
-                }
-                return Ok(singleResult);
+                var single = secured.FirstOrDefault();
+                if (single == null) return NotFound(); // unauthorized or absent -> 404 is fine here
+                return Ok(single);
             }
 
-            return Ok(result.ToList());
+            return Ok(secured.ToList());
         }
+
 
 
 

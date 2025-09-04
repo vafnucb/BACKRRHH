@@ -1359,6 +1359,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.TipoTareaId = asesoria.TipoTareaId;
                 thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
+                thisAsesoria.Factura = asesoria.Factura;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
                 thisAsesoria.MontoHora = asesoria.MontoHora;
@@ -2256,6 +2257,7 @@ namespace UcbBack.Controllers
             public string Observaciones { get; set; }
             public string StudentFullName { get; set; }
             public int? TipoTareaId { get; set; }
+            public int BranchesId { get; set; }
             public decimal? TotalBruto { get; set; }
             public decimal? Deduccion { get; set; }
             public decimal? IT { get; set; }
@@ -2300,6 +2302,7 @@ namespace UcbBack.Controllers
                     "ap.\"UpdatedAt\", " +
                     "ap.\"Factura\", " +
                     "ap.\"Ignore\", " +
+                    "ap.\"BranchesId\", " +
                     "ap.\"UserCreate\", " +
                     "ap.\"UserUpdate\", " +
                     "pm.\"NameModule\" AS \"NombreModulo\", " +
@@ -2418,6 +2421,7 @@ namespace UcbBack.Controllers
                         a.IUEExterior,
                         a.TotalNeto,
                         a.Factura,
+                        a.BranchesId,
                         a.Ignore,
                         Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
                             ? tareaDict[a.TipoTareaId.Value]
@@ -2433,17 +2437,17 @@ namespace UcbBack.Controllers
                     });
 
                 // Return single object if ID was provided
+
+                var secured = auth.filerByRegional(result.AsQueryable(), user);
+
                 if (id.HasValue)
                 {
-                    var singleResult = result.FirstOrDefault();
-                    if (singleResult == null)
-                    {
-                        return NotFound();
-                    }
-                    return Ok(singleResult);
+                    var single = secured.FirstOrDefault();
+                    if (single == null) return NotFound();
+                    return Ok(single);
                 }
 
-                return Ok(result);
+                return Ok(secured.ToList());
             }
             catch (Exception ex)
             {
