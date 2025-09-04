@@ -184,6 +184,60 @@ namespace UcbBack.Controllers
             return Created(new Uri(Request.RequestUri + "/" + civil.Id), civil);
         }
 
+        public class CivilRequestDto
+        {
+            public string SAPId { get; set; }
+            public string Abr { get; set; }
+        }
+
+        [HttpPost]
+        [Route("api/civil")]
+        public IHttpActionResult PostByBranch([FromBody] CivilRequestDto request)
+        {
+            var user = auth.getUser(Request);
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var selectedBranch = _context.Branch.FirstOrDefault(b => b.Abr == request.Abr);
+            if (selectedBranch == null)
+                return BadRequest("Abreviatura de regional inválida.");
+
+            var bpFromSAP = Civil.findBPInSAP(request.SAPId, user, _context);
+            if (bpFromSAP == null)
+                return Unauthorized();
+
+            var userBranches = AD.getUserBranches(user).Select(x => x.Id);
+            if (!userBranches.Contains(selectedBranch.Id))
+                return Unauthorized();
+
+            var existsInSameBranch = _context.Civils
+     .Where(x => x.SAPId == request.SAPId)
+     .ToList()
+     .Any(x => x.BranchesId == selectedBranch.Id);
+
+            if (existsInSameBranch)
+                return Conflict(); // 409 - Already exists in this branch
+
+            // Proceed to insert
+            var civil = new Civil
+            {
+                Id = Civil.GetNextId(_context),
+                SAPId = request.SAPId,
+                BranchesId = selectedBranch.Id,
+                FullName = bpFromSAP.First().FullName,
+                NIT = bpFromSAP.First().NIT,
+                Document = bpFromSAP.First().Document,
+                CreatedBy = user.Id
+            };
+
+            _context.Civils.Add(civil);
+            _context.SaveChanges();
+
+            return Created(new Uri(Request.RequestUri + "/" + civil.Id), civil);
+        }
+
+
         // DELETE api/Level/5
         [HttpDelete]
         public IHttpActionResult Delete(int id)

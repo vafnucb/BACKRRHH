@@ -38,6 +38,7 @@ namespace UcbBack.Models
         public int Mes { get; set; }
         public int Gestion { get; set; }
         public bool? Ignore { get; set; }
+        public DateTime? CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? ToAuthAt { get; set; }
         public bool? Factura { get; set; }

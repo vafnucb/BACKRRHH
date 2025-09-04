@@ -442,7 +442,7 @@ namespace UcbBack.Controllers
             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non crd8.\"BPLId\"=br.\"CodigoSAP\"" +
             "\r\nwhere ocrd.\"frozenFor\" = 'N') " +
             "order by \"FullName\" "
-            //"where oh.\"jobTitle\" like '%DOCENTE%' "
+            
             ).ToList();
 
 
@@ -1281,6 +1281,7 @@ namespace UcbBack.Controllers
                 asesoria.DependencyCod = dep;
                 asesoria.StudentFullName = asesoria.StudentFullName.ToUpper();
                 asesoria.UserCreate = user.Id;
+                asesoria.CreatedAt = DateTime.Now;
                 // agregar el nuevo registro en el contexto
                 _context.AsesoriaDocente.Add(asesoria);
                 _context.SaveChanges();
@@ -1424,6 +1425,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.ModalidadId = asesoria.ModalidadId;
                 thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
+                thisAsesoria.Factura = asesoria.Factura;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
                 thisAsesoria.MontoHora = asesoria.MontoHora;
@@ -2484,6 +2486,93 @@ namespace UcbBack.Controllers
                 return BadRequest("Ocurrió un problema. Comuniquese con el administrador. " + exception);
             }
         }
+
+        //See status of the records
+        [HttpGet]
+        [Route("api/AsesoriaDocente/Estado")]
+        public IHttpActionResult GetEstados(int? id = null)
+        {
+            var modalidadesDict = _context.Modalidades
+                .ToDictionary(m => m.Id, m => m.Modalidad);
+            var tareaDict = _context.TipoTarea.ToDictionary(m => m.Id, m => m.Tarea);
+
+            var usersDict = _context.CustomUsers
+                .ToDictionary(u => u.Id, u => u.UserPrincipalName);
+
+            var query = _context.AsesoriaDocente
+                .OrderByDescending(a => a.Id)
+                .AsQueryable();
+
+            // Filter by ID if provided
+            if (id.HasValue)
+            {
+                query = query.Where(a => a.Id == id.Value);
+            }
+
+            // IMPORTANT: include BranchesId in the projection
+            var result = query
+                .ToList()
+                .Select(a => new {
+                    a.Id,
+                    a.BranchesId, // <--- add this
+            a.Origen,
+                    a.Estado,
+                    a.TeacherFullName,
+                    a.StudentFullName,
+                    a.Carrera,
+                    a.Acta,
+                    a.NumeroContrato,
+                    a.TotalBruto,
+                    a.TotalNeto,
+                    a.Deduccion,
+                    a.IUE,
+                    a.IUEExterior,
+                    a.IT,
+                    a.Factura,
+                    a.UserCreate,
+                    a.UserUpdate,
+                    UserCreateName = a.UserCreate.HasValue && usersDict.ContainsKey(a.UserCreate.Value)
+                                        ? usersDict[a.UserCreate.Value]
+                                        : null,
+                    UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
+                                        ? usersDict[a.UserUpdate.Value]
+                                        : null,
+                    ActaFecha = a.ActaFecha.HasValue
+                                        ? a.ActaFecha.Value.ToString("dd/MM/yyyy")
+                                        : "",
+                    a.Ignore,
+                    Modalidad = a.ModalidadId.HasValue && modalidadesDict.ContainsKey(a.ModalidadId.Value)
+                                        ? modalidadesDict[a.ModalidadId.Value]
+                                        : null,
+                    Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
+                                        ? tareaDict[a.TipoTareaId.Value]
+                                        : null,
+                    a.Observaciones,
+                    CreatedAt = a.CreatedAt.HasValue
+                                        ? a.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                        : "",
+                    UpdatedAt = a.UpdatedAt.HasValue
+                                        ? a.UpdatedAt.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                                        : ""
+                });
+
+            // SIMPLE permission filter (same idea you already use elsewhere)
+            var user = auth.getUser(Request);
+            var secured = auth.filerByRegional(result.AsQueryable(), user); // expects a property named BranchesId
+
+            // Return single object if ID was provided, otherwise list
+            if (id.HasValue)
+            {
+                var single = secured.FirstOrDefault();
+                if (single == null) return NotFound(); // unauthorized or absent -> 404 is fine here
+                return Ok(single);
+            }
+
+            return Ok(secured.ToList());
+        }
+
+
+
 
         // info categoria y precio de docentes para el registro
         [HttpGet]

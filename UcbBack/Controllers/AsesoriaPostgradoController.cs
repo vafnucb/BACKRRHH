@@ -1249,8 +1249,9 @@ namespace UcbBack.Controllers
                 //asegura que no se junte el nuevo registro con los históricos
                 asesoria.Estado = "REGISTRADO";
                 asesoria.UserCreate = user.Id;
-                //identifica la dependencia del registro en base al nombre de la carrera y la regional
-                var dep = _context.Database.SqlQuery<int>("select dep.\"Cod\"" +
+                asesoria.CreatedAt = DateTime.Now;
+            //identifica la dependencia del registro en base al nombre de la carrera y la regional
+            var dep = _context.Database.SqlQuery<int>("select dep.\"Cod\"" +
                                                           "\r\n    from " +
                                                           ConfigurationManager.AppSettings["B1CompanyDB"] +
                                                           ".oprj op" +
@@ -1358,6 +1359,7 @@ namespace UcbBack.Controllers
                 thisAsesoria.TipoTareaId = asesoria.TipoTareaId;
                 thisAsesoria.TipoPago = asesoria.TipoPago;
                 thisAsesoria.Ignore = asesoria.Ignore;
+                thisAsesoria.Factura = asesoria.Factura;
                 //Sobre costos
                 thisAsesoria.Horas = asesoria.Horas;
                 thisAsesoria.MontoHora = asesoria.MontoHora;
@@ -1511,6 +1513,26 @@ namespace UcbBack.Controllers
                 return Ok("Se eliminó el registro exitosamente");
             }
         }
+
+        //API to delete the record no matter the status (To delete Aprobacion de lote postgrado records)
+        [HttpDelete]
+        [Route("api/DeleteRecordPostgradoLote/{id}")]
+        public IHttpActionResult DeleteRecordLote(int id)
+        {
+            var recordForDeletion = _context.AsesoriaPostgrado.FirstOrDefault(x => x.Id == id);
+
+            if (recordForDeletion == null)
+            {
+                return BadRequest("El registro no existe en BD");
+            }
+            else
+            {
+                _context.AsesoriaPostgrado.Remove(recordForDeletion);
+                _context.SaveChanges();
+                return Ok("Se eliminó el registro exitosamente");
+            }
+        }
+
 
         [HttpPut]
         [Route("api/SendHistoricPostgrado")]
@@ -2222,6 +2244,329 @@ namespace UcbBack.Controllers
                 return Ok(filteredListResult);
             }
         }
+        public class AsesoriaPostgradoEstadoViewModel
+        {
+            public int Id { get; set; }
+            public string Estado { get; set; }
+            public string Proyecto { get; set; }
+            public string Modulo { get; set; }
+            public string NombreProyecto { get; set; }
+            public string TeacherBP { get; set; }
+            public string TeacherCUNI { get; set; }
+            public string NombreModulo { get; set; }
+            public string Observaciones { get; set; }
+            public string StudentFullName { get; set; }
+            public int? TipoTareaId { get; set; }
+            public int BranchesId { get; set; }
+            public decimal? TotalBruto { get; set; }
+            public decimal? Deduccion { get; set; }
+            public decimal? IT { get; set; }
+            public decimal? IUE { get; set; }
+            public decimal? IUEExterior { get; set; }
+            public decimal? TotalNeto { get; set; }
+            public string NumeroContrato { get; set; }
+            public string Origen { get; set; }
+            public bool? Ignore { get; set; }
+            public bool? Factura { get; set; }
+            public string UpdatedAt { get; set; }
+            public string CreatedAt { get; set; }
+            public int? UserCreate { get; set; }
+            public int? UserUpdate { get; set; }
+        }
+
+
+        [HttpGet]
+        [Route("api/AsesoriaPostgrado/Estado")]
+        public IHttpActionResult GetEstados(int? id = null)
+        {
+            try
+            {
+                string baseQuery =
+                    "SELECT " +
+                    "ap.\"Id\", " +
+                    "ap.\"Origen\", " +
+                    "ap.\"Estado\", " +
+                    "ap.\"Proyecto\", " +
+                    "ap.\"Modulo\", " +
+                    "ap.\"StudentFullName\", " +
+                    "ap.\"TotalBruto\", " +
+                    "ap.\"TipoTareaId\", " +
+                    "ap.\"NumeroContrato\", " +
+                    "ap.\"Observaciones\", " +
+                    "ap.\"TotalNeto\", " +
+                    "ap.\"IT\", " +
+                    "ap.\"IUE\", " +
+                    "ap.\"Deduccion\", " +
+                    "ap.\"IUEExterior\", " +
+                    "ap.\"CreatedAt\", " +
+                    "ap.\"UpdatedAt\", " +
+                    "ap.\"Factura\", " +
+                    "ap.\"Ignore\", " +
+                    "ap.\"BranchesId\", " +
+                    "ap.\"UserCreate\", " +
+                    "ap.\"UserUpdate\", " +
+                    "pm.\"NameModule\" AS \"NombreModulo\", " +
+                    "ap.\"TeacherCUNI\", " +
+                    "ap.\"TeacherBP\" " +
+                    "FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" ap " +
+                    "LEFT JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pm " +
+                    "ON pm.\"CodProject\" = ap.\"Proyecto\" AND pm.\"CodModule\" = ap.\"Modulo\" ";
+
+                if (id.HasValue)
+                {
+                    baseQuery += $" WHERE ap.\"Id\" = {id.Value}";
+                }
+                else
+                {
+                    baseQuery += " ORDER BY ap.\"Id\" DESC";
+                }
+
+                var tareaDict = _context.TipoTarea
+                    .ToDictionary(m => m.Id, m => m.Tarea);
+
+                // Create dictionary for CustomUsers to lookup UserPrincipalName by Id
+                var usersDict = _context.CustomUsers
+                    .ToDictionary(u => u.Id, u => u.UserPrincipalName);
+
+                // Get the main data
+                var queryResult = _context.Database
+                    .SqlQuery<AsesoriaPostgradoEstadoViewModel>(baseQuery)
+                    .ToList();
+
+                // Get distinct project codes from the results
+                var projectCodes = queryResult.Select(a => a.Proyecto).Distinct().ToList();
+
+                // Get project names
+                var projectNames = new Dictionary<string, string>();
+                if (projectCodes.Any())
+                {
+                    string projectQuery =
+                        "SELECT o.\"PrjCode\", o.\"PrjName\" " +
+                        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
+                        "WHERE o.\"PrjCode\" IN (" + string.Join(",", projectCodes.Select(p => $"'{p}'")) + ")";
+
+                    var rawProjectNames = _context.Database.SqlQuery<OPRJ>(projectQuery).ToList();
+                    projectNames = rawProjectNames.ToDictionary(x => x.PrjCode, x => x.PrjName);
+                }
+
+                // Get distinct teacher BP codes for full name lookup
+                var teacherBPCodes = queryResult
+                    .Where(a => !string.IsNullOrEmpty(a.TeacherBP))
+                    .Select(a => a.TeacherBP)
+                    .Distinct()
+                    .ToList();
+
+                // Get teacher full names from BP (SAP)
+                var teacherBPNames = new Dictionary<string, string>();
+                if (teacherBPCodes.Any())
+                {
+                    string teacherNameQuery =
+                        "SELECT c.\"CardCode\", c.\"CardName\" " +
+                        "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c " +
+                        "WHERE c.\"CardCode\" IN (" + string.Join(",", teacherBPCodes.Select(t => $"'{t}'")) + ")";
+
+                    var rawTeacherNames = _context.Database.SqlQuery<TeacherNameModel>(teacherNameQuery).ToList();
+                    teacherBPNames = rawTeacherNames.ToDictionary(x => x.CardCode, x => x.CardName);
+                }
+
+                // Get distinct teacher CUNI codes for full name lookup
+                var teacherCUNIs = queryResult
+                    .Where(a => !string.IsNullOrEmpty(a.TeacherCUNI))
+                    .Select(a => a.TeacherCUNI)
+                    .Distinct()
+                    .ToList();
+
+                // Get teacher full names from CUNI (People table)
+                var teacherCUNINames = new Dictionary<string, string>();
+                if (teacherCUNIs.Any())
+                {
+                    string teacherCUNIQuery =
+                        "SELECT p.\"CUNI\", p.\"Names\", p.\"FirstSurName\", p.\"SecondSurName\" " +
+                        "FROM " + CustomSchema.Schema + ".\"People\" p " +
+                        "WHERE p.\"CUNI\" IN (" + string.Join(",", teacherCUNIs.Select(t => $"'{t}'")) + ")";
+
+                    var rawTeacherCUNINames = _context.Database.SqlQuery<TeacherCUNIModel>(teacherCUNIQuery).ToList();
+                    teacherCUNINames = rawTeacherCUNINames.ToDictionary(
+                        x => x.CUNI,
+                        x => $"{x.Names?.Trim()} {x.FirstSurName?.Trim()} {x.SecondSurName?.Trim()}".Trim()
+                    );
+                }
+
+                var user = auth.getUser(Request);
+
+                var result = queryResult
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.Origen,
+                        a.Estado,
+                        a.Proyecto,
+                        a.Modulo,
+                        NombreProyecto = projectNames.ContainsKey(a.Proyecto)
+                            ? projectNames[a.Proyecto]
+                            : null,
+                        a.NombreModulo,
+                        a.StudentFullName,
+                        TeacherFullName = !string.IsNullOrEmpty(a.TeacherBP) && teacherBPNames.ContainsKey(a.TeacherBP)
+                            ? teacherBPNames[a.TeacherBP]
+                            : (!string.IsNullOrEmpty(a.TeacherCUNI) && teacherCUNINames.ContainsKey(a.TeacherCUNI)
+                                ? teacherCUNINames[a.TeacherCUNI]
+                                : null),
+                        a.NumeroContrato,
+                        a.Observaciones,
+                        a.TotalBruto,
+                        a.IT,
+                        a.IUE,
+                        a.Deduccion,
+                        a.IUEExterior,
+                        a.TotalNeto,
+                        a.Factura,
+                        a.BranchesId,
+                        a.Ignore,
+                        Tarea = a.TipoTareaId.HasValue && tareaDict.ContainsKey(a.TipoTareaId.Value)
+                            ? tareaDict[a.TipoTareaId.Value]
+                            : null,
+                        a.UpdatedAt,
+                        a.CreatedAt,
+                        UserCreateName = a.UserCreate.HasValue && usersDict.ContainsKey(a.UserCreate.Value)
+                                        ? usersDict[a.UserCreate.Value]
+                                        : null,
+                        UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
+                                        ? usersDict[a.UserUpdate.Value]
+                                        : null
+                    });
+
+                // Return single object if ID was provided
+
+                var secured = auth.filerByRegional(result.AsQueryable(), user);
+
+                if (id.HasValue)
+                {
+                    var single = secured.FirstOrDefault();
+                    if (single == null) return NotFound();
+                    return Ok(single);
+                }
+
+                return Ok(secured.ToList());
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        // Add this class for teacher CUNI name mapping
+        public class TeacherCUNIModel
+        {
+            public string CUNI { get; set; }
+            public string Names { get; set; }
+            public string FirstSurName { get; set; }
+            public string SecondSurName { get; set; }
+        }
+
+        // Add this class for teacher name mapping
+        public class TeacherNameModel
+        {
+            public string CardCode { get; set; }
+            public string CardName { get; set; }
+        }
+
+
+
+        /*
+        [HttpGet]
+        [Route("api/ReportExcel")]
+        public HttpResponseMessage ExportToExcel([FromUri] int? branchId = null, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            var query = _context.AsesoriaPostgrado.Where(x => x.Estado != "APROBADO");
+
+            if (branchId.HasValue)
+                query = query.Where(x => x.BranchesId == branchId);
+
+            if (startDate.HasValue && endDate.HasValue)
+                query = query.Where(x => x.CreatedAt >= startDate && x.CreatedAt <= endDate);
+
+            var list = query.ToList();
+
+            using (var workbook = new XLWorkbook())
+            {
+                var ws = workbook.Worksheets.Add("AsesoriaPostgrado");
+                ws.Cell(1, 1).InsertTable(list);
+                ws.Columns().AdjustToContents();
+
+                var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                stream.Seek(0, SeekOrigin.Begin);
+
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StreamContent(stream)
+                };
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = "AsesoriaPostgrado_Report.xlsx"
+                };
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                return response;
+            }
+        }
+        
+        [HttpGet]
+        [Route("api/ReportPDF")]
+        public HttpResponseMessage ExportToPDF([FromUri] int? branchId = null, [FromUri] DateTime? startDate = null, [FromUri] DateTime? endDate = null)
+        {
+            var query = _context.AsesoriaPostgrado.Where(x => x.Estado != "APROBADO");
+
+            if (branchId.HasValue)
+                query = query.Where(x => x.BranchesId == branchId);
+
+            if (startDate.HasValue && endDate.HasValue)
+                query = query.Where(x => x.CreatedAt >= startDate && x.CreatedAt <= endDate);
+
+            var list = query.ToList();
+
+            var stream = new MemoryStream();
+            var document = new Document(PageSize.A4, 25, 25, 30, 30);
+            PdfWriter.GetInstance(document, stream).CloseStream = false;
+            document.Open();
+
+            var table = new PdfPTable(5)
+            {
+                WidthPercentage = 100
+            };
+
+            table.AddCell("TeacherCUNI");
+            table.AddCell("TeacherBP");
+            table.AddCell("Proyecto");
+            table.AddCell("Modulo");
+            table.AddCell("TotalNeto");
+
+            foreach (var item in list)
+            {
+                table.AddCell(item.TeacherCUNI);
+                table.AddCell(item.TeacherBP);
+                table.AddCell(item.Proyecto);
+                table.AddCell(item.Modulo);
+                table.AddCell(item.TotalNeto?.ToString("F2") ?? "0.00");
+            }
+
+            document.Add(table);
+            document.Close();
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StreamContent(stream)
+            };
+            response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileName = "AsesoriaPostgrado_Report.pdf"
+            };
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+            return response;
+        }*/
+
         [HttpGet]
         [Route("api/BusquedaPagosPost/{Proyecto}/{Modulo}/{Docente}/{Origen}/{tarea}/{mes}/{gestion}/{date1}/{date2}")]
         public IHttpActionResult BusquedaPagosPost(string Proyecto, string Modulo, string Docente,

@@ -650,6 +650,122 @@ namespace UcbBack.Controllers
             return Ok(result);
         }
         [HttpGet]
+        [Route("api/ProjectModules/PagosPendientes")]
+        public IHttpActionResult GetPagosPendientes(
+    DateTime? fechaInicioFiltro = null,
+    DateTime? fechaFinFiltro = null,
+    int? branchesId = null) 
+        {
+            try
+            {
+                // Base query
+                string modulesQuery = "SELECT " +
+                    "pm.\"Id\", " +
+                    "pm.\"BranchesId\", " +
+                    "pm.\"CodModule\", " +
+                    "pm.\"CodProject\", " +
+                    "pm.\"NameModule\", " +
+                    "pm.\"TeacherFullName\", " +
+                    "pm.\"TeacherCI\", " +
+                    "pm.\"Horas\", " +
+                    "pm.\"MontoHora\", " +
+                    "pm.\"FechaInicio\", " +
+                    "pm.\"FechaFin\", " +
+                    "pm.\"Observaciones\", " +
+                    "pj.\"NameModule\" as \"PrjAbr\" " +
+                    "FROM " + CustomSchema.Schema + ".\"ProjectModules\" pm " +
+                    "INNER JOIN " + CustomSchema.Schema + ".\"ProjectModules\" pj " +
+                    "ON pj.\"CodProject\" = pm.\"CodProject\" AND pj.\"CodModule\" = '0' " +
+                    "WHERE pm.\"CodModule\" != '0'";
+
+                // Add branch filter if provided
+                if (branchesId.HasValue)
+                {
+                    modulesQuery += $" AND pm.\"BranchesId\" = {branchesId.Value}";
+                }
+
+                var allModules = _context.Database.SqlQuery<ProjectModulesViewModel>(modulesQuery).ToList();
+
+
+                // Get already paid modules with proper type handling
+                string paidQuery = "SELECT \"Proyecto\", \"Modulo\" FROM " + CustomSchema.Schema + ".\"AsesoriaPostgrado\"";
+                var paidModules = _context.Database.SqlQuery<PaidModuleRecord>(paidQuery).ToList();
+
+                // Filter and format results
+                var pendingPayments = allModules
+                    .Where(m => !paidModules.Any(p => p.Proyecto == m.CodProject && p.Modulo == m.CodModule))
+                    .Select(x => new {
+                        x.Id,
+                        x.BranchesId,
+                        Cod_Proyecto = x.CodProject,
+                        Nombre_Proyecto = x.PrjAbr,
+                        Cod_Modulo = x.CodModule,
+                        Nombre_Modulo = x.NameModule,
+                        Docente = x.TeacherFullName,
+                        x.Horas,
+                        x.MontoHora,
+                        Total = x.Horas * x.MontoHora,
+                        Fecha_Inicio = x.FechaInicio?.ToString("dd-MM-yyyy"),
+                        Fecha_Fin = x.FechaFin?.ToString("dd-MM-yyyy"),
+                        x.Observaciones
+                    });
+
+                // Apply date filters if provided
+                // Apply date filters
+                if (fechaInicioFiltro.HasValue && fechaFinFiltro.HasValue)
+                {
+                    // Case 1: Both dates provided → filter within range
+                    pendingPayments = pendingPayments.Where(x =>
+                        x.Fecha_Inicio != null &&
+                        x.Fecha_Fin != null &&
+                        DateTime.ParseExact(x.Fecha_Inicio, "dd-MM-yyyy", CultureInfo.InvariantCulture) >= fechaInicioFiltro.Value &&
+                        DateTime.ParseExact(x.Fecha_Fin, "dd-MM-yyyy", CultureInfo.InvariantCulture) <= fechaFinFiltro.Value);
+                }
+                else if (fechaInicioFiltro.HasValue)
+                {
+                    // Case 2: Only start date provided → show modules that started *from this date up to today* (exclude future modules)
+                    pendingPayments = pendingPayments.Where(x =>
+                        x.Fecha_Inicio != null &&
+                        DateTime.ParseExact(x.Fecha_Inicio, "dd-MM-yyyy", CultureInfo.InvariantCulture) >= fechaInicioFiltro.Value &&
+                        DateTime.ParseExact(x.Fecha_Inicio, "dd-MM-yyyy", CultureInfo.InvariantCulture) <= DateTime.Today); // Only past/current modules
+                }
+                else if (fechaFinFiltro.HasValue)
+                {
+                    // Case 3: Only end date provided → show modules that ended *before or on this date* (past modules only)
+                    pendingPayments = pendingPayments.Where(x =>
+                        x.Fecha_Fin != null &&
+                        DateTime.ParseExact(x.Fecha_Fin, "dd-MM-yyyy", CultureInfo.InvariantCulture) <= fechaFinFiltro.Value);
+                }
+
+                var user = auth.getUser(Request);
+                var filteredResults = auth.filerByRegional(pendingPayments.AsQueryable(), user).ToList();
+
+                return Ok(filteredResults);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+
+        
+        public class PaidModuleRecord
+        {
+            public string Proyecto { get; set; }
+            public string Modulo { get; set; }
+        }
+
+        private string GetTeacherBPCode(string teacherCI)
+        {
+            if (string.IsNullOrEmpty(teacherCI)) return null;
+
+            string query = "SELECT \"SAPId\" FROM " + CustomSchema.Schema + ".\"Civil\" WHERE \"Document\" = '" + teacherCI + "'";
+            return _context.Database.SqlQuery<string>(query).FirstOrDefault();
+        }
+
+       
+
+        [HttpGet]
         [Route("api/GetProjectInfo/{Cod}")]
         public IHttpActionResult GetProyectosInfo(string Cod)
         {
