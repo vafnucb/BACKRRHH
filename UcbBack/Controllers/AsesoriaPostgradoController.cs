@@ -2314,7 +2314,7 @@ namespace UcbBack.Controllers
 
                 if (id.HasValue)
                 {
-                    baseQuery += $" WHERE ap.\"Id\" = {id.Value}";
+                    baseQuery += string.Format(" WHERE ap.\"Id\" = {0}", id.Value);
                 }
                 else
                 {
@@ -2340,10 +2340,13 @@ namespace UcbBack.Controllers
                 var projectNames = new Dictionary<string, string>();
                 if (projectCodes.Any())
                 {
+                    // Build the list of quoted codes first
+                    var quotedProjectCodes = projectCodes.Select(p => string.Format("'{0}'", p));
+
                     string projectQuery =
                         "SELECT o.\"PrjCode\", o.\"PrjName\" " +
                         "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
-                        "WHERE o.\"PrjCode\" IN (" + string.Join(",", projectCodes.Select(p => $"'{p}'")) + ")";
+                        "WHERE o.\"PrjCode\" IN (" + string.Join(",", quotedProjectCodes) + ")"; // Use the variable here
 
                     var rawProjectNames = _context.Database.SqlQuery<OPRJ>(projectQuery).ToList();
                     projectNames = rawProjectNames.ToDictionary(x => x.PrjCode, x => x.PrjName);
@@ -2363,7 +2366,7 @@ namespace UcbBack.Controllers
                     string teacherNameQuery =
                         "SELECT c.\"CardCode\", c.\"CardName\" " +
                         "FROM " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c " +
-                        "WHERE c.\"CardCode\" IN (" + string.Join(",", teacherBPCodes.Select(t => $"'{t}'")) + ")";
+                        "WHERE c.\"CardCode\" IN (" + string.Join(",", teacherBPCodes.Select(t => string.Format("'{0}'", t))) + ")";
 
                     var rawTeacherNames = _context.Database.SqlQuery<TeacherNameModel>(teacherNameQuery).ToList();
                     teacherBPNames = rawTeacherNames.ToDictionary(x => x.CardCode, x => x.CardName);
@@ -2383,7 +2386,7 @@ namespace UcbBack.Controllers
                     string teacherCUNIQuery =
                         "SELECT p.\"CUNI\", p.\"Names\", p.\"FirstSurName\", p.\"SecondSurName\" " +
                         "FROM " + CustomSchema.Schema + ".\"People\" p " +
-                        "WHERE p.\"CUNI\" IN (" + string.Join(",", teacherCUNIs.Select(t => $"'{t}'")) + ")";
+                        "WHERE p.\"CUNI\" IN (" + string.Join(",", teacherCUNIs.Select(t => string.Format("'{0}'", t))) + ")";
 
                     var rawTeacherCUNINames = _context.Database.SqlQuery<TeacherCUNIModel>(teacherCUNIQuery).ToList();
                     teacherCUNINames = rawTeacherCUNINames.ToDictionary(

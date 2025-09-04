@@ -1296,18 +1296,18 @@ namespace UcbBack.Controllers
                 batchFileType = batchFileType?.ToUpper();
 
                 // Base query without state filtering
-                var batchesQuery = $"SELECT * FROM {CustomSchema.Schema}.\"Serv_Process\" WHERE 1=1";
+                var batchesQuery = string.Format("SELECT * FROM {0}.\"Serv_Process\" WHERE 1=1", CustomSchema.Schema);
 
                 // Apply filters
                 if (!string.IsNullOrEmpty(batchFileType))
                 {
-                    batchesQuery += $" AND \"FileType\" = '{batchFileType}'";
+                    batchesQuery += string.Format(" AND \"FileType\" = '{0}'", batchFileType);
                 }
 
                 if (branchId.HasValue)
                 {
                     // BranchId is stored as string in DB
-                    batchesQuery += $" AND \"BranchesId\" = '{branchId.Value}'";
+                    batchesQuery += string.Format(" AND \"BranchesId\" = '{0}'", branchId.Value);
                 }
 
                 batchesQuery += " ORDER BY \"Id\" DESC";
@@ -1315,7 +1315,7 @@ namespace UcbBack.Controllers
                 var batches = _context.Database.SqlQuery<ServProcess>(batchesQuery).ToList();
 
                 // Get branch abbreviations
-                var branchesQuery = $"SELECT \"Id\", \"Abr\" FROM {CustomSchema.Schema}.\"Branches\"";
+                var branchesQuery = string.Format("SELECT \"Id\", \"Abr\" FROM {0}.\"Branches\"", CustomSchema.Schema);
                 var branches = _context.Database.SqlQuery<BranchAbbreviation>(branchesQuery)
             .ToDictionary(b => b.Id.ToString(), b => b.Abr);
 
