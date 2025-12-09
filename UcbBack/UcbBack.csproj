@@ -288,6 +288,7 @@
     <Compile Include="Controllers\AsesoriaDocenteController.cs" />
     <Compile Include="Controllers\AltasContratosController.cs" />
     <Compile Include="Controllers\AsesoriaPostgradoController.cs" />
+    <Compile Include="Controllers\AsignacionesMasivasController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\B1Controller.cs" />
     <Compile Include="Controllers\BranchesController.cs" />
@@ -330,6 +331,7 @@
     <Compile Include="Logic\B1\B1Connection.cs" />
     <Compile Include="Logic\ExcelFiles\AcademicExcel.cs" />
     <Compile Include="Logic\ExcelFiles\AltasPersonalExcel.cs" />
+    <Compile Include="Logic\ExcelFiles\AsignacionesExcel.cs" />
     <Compile Include="Logic\ExcelFiles\ContractExcel.cs" />
     <Compile Include="Logic\ExcelFiles\DiscountExcel.cs" />
     <Compile Include="Logic\ExcelFiles\ORExcel.cs" />
@@ -353,6 +355,8 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
+    <Compile Include="Models\AsigProceso.cs" />
+    <Compile Include="Models\AsignacionCarga.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailListadoSalomon.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailForWatch.cs" />
     <Compile Include="Models\TipoPago.cs" />
@@ -839,6 +843,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\AsignacionesExcel\" />
+    <Folder Include="Views\AsignacionesMasivas\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
