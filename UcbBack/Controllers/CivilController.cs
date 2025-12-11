@@ -41,22 +41,24 @@ namespace UcbBack.Controllers
         public IHttpActionResult CivilbyBranch(int id)
         {
             var B1 = B1Connection.Instance();
+
             if (id != 0)
             {
-                // we get the Branches from SAP
-                var query = "select c.\"Id\", ocrd.\"CardName\" \"FullName\",c.\"SAPId\",c.\"NIT\",c.\"Document\",c.\"CreatedBy\",c.\"BranchesId\" " +
+                var query = "select c.\"Id\", ocrd.\"CardName\" \"FullName\"," +
+                            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
+                            " c.\"BranchesId\", c.\"IsEnabled\"" +          // NEW
                             "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
-                            "\r\n inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd on ocrd.\"CardCode\" = c.\"SAPId\"" +
-                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br on br.\"Id\" = c.\"BranchesId\"" +
+                            "\r\n inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
+                            "   on ocrd.\"CardCode\" = c.\"SAPId\"" +
+                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
+                            "   on br.\"Id\" = c.\"BranchesId\"" +
                             "\r\n where ocrd.\"validFor\" = 'Y'" +
-                            "\r\n and ocrd.\"frozenFor\" = 'N'" +
-                            "\r\n and c.\"BranchesId\"=" + id + ";";
+                            "\r\n   and ocrd.\"frozenFor\" = 'N'" +
+                            "\r\n   and c.\"BranchesId\"=" + id + ";";
+
                 var rawresult = _context.Database.SqlQuery<Civil>(query);
-
                 var user = auth.getUser(Request);
-
                 var res = auth.filerByRegional(rawresult.AsQueryable(), user);
-
                 return Ok(res);
             }
             else
@@ -70,24 +72,43 @@ namespace UcbBack.Controllers
                 foreach (var brid in brsIds)
                 {
                     i++;
-                    StrIds += brid + "" + (i==n?"":", ");
-                    
+                    StrIds += brid + (i == n ? "" : ", ");
                 }
 
-
-                var query = "select c.\"Id\",  ocrd.\"CardName\" \"FullName\",c.\"SAPId\",c.\"NIT\",c.\"Document\",c.\"CreatedBy\",c.\"BranchesId\" " +
+                var query = "select c.\"Id\", ocrd.\"CardName\" \"FullName\"," +
+                            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
+                            " c.\"BranchesId\", c.\"IsEnabled\"" +          // NEW
                             "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
-                            "\r\n inner join  " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd  on ocrd.\"CardCode\" = c.\"SAPId\"" +
-                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br on br.\"Id\" = c.\"BranchesId\"" +
+                            "\r\n inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
+                            "   on ocrd.\"CardCode\" = c.\"SAPId\"" +
+                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
+                            "   on br.\"Id\" = c.\"BranchesId\"" +
                             "\r\n where ocrd.\"validFor\" = 'Y'" +
-                            "\r\n and ocrd.\"frozenFor\" = 'N'" +
-                            "\r\n and c.\"BranchesId\" in (" + StrIds + ")"+
+                            "\r\n   and ocrd.\"frozenFor\" = 'N'" +
+                            "\r\n   and c.\"BranchesId\" in (" + StrIds + ")" +
                             " order by c.\"Id\";";
-                var rawresult = _context.Database.SqlQuery<Civil>(query).Select(x => new { x.Id, x.SAPId, x.NIT,x.FullName, x.Document, x.CreatedBy, x.BranchesId, Abr=x.BranchesId!=null?_context.Branch.Where(br => br.Id == x.BranchesId).FirstOrDefault().Abr:""});
+
+                var rawresult = _context.Database.SqlQuery<Civil>(query)
+                    .Select(x => new
+                    {
+                        x.Id,
+                        x.SAPId,
+                        x.NIT,
+                        x.FullName,
+                        x.Document,
+                        x.CreatedBy,
+                        x.BranchesId,
+                        x.IsEnabled, // NEW
+                Abr = x.BranchesId != null
+                            ? _context.Branch.Where(br => br.Id == x.BranchesId).FirstOrDefault().Abr
+                            : ""
+                    });
+
                 var res = auth.filerByRegional(rawresult.AsQueryable(), user);
                 return Ok(res);
             }
         }
+
 
         // GET api/Level/5
         public IHttpActionResult Get(int id)
@@ -177,6 +198,7 @@ namespace UcbBack.Controllers
            
             civil.Id = Civil.GetNextId(_context);
             civil.CreatedBy = user.Id;
+            civil.IsEnabled = true;
             //Guarda en la tabla Civil de PERSONAS
             _context.Civils.Add(civil);
             _context.SaveChanges();
@@ -228,13 +250,48 @@ namespace UcbBack.Controllers
                 FullName = bpFromSAP.First().FullName,
                 NIT = bpFromSAP.First().NIT,
                 Document = bpFromSAP.First().Document,
-                CreatedBy = user.Id
+                CreatedBy = user.Id,
+                IsEnabled = true
             };
 
             _context.Civils.Add(civil);
             _context.SaveChanges();
 
             return Created(new Uri(Request.RequestUri + "/" + civil.Id), civil);
+        }
+
+        public class CivilChangeStatusDto
+        {
+            public int Id { get; set; }
+            public bool IsEnabled { get; set; }
+        }
+
+        [HttpPost]
+        [Route("api/CivilChangeStatus")]
+        public IHttpActionResult ChangeStatus([FromBody] CivilChangeStatusDto request)
+        {
+            var user = auth.getUser(Request);
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var civil = _context.Civils.FirstOrDefault(c => c.Id == request.Id);
+            if (civil == null)
+                return NotFound();
+
+            // Opcional pero recomendado: validar que el usuario tenga esa regional
+            var userBranches = AD.getUserBranches(user).Select(x => x.Id);
+            if (!userBranches.Contains(civil.BranchesId))
+                return Unauthorized();
+
+            civil.IsEnabled = request.IsEnabled;
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                civil.Id,
+                civil.IsEnabled
+            });
         }
 
 
