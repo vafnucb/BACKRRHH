@@ -49,7 +49,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
         /// <summary>
         /// Representa una fila de ADMNAL.T_REG_PARALELOS_NS usada solo para validación.
         /// </summary>
-        private class ParaleloRow
+        public class ParaleloRow
         {
             public string CODIGOSAP { get; set; }
             public string SIGLA { get; set; }
@@ -65,8 +65,15 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
         private class CivilRow
         {
             public string NIT { get; set; }
-            public int BranchesId { get; set; }  // id numérico de la sede
+            public int BranchesId { get; set; }
+
+            // NUEVO (si aún no lo tenías)
+            public string FullName { get; set; }
+
+            // Ya lo tenías por el cambio anterior; lo puedes dejar, aunque no lo usemos todavía
+            public int IsEnabled { get; set; }
         }
+
 
 
         private class ExcelError
@@ -151,8 +158,11 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                     var sigla = row.Cell(columnIndexes["Sigla"]).GetString().Trim();
                     var codigoParalelo = row.Cell(columnIndexes["Codigo_Paralelo"]).GetString().Trim();
                     var paralelo = row.Cell(columnIndexes["Paralelo"]).GetString().Trim();
-                  //  var unidadOrg = row.Cell(columnIndexes["Unidad_Organizacional"]).GetString().Trim();
-                   // var sede = row.Cell(columnIndexes["Sede"]).GetString().Trim();
+                    var primerApellido = row.Cell(columnIndexes["Primer_Apellido"]).GetString().Trim();
+                    var segundoApellido = row.Cell(columnIndexes["Segundo_Apellido"]).GetString().Trim();
+                    var tercerApellido = row.Cell(columnIndexes["Tercer_Apellido"]).GetString().Trim();
+                    var nombres = row.Cell(columnIndexes["Nombres"]).GetString().Trim();
+
 
                     // ======== VALIDACIÓN CI / CIVIL ========
                     int branchIdProceso = _proceso.BranchesId;
@@ -241,10 +251,75 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                     $"El CI {ciDocente} existe en Civil pero en otras sedes ({string.Join(", ", otrasSedesNombres)}), " +
                                     $"no en la sede seleccionada ({sedeProcesoNombre}).");
                             }
+                            else
+                            {
+                                // Aquí sí hay al menos un CivilRow con ese NIT y esa sede.
+                                // Ahora validamos que el nombre coincida.
+
+                                // Normalizador de nombres: mayúsculas + espacios colapsados
+                                Func<string, string> normalize = s =>
+                                {
+                                    if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+                                    return string.Join(" ",
+                                        s.Trim()
+                                         .ToUpperInvariant()
+                                         .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                    );
+                                };
+
+                                // Excel: opción 1 -> Primer + Segundo + Tercer + Nombres
+                                var excelFullName1 = normalize(
+                                    $"{primerApellido} {segundoApellido} {tercerApellido} {nombres}"
+                                );
+
+                                // Excel: opción 2 -> Segundo + Primer + Tercer + Nombres
+                                var excelFullName2 = normalize(
+                                    $"{segundoApellido} {primerApellido} {tercerApellido} {nombres}"
+                                );
+                                // Excel: opción 2 -> Nombre + Primer + Segundo + Tercer
+                                var excelFullName3 = normalize(
+                                    $"{nombres} {primerApellido} {segundoApellido} {tercerApellido}"
+                                );
+
+
+                                // Comparamos contra todos los Civil de esa sede
+                                var coincidenciasNombre = civilesMismaSede
+                                    .Where(c =>
+                                    {
+                                        var civilNameNorm = normalize(c.FullName ?? string.Empty);
+                                        return civilNameNorm == excelFullName1
+                                            || civilNameNorm == excelFullName2
+                                            || civilNameNorm == excelFullName3;
+                                    })
+                                    .ToList();
+
+
+                                if (!coincidenciasNombre.Any())
+                                {
+                                    // Nombres en Civil para ese CI + sede
+                                    var nombresCivil = civilesMismaSede
+                                        .Select(c => c.FullName)
+                                        .Where(fn => !string.IsNullOrWhiteSpace(fn))
+                                        .Distinct()
+                                        .Take(3)
+                                        .ToList();
+
+                                    var listadoCivil = nombresCivil.Any()
+                                        ? string.Join(", ", nombresCivil)
+                                        : "(sin nombre registrado)";
+
+                                    rowErrors.Add(
+                                        $"El CI {ciDocente} existe en Civil para la sede seleccionada, " +
+                                        $"pero el nombre no coincide. En Civil figura como: {listadoCivil}. " +
+                                        "Verifique que el CI y los apellidos/nombres del Excel correspondan al mismo docente."
+                                    );
+                                }
+                            }
+
                         }
                     }
 
-                    // ======== VALIDACIÓN CAMPOS BÁSICOS DE PARALELO (campo por campo) ========
+                   
                     bool faltanCamposParalelo = false;
 
                     if (string.IsNullOrEmpty(codigoParalelo))
@@ -310,20 +385,20 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                     $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Paralelo = '{paralelo}'.");
                             }
 
-                            /*
-                            // 3) Validar la combinación completa (Periodo + Sigla + Paralelo)
-                            var match = candidatosCodigo.FirstOrDefault(p =>
-                                p.PERIODOSAP == periodo &&
-                                p.SIGLA == sigla &&
-                                p.NUMPARALELO == paralelo
-                            );
+                            // ======== VALIDACIÓN PERÍODO VS PERÍODO SELECCIONADO EN EL PROCESO ========
+                            var periodoProceso = _proceso.PeriodoId; // ajusta el nombre si en tu modelo es distinto
 
-                            if (match == null && periodoOk && siglaOk && paraleloOk)
+                            if (!string.IsNullOrWhiteSpace(periodoProceso) &&
+                                !string.IsNullOrWhiteSpace(periodo))
                             {
-                                rowErrors.Add(
-                                    $"Para el Codigo_Paralelo '{codigoParalelo}' existen registros con el Periodo, la Sigla y el Paralelo indicados, " +
-                                    "pero no en una misma combinación. Verifique que Periodo, Sigla y Paralelo correspondan al mismo paralelo en Saraí.");
-                            }*/
+                                if (!string.Equals(periodo, periodoProceso, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    rowErrors.Add(
+                                        $"El período '{periodo}' de la fila no coincide con el período seleccionado en el paso 1 ('{periodoProceso}')."
+                                    );
+                                }
+                            }
+
                         }
                     }
 
@@ -380,19 +455,59 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
         private void LoadCivilesFromDb()
         {
-            var sql = "";
-            sql += "SELECT \"NIT\", \"BranchesId\" ";
-            sql += "FROM ADMNALRRHH.\"Civil\"";
+            var sql = ""
+                + "SELECT "
+                + "\"NIT\", "
+                + "\"BranchesId\", "
+                + "\"FullName\", "
+                + "\"IsEnabled\" "
+                + "FROM ADMNALRRHH.\"Civil\"";
 
             _civilesDb = _context.Database.SqlQuery<CivilRow>(sql).ToList();
         }
+
+
         private void LoadBranchesNames()
         {
             // Ajusta "Branches" y "Name" si en tu modelo se llaman distinto
             _branchesNames = _context.Branch
                 .ToDictionary(b => b.Id, b => b.Name);
         }
+        // Asegura que las listas de DB estén cargadas
+        private void EnsureDbCachesLoaded()
+        {
+            if (_paralelosDb == null)
+            {
+                LoadParalelosFromDb();
+            }
 
+            if (_civilesDb == null)
+            {
+                LoadCivilesFromDb();
+            }
+
+            if (_branchesNames == null)
+            {
+                LoadBranchesNames();
+            }
+        }
+
+        // Helper público para reutilizar la misma lógica de búsqueda de paralelos
+        public ParaleloRow FindParalelo(
+            string codigoParalelo,
+            string periodo,
+            string sigla,
+            string paralelo)
+        {
+            EnsureDbCachesLoaded();
+
+            return _paralelosDb.FirstOrDefault(p =>
+                p.CODIGOSAP == codigoParalelo &&
+                p.PERIODOSAP == periodo &&
+                p.SIGLA == sigla &&
+                p.NUMPARALELO == paralelo
+            );
+        }
 
 
         private AsignacionCarga MapRowToAsignacion(IXLRow row, Dictionary<string, int> colIdx)
@@ -457,6 +572,263 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
             return asignacion;
         }
+
+        // Dentro de AsignacionesExcel
+        public List<string> ValidateRowValues(
+    string ciDocente,
+    string periodo,
+    string sigla,
+    string codigoParalelo,
+    string paralelo,
+    string primerApellido,
+    string segundoApellido,
+    string tercerApellido,
+    string nombres
+)
+        {
+            // Asegurar que las colecciones estén cargadas
+            if (_paralelosDb == null)
+                LoadParalelosFromDb();
+            if (_civilesDb == null)
+                LoadCivilesFromDb();
+            if (_branchesNames == null || !_branchesNames.Any())
+                LoadBranchesNames();
+            var rowErrors = new List<string>();
+
+            // ======== VALIDACIÓN CI / CIVIL ========
+            int branchIdProceso = _proceso.BranchesId;
+
+            if (string.IsNullOrEmpty(ciDocente))
+            {
+                rowErrors.Add("El CI del docente (Ci_Docente) es obligatorio.");
+            }
+            else
+            {
+                // 1) Buscar coincidencias exactas de NIT = Ci_Docente
+                var civilesMismoCi = _civilesDb
+                    .Where(c => !string.IsNullOrEmpty(c.NIT) &&
+                                string.Equals(c.NIT, ciDocente, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                if (!civilesMismoCi.Any())
+                {
+                    // 2) No hay match exacto -> buscamos NIT similares (prefijo)
+                    var similares = _civilesDb
+                        .Where(c =>
+                            !string.IsNullOrEmpty(c.NIT) &&
+                            !string.IsNullOrEmpty(ciDocente) &&
+                            (c.NIT.StartsWith(ciDocente) || ciDocente.StartsWith(c.NIT)))
+                        .ToList();
+
+                    if (!similares.Any())
+                    {
+                        rowErrors.Add($"No existe ningún registro en Civil con NIT = {ciDocente}.");
+                    }
+                    else
+                    {
+                        var candidatosTexto = similares
+                            .GroupBy(c => c.NIT)
+                            .Select(g =>
+                            {
+                                var sedesIds = g
+                                    .Select(x => x.BranchesId)
+                                    .Distinct()
+                                    .OrderBy(x => x)
+                                    .ToList();
+
+                                var sedesNombres = sedesIds
+                                    .Select(id =>
+                                        _branchesNames != null && _branchesNames.ContainsKey(id)
+                                            ? _branchesNames[id]
+                                            : $"Sede {id}")
+                                    .ToList();
+
+                                return $"{g.Key} (Sedes: {string.Join(", ", sedesNombres)})";
+                            })
+                            .ToList();
+
+                        rowErrors.Add(
+                            $"No existe un NIT exactamente igual a {ciDocente} en Civil, " +
+                            $"pero se encontraron NIT similares: {string.Join("; ", candidatosTexto)}. " +
+                            $"Verifique si alguno de ellos corresponde al docente."
+                        );
+                    }
+                }
+                else
+                {
+                    // Hay coincidencias exactas de NIT = Ci_Docente en Civil
+                    var civilesMismaSede = civilesMismoCi
+                        .Where(c => c.BranchesId == branchIdProceso)
+                        .ToList();
+
+                    if (!civilesMismaSede.Any())
+                    {
+                        var otrasSedesNombres = civilesMismoCi
+                            .Select(c => c.BranchesId)
+                            .Distinct()
+                            .OrderBy(x => x)
+                            .Select(id =>
+                                _branchesNames != null && _branchesNames.ContainsKey(id)
+                                    ? _branchesNames[id]
+                                    : $"Sede {id}")
+                            .ToList();
+
+                        string sedeProcesoNombre =
+                            _branchesNames != null && _branchesNames.ContainsKey(branchIdProceso)
+                                ? _branchesNames[branchIdProceso]
+                                : $"Sede {branchIdProceso}";
+
+                        rowErrors.Add(
+                            $"El CI {ciDocente} existe en Civil pero en otras sedes ({string.Join(", ", otrasSedesNombres)}), " +
+                            $"no en la sede seleccionada ({sedeProcesoNombre}).");
+                    }
+                    else
+                    {
+                        // Aquí sí hay al menos un CivilRow con ese NIT y esa sede.
+                        // Ahora validamos que el nombre coincida.
+
+                        // Normalizador de nombres: mayúsculas + espacios colapsados
+                        Func<string, string> normalize = s =>
+                        {
+                            if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+                            return string.Join(" ",
+                                s.Trim()
+                                 .ToUpperInvariant()
+                                 .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                            );
+                        };
+
+                        // Excel: opción 1 -> Primer + Segundo + Tercer + Nombres
+                        var excelFullName1 = normalize(
+                            $"{primerApellido} {segundoApellido} {tercerApellido} {nombres}"
+                        );
+
+                        // Excel: opción 2 -> Segundo + Primer + Tercer + Nombres
+                        var excelFullName2 = normalize(
+                            $"{segundoApellido} {primerApellido} {tercerApellido} {nombres}"
+                        );
+
+                        // Excel: opción 3 -> Nombres + Primer + Segundo + Tercer
+                        var excelFullName3 = normalize(
+                            $"{nombres} {primerApellido} {segundoApellido} {tercerApellido}"
+                        );
+
+                        var coincidenciasNombre = civilesMismaSede
+                            .Where(c =>
+                            {
+                                var civilNameNorm = normalize(c.FullName ?? string.Empty);
+                                return civilNameNorm == excelFullName1
+                                    || civilNameNorm == excelFullName2
+                                    || civilNameNorm == excelFullName3;
+                            })
+                            .ToList();
+
+                        if (!coincidenciasNombre.Any())
+                        {
+                            // Nombres en Civil para ese CI + sede
+                            var nombresCivil = civilesMismaSede
+                                .Select(c => c.FullName)
+                                .Where(fn => !string.IsNullOrWhiteSpace(fn))
+                                .Distinct()
+                                .Take(3)
+                                .ToList();
+
+                            var listadoCivil = nombresCivil.Any()
+                                ? string.Join(", ", nombresCivil)
+                                : "(sin nombre registrado)";
+
+                            rowErrors.Add(
+                                $"El CI {ciDocente} existe en Civil para la sede seleccionada, " +
+                                $"pero el nombre no coincide. En Civil figura como: {listadoCivil}. " +
+                                "Verifique que el CI y los apellidos/nombres del Excel correspondan al mismo docente."
+                            );
+                        }
+                    }
+                }
+            }
+
+            // ======== VALIDACIÓN CAMPOS DE PARALELO / PERÍODO ========
+            bool faltanCamposParalelo = false;
+
+            if (string.IsNullOrEmpty(codigoParalelo))
+            {
+                rowErrors.Add("El campo Codigo_Paralelo es obligatorio.");
+                faltanCamposParalelo = true;
+            }
+            if (string.IsNullOrEmpty(periodo))
+            {
+                rowErrors.Add("El campo Periodo es obligatorio.");
+                faltanCamposParalelo = true;
+            }
+            if (string.IsNullOrEmpty(sigla))
+            {
+                rowErrors.Add("El campo Sigla es obligatorio.");
+                faltanCamposParalelo = true;
+            }
+            if (string.IsNullOrEmpty(paralelo))
+            {
+                rowErrors.Add("El campo Paralelo es obligatorio.");
+                faltanCamposParalelo = true;
+            }
+
+            // Si faltan campos, no tiene sentido validar en la tabla de paralelos
+            if (!faltanCamposParalelo)
+            {
+                // 1) Primero: validar que exista el Codigo_Paralelo (clave principal)
+                var candidatosCodigo = _paralelosDb
+                    .Where(p => p.CODIGOSAP == codigoParalelo)
+                    .ToList();
+
+                if (!candidatosCodigo.Any())
+                {
+                    rowErrors.Add(
+                        $"No existe ningún registro en T_REG_PARALELOS_NS con Codigo_Paralelo = '{codigoParalelo}'.");
+                }
+                else
+                {
+                    // 2) Validar cada campo (Periodo / Sigla / Paralelo) contra los registros de ese código
+                    bool periodoOk = candidatosCodigo.Any(p => p.PERIODOSAP == periodo);
+                    bool siglaOk = candidatosCodigo.Any(p => p.SIGLA == sigla);
+                    bool paraleloOk = candidatosCodigo.Any(p => p.NUMPARALELO == paralelo);
+
+                    if (!periodoOk)
+                    {
+                        rowErrors.Add(
+                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Periodo = '{periodo}'.");
+                    }
+
+                    if (!siglaOk)
+                    {
+                        rowErrors.Add(
+                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Sigla = '{sigla}'.");
+                    }
+
+                    if (!paraleloOk)
+                    {
+                        rowErrors.Add(
+                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Paralelo = '{paralelo}'.");
+                    }
+
+                    // ======== VALIDACIÓN PERÍODO VS PERÍODO SELECCIONADO EN EL PROCESO ========
+                    var periodoProceso = _proceso.PeriodoId; // ajusta el nombre si en tu modelo es distinto
+
+                    if (!string.IsNullOrWhiteSpace(periodoProceso) &&
+                        !string.IsNullOrWhiteSpace(periodo))
+                    {
+                        if (!string.Equals(periodo, periodoProceso, StringComparison.OrdinalIgnoreCase))
+                        {
+                            rowErrors.Add(
+                                $"El período '{periodo}' de la fila no coincide con el período seleccionado en el paso 1 ('{periodoProceso}')."
+                            );
+                        }
+                    }
+                }
+            }
+
+            return rowErrors;
+        }
+
+
 
 
         private HttpResponseMessage BuildSimpleErrorResponse(string msg)
