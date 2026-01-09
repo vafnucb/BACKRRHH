@@ -30,9 +30,8 @@ namespace UcbBack.Controllers
             auth = new ValidateAuth();
         }
 
-        // ---------------------------
         //  1) Upload Excel
-        // ---------------------------
+
         [HttpPost]
         [Route("UploadFile")]
         public async Task<HttpResponseMessage> UploadFile()
@@ -129,9 +128,8 @@ namespace UcbBack.Controllers
         }
 
 
-        // ---------------------------
+
         //  2) GetDetail -> tabla del paso 2
-        // ---------------------------
         [HttpGet]
         [Route("GetDetail/{id}")]
         public IHttpActionResult GetDetail(int id)
@@ -170,9 +168,11 @@ namespace UcbBack.Controllers
                     a.UnidadOrganizacional,
                     a.Sede,
                     a.CostoHora,
+                    a.CantidadMeses,  // NEW
+                                      // NEW CALCULATION: HorasMes * CostoHora * CantidadMeses
+                    MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
 
-            // Calculado (igual que antes)
-            MontoTotal = a.HorasMes * a.CostoHora,
+               
 
             // Número de contrato
             a.NumeroContrato
@@ -203,16 +203,12 @@ namespace UcbBack.Controllers
                     return new
                     {
                         a.Id,
-                // ya no nos importa BranchesId en el front, así que lo podemos omitir
-                a.CiDocente,
+                        a.CiDocente,
                         a.PrimerApellido,
                         a.SegundoApellido,
                         a.TercerApellido,
                         a.Nombres,
-
-                // 🔹 nuevo campo que mandamos al front
-                NombreCompleto = nombreCompleto,
-
+                        NombreCompleto = nombreCompleto,
                         a.Periodo,
                         a.Sigla,
                         a.CodigoParalelo,
@@ -222,6 +218,7 @@ namespace UcbBack.Controllers
                         a.UnidadOrganizacional,
                         a.Sede,
                         a.CostoHora,
+                        a.CantidadMeses,
                         a.MontoTotal,
                         a.NumeroContrato
                     };
@@ -234,9 +231,9 @@ namespace UcbBack.Controllers
 
 
 
-        // ---------------------------
+
         //  3) Asignar número de contrato en masa
-        // ---------------------------
+
         public class AssignContractRequest
         {
             public int FileId { get; set; }
@@ -352,6 +349,7 @@ namespace UcbBack.Controllers
             public decimal HorasSemana { get; set; }
             public decimal HorasMes { get; set; }
             public decimal CostoHora { get; set; }
+            public int CantidadMeses { get; set; }
         }
 
         public class ActualizarAsignacionRequest
@@ -372,6 +370,7 @@ namespace UcbBack.Controllers
             public decimal HorasSemana { get; set; }
             public decimal HorasMes { get; set; }
             public decimal CostoHora { get; set; }
+            public int CantidadMeses { get; set; }
         }
 
 
@@ -393,16 +392,6 @@ namespace UcbBack.Controllers
 
             var periodoProceso = (proceso.PeriodoId ?? string.Empty).Trim();
 
-            // Misma lógica de permisos que en GetDetail / AssignContractNumber
-            var procesosUser = auth
-                .filerByRegional(_context.AsigProcesos, user)
-                .OfType<AsigProceso>();
-
-            // Ya esta validado
-            //if (!procesosUser.Any(p => p.Id == model.ProcesoId))
-                //return Unauthorized();
-
-            // Reusar AsignacionesExcel solo como "validador"
             using (var dummyStream = new MemoryStream())
             {
                 var excelHelper = new AsignacionesExcel(
@@ -413,7 +402,6 @@ namespace UcbBack.Controllers
                     user
                 );
 
-                // 1) Validar los datos EXACTAMENTE con la misma lógica del Excel
                 var rowErrors = excelHelper.ValidateRowValues(
                     model.CiDocente,
                     periodoProceso,
@@ -428,15 +416,12 @@ namespace UcbBack.Controllers
 
                 if (rowErrors.Any())
                 {
-                    // → mismos mensajes que verías al validar el Excel
                     return Content(
                         HttpStatusCode.BadRequest,
                         new { Errors = rowErrors }
                     );
                 }
 
-                // 2) Buscar el paralelo en T_REG_PARALELOS_NS
-                //    para obtener UnidadOrganizacional y Sede AUTOMÁTICAMENTE
                 var paraleloMatch = excelHelper.FindParalelo(
                     model.CodigoParalelo?.Trim(),
                     periodoProceso,
@@ -444,31 +429,26 @@ namespace UcbBack.Controllers
                     model.Paralelo?.Trim()
                 );
 
-                // 3) Construir la AsignacionCarga igual que MapRowToAsignacion
                 var asignacion = new AsignacionCarga
                 {
                     Id = AsignacionCarga.GetNextId(_context),
                     AsigProcesoId = proceso.Id,
-
                     CiDocente = model.CiDocente?.Trim(),
                     PrimerApellido = model.PrimerApellido?.Trim(),
                     SegundoApellido = model.SegundoApellido?.Trim(),
                     TercerApellido = model.TercerApellido?.Trim(),
                     Nombres = model.Nombres?.Trim(),
-
                     Periodo = periodoProceso,
                     Sigla = model.Sigla?.Trim(),
                     CodigoParalelo = model.CodigoParalelo?.Trim(),
                     Paralelo = model.Paralelo?.Trim(),
-
                     HorasSemana = model.HorasSemana,
                     HorasMes = model.HorasMes,
                     CostoHora = model.CostoHora,
-
+                    CantidadMeses = model.CantidadMeses,
                     NumeroContrato = null
                 };
 
-                // 4) Rellenar Sede y UnidadOrganizacional como en la carga de Excel
                 if (paraleloMatch != null)
                 {
                     asignacion.UnidadOrganizacional = paraleloMatch.CODUNIDADORGANIZACIONAL;
@@ -476,8 +456,6 @@ namespace UcbBack.Controllers
                 }
                 else
                 {
-                    // En teoría no debería ocurrir porque ya fue validado,
-                    // pero dejamos un fallback por seguridad
                     asignacion.UnidadOrganizacional = string.Empty;
                     asignacion.Sede = string.Empty;
                 }
@@ -485,7 +463,6 @@ namespace UcbBack.Controllers
                 _context.AsignacionesCarga.Add(asignacion);
                 _context.SaveChanges();
 
-                // 5) Devolver la fila para que el front la agregue a la tabla
                 return Ok(new
                 {
                     asignacion.Id,
@@ -501,9 +478,10 @@ namespace UcbBack.Controllers
                     asignacion.HorasSemana,
                     asignacion.HorasMes,
                     asignacion.CostoHora,
+                    asignacion.CantidadMeses,  // NEW
                     asignacion.Sede,
                     asignacion.UnidadOrganizacional,
-                    MontoTotal = asignacion.HorasMes * asignacion.CostoHora,
+                    MontoTotal = asignacion.HorasMes * asignacion.CostoHora * asignacion.CantidadMeses,  // NEW CALC
                     asignacion.NumeroContrato
                 });
             }
@@ -520,26 +498,14 @@ namespace UcbBack.Controllers
             if (user == null)
                 return Unauthorized();
 
-            // 1) Buscar la asignación a editar
             var asignacion = _context.AsignacionesCarga.FirstOrDefault(a => a.Id == model.Id);
             if (asignacion == null)
                 return NotFound();
 
-            // 2) Obtener el proceso asociado a esa asignación
             var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == asignacion.AsigProcesoId);
             if (proceso == null)
                 return BadRequest("El proceso asociado a la asignación no existe.");
 
-            // 3) Validar permisos 
-            var procesosUser = auth
-                .filerByRegional(_context.AsigProcesos, user)
-                .OfType<AsigProceso>();
-
-            Console.WriteLine(procesosUser);
-
-
-
-            // 4) Reusar AsignacionesExcel como validador
             using (var dummyStream = new MemoryStream())
             {
                 var excelHelper = new AsignacionesExcel(
@@ -550,9 +516,6 @@ namespace UcbBack.Controllers
                     user
                 );
 
-                // Definimos qué período usar para validar
-                //    - Si el modelo trae uno, podrías usarlo
-                //    - O forzar siempre el del proceso:
                 var periodoParaValidar = !string.IsNullOrWhiteSpace(model.Periodo)
                     ? model.Periodo
                     : asignacion.Periodo ?? proceso.PeriodoId;
@@ -577,7 +540,6 @@ namespace UcbBack.Controllers
                     );
                 }
 
-                // 5) Recalcular Sede y UnidadOrganizacional desde Parallelos
                 var paraleloMatch = excelHelper.FindParalelo(
                     model.CodigoParalelo?.Trim(),
                     periodoParaValidar?.Trim(),
@@ -585,21 +547,19 @@ namespace UcbBack.Controllers
                     model.Paralelo?.Trim()
                 );
 
-                // 6) Actualizar la entidad
                 asignacion.CiDocente = model.CiDocente?.Trim();
                 asignacion.PrimerApellido = model.PrimerApellido?.Trim();
                 asignacion.SegundoApellido = model.SegundoApellido?.Trim();
                 asignacion.TercerApellido = model.TercerApellido?.Trim();
                 asignacion.Nombres = model.Nombres?.Trim();
-
                 asignacion.Periodo = periodoParaValidar?.Trim();
                 asignacion.Sigla = model.Sigla?.Trim();
                 asignacion.CodigoParalelo = model.CodigoParalelo?.Trim();
                 asignacion.Paralelo = model.Paralelo?.Trim();
-
                 asignacion.HorasSemana = model.HorasSemana;
                 asignacion.HorasMes = model.HorasMes;
                 asignacion.CostoHora = model.CostoHora;
+                asignacion.CantidadMeses = model.CantidadMeses;  // NEW
 
                 if (paraleloMatch != null)
                 {
@@ -607,13 +567,8 @@ namespace UcbBack.Controllers
                     asignacion.Sede = paraleloMatch.SEDE;
                 }
 
-                // Si tu entidad AsignacionCarga tiene auditoría:
-                // asignacion.UpdatedAt = DateTime.UtcNow;  // o corriente según tu proyecto
-                // asignacion.UpdatedBy = user.IdUsuario;   // ajusta el campo real
-
                 _context.SaveChanges();
 
-                // 7) Opcional: devolver datos actualizados (mismo shape que GetDetail)
                 var partesNombre = new[]
                 {
             asignacion.PrimerApellido,
@@ -644,7 +599,8 @@ namespace UcbBack.Controllers
                     asignacion.UnidadOrganizacional,
                     asignacion.Sede,
                     asignacion.CostoHora,
-                    MontoTotal = asignacion.HorasMes * asignacion.CostoHora,
+                    asignacion.CantidadMeses,  // NEW
+                    MontoTotal = asignacion.HorasMes * asignacion.CostoHora * asignacion.CantidadMeses,  // NEW CALC
                     asignacion.NumeroContrato
                 });
             }
@@ -716,6 +672,402 @@ namespace UcbBack.Controllers
             });
         }
 
+        public class DeleteAsignacionRequest
+        {
+            public int Id { get; set; }
+        }
+
+        [HttpPost]
+        [Route("DeleteSingle")]
+        public IHttpActionResult DeleteSingle([FromBody] DeleteAsignacionRequest model)
+        {
+            if (model == null || model.Id <= 0)
+                return BadRequest("ID inválido.");
+
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            // 1) Find the assignment to delete
+            var asignacion = _context.AsignacionesCarga.FirstOrDefault(a => a.Id == model.Id);
+            if (asignacion == null)
+                return NotFound();
+
+            // 2) Get the associated process for permission validation
+            var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == asignacion.AsigProcesoId);
+            if (proceso == null)
+                return BadRequest("El proceso asociado no existe.");
+
+            // 3) Validate permissions 
+            var procesosUser = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+            /*if (!procesosUser.Any(p => p.Id == proceso.Id))
+                return Unauthorized();*/
+
+            // 4) Delete the assignment
+            _context.AsignacionesCarga.Remove(asignacion);
+            proceso.LastUpdateBy = user.Id;
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Asignación eliminada correctamente." });
+        }
+
+        // DTO for the response
+        public class ProcesoListItem
+        {
+            public int Id { get; set; }
+            public int BranchesId { get; set; }
+            public string SedeAbr { get; set; }
+            public string SedeNombre { get; set; }
+            public string PeriodoId { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public string State { get; set; }
+            public int TotalAsignaciones { get; set; }
+        }
+
+        [HttpGet]
+        [Route("GetProcesos")]
+        public IHttpActionResult GetProcesos(int page = 1, int pageSize = 5)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            // 1) Get processes with regional filtering
+            var procesosBase = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+            // 2) Join with Branches to get Abr and Name
+            var query = from p in procesosBase
+                        join b in _context.Branch on p.BranchesId equals b.Id
+                        orderby p.CreatedAt descending
+                        select new
+                        {
+                            p.Id,
+                            p.BranchesId,
+                            SedeAbr = b.Abr,
+                            SedeNombre = b.Name,
+                            p.PeriodoId,
+                            p.CreatedAt,
+                            p.State
+                        };
+
+            // 3) Get total count before pagination
+            var total = query.Count();
+
+            // 4) Apply pagination
+            var procesos = query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // 5) Count asignaciones for each proceso
+            var items = procesos.Select(p => new ProcesoListItem
+            {
+                Id = p.Id,
+                BranchesId = p.BranchesId,
+                SedeAbr = p.SedeAbr ?? "",
+                PeriodoId = p.PeriodoId ?? "",
+                CreatedAt = p.CreatedAt,
+                State = p.State ?? "INICIADO",
+                TotalAsignaciones = _context.AsignacionesCarga
+                    .Count(a => a.AsigProcesoId == p.Id)
+            }).ToList();
+
+            return Ok(new
+            {
+                Items = items,
+                Total = total,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)total / pageSize)
+            });
+        }
+
+        [HttpGet]
+        [Route("GetProceso/{id}")]
+        public IHttpActionResult GetProceso(int id)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == id);
+            if (proceso == null)
+                return NotFound();
+
+            // Validate permissions
+            var procesosUser = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+            if (!procesosUser.Any(p => p.Id == id))
+                return Unauthorized();
+
+            // Get branch info
+            var branch = _context.Branch.FirstOrDefault(b => b.Id == proceso.BranchesId);
+
+            return Ok(new
+            {
+                Id = proceso.Id,
+                BranchesId = proceso.BranchesId,
+                SedeAbr = branch != null ? branch.Abr : "",
+                PeriodoId = proceso.PeriodoId,
+                CreatedAt = proceso.CreatedAt,
+                State = proceso.State
+            });
+        }
+
+
+        [HttpPost]
+        [Route("ValidarFinalizacion/{procesoId}")]
+        public IHttpActionResult ValidarFinalizacion(int procesoId)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == procesoId);
+            if (proceso == null)
+                return NotFound();
+
+            // Validate permissions
+            var procesosUser = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+          /*  if (!procesosUser.Any(p => p.Id == procesoId))
+                return Unauthorized();*/
+
+            // Call private validation method
+            var response = ValidarProcesoInterno(procesoId, proceso);
+
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("FinalizarProceso/{procesoId}")]
+        public IHttpActionResult FinalizarProceso(int procesoId)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == procesoId);
+            if (proceso == null)
+                return NotFound();
+
+            // Validate permissions
+            var procesosUser = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+           /* if (!procesosUser.Any(p => p.Id == procesoId))
+                return Unauthorized();*/
+
+            // Check if already finalized
+            if (proceso.State == "FINALIZADO")
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "Este proceso ya está finalizado." }
+                );
+            }
+
+            // Run validation using private method
+            var validacion = ValidarProcesoInterno(procesoId, proceso);
+
+            if (!validacion.IsValid)
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new
+                    {
+                        Message = "El proceso no puede ser finalizado debido a errores de validación.",
+                        Errors = validacion.Errors,
+                        AsignacionesSinContrato = validacion.AsignacionesSinContrato,
+                        ContratosDuplicados = validacion.ContratosDuplicados
+                    }
+                );
+            }
+
+            var asignacionesConContrato = _context.AsignacionesCarga
+    .Where(a => a.AsigProcesoId == procesoId
+             && a.NumeroContrato != null
+             && a.NumeroContrato != "")
+    .ToList();  
+
+            
+            var asignacionesPorContrato = asignacionesConContrato
+                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))  
+                .GroupBy(a => a.NumeroContrato.Trim())
+                .ToList();
+
+            var contratosCreados = new List<AsigContrato>();
+
+            // Create AsigContrato entries
+            foreach (var grupo in asignacionesPorContrato)
+            {
+                var numeroContrato = grupo.Key;
+                var asignaciones = grupo.ToList();
+                // NEW CALCULATION: Include CantidadMeses
+                var montoTotal = asignaciones.Sum(a => a.HorasMes * a.CostoHora * a.CantidadMeses);
+
+
+                var contrato = new AsigContrato
+                {
+                    NumeroContrato = numeroContrato,
+                    BranchesId = proceso.BranchesId,
+                    AsigProcesoId = proceso.Id,
+                    PeriodoId = proceso.PeriodoId,
+                    MontoTotal = montoTotal,
+                    Estado = "PENDIENTE",
+                    Observaciones = null,
+                    CreatedAt = DateTime.Now,
+                    CreatedBy = user.Id
+                };
+
+                _context.AsigContratos.Add(contrato);
+                contratosCreados.Add(contrato);
+            }
+
+            // Mark proceso as finalized
+            proceso.State = "FINALIZADO";
+            proceso.LastUpdateBy = user.Id;
+
+            _context.SaveChanges();
+
+            // Get summary
+            var totalAsignaciones = _context.AsignacionesCarga.Count(a => a.AsigProcesoId == procesoId);
+
+            return Ok(new
+            {
+                Message = "Proceso finalizado correctamente.",
+                ProcesoId = procesoId,
+                TotalAsignaciones = totalAsignaciones,
+                TotalContratos = contratosCreados.Count,
+                Contratos = contratosCreados.Select(c => new
+                {
+                    c.Id,
+                    c.NumeroContrato,
+                    c.MontoTotal
+                }).ToList()
+            });
+        }
+
+      
+        [NonAction]
+        private ValidacionFinalizarResponse ValidarProcesoInterno(int procesoId, AsigProceso proceso)
+        {
+            var response = new ValidacionFinalizarResponse
+            {
+                IsValid = true,
+                Errors = new List<string>(),
+                AsignacionesSinContrato = new List<AsignacionSinContrato>(),
+                ContratosDuplicados = new List<ContratoDuplicado>()
+            };
+
+            // 1) Get all assignments for this proceso
+            var asignaciones = _context.AsignacionesCarga
+                .Where(a => a.AsigProcesoId == procesoId)
+                .ToList();
+
+            if (!asignaciones.Any())
+            {
+                response.IsValid = false;
+                response.Errors.Add("No hay asignaciones en este proceso.");
+                return response;
+            }
+
+            // 2) Check all assignments have a contract number
+            var sinContrato = asignaciones
+                .Where(a => string.IsNullOrWhiteSpace(a.NumeroContrato))
+                .Select(a => new AsignacionSinContrato
+                {
+                    Id = a.Id,
+                    CiDocente = a.CiDocente,
+                    NombreCompleto = string.Join(" ",
+                        new[] { a.PrimerApellido, a.SegundoApellido, a.TercerApellido, a.Nombres }
+                        .Where(s => !string.IsNullOrWhiteSpace(s))),
+                    Sigla = a.Sigla,
+                    Paralelo = a.Paralelo
+                })
+                .ToList();
+
+            if (sinContrato.Any())
+            {
+                response.IsValid = false;
+                response.AsignacionesSinContrato = sinContrato;
+                response.Errors.Add($"Hay {sinContrato.Count} asignación(es) sin número de contrato.");
+            }
+
+            // 3) Get unique contract numbers in this batch
+            var numerosContratoActual = asignaciones
+                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))
+                .Select(a => a.NumeroContrato.Trim())
+                .Distinct()
+                .ToList();
+
+            // 4) Check for duplicates in AsigContratos table (same Sede + Periodo)
+            var duplicados = new List<ContratoDuplicado>();
+
+            foreach (var numeroContrato in numerosContratoActual)
+            {
+                var contratoExistente = _context.AsigContratos
+                    .Where(c => c.NumeroContrato == numeroContrato
+                             && c.BranchesId == proceso.BranchesId
+                             && c.PeriodoId == proceso.PeriodoId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .FirstOrDefault();
+
+                if (contratoExistente != null)
+                {
+                    duplicados.Add(new ContratoDuplicado
+                    {
+                        NumeroContrato = numeroContrato,
+                        ContratoIdExistente = contratoExistente.Id,
+                        FechaExistente = contratoExistente.CreatedAt ?? DateTime.Now
+                    });
+                }
+            }
+
+            if (duplicados.Any())
+            {
+                response.IsValid = false;
+                response.ContratosDuplicados = duplicados;
+                response.Errors.Add($"Hay {duplicados.Count} número(s) de contrato duplicado(s) en la misma sede y período.");
+            }
+
+            return response;
+        }
+
+        // DTOs (keep these at the class level)
+        public class ValidacionFinalizarResponse
+        {
+            public bool IsValid { get; set; }
+            public List<string> Errors { get; set; }
+            public List<AsignacionSinContrato> AsignacionesSinContrato { get; set; }
+            public List<ContratoDuplicado> ContratosDuplicados { get; set; }
+        }
+
+        public class AsignacionSinContrato
+        {
+            public int Id { get; set; }
+            public string CiDocente { get; set; }
+            public string NombreCompleto { get; set; }
+            public string Sigla { get; set; }
+            public string Paralelo { get; set; }
+        }
+
+        public class ContratoDuplicado
+        {
+            public string NumeroContrato { get; set; }
+            public int ContratoIdExistente { get; set; }
+            public DateTime FechaExistente { get; set; }
+        }
 
 
 
@@ -726,22 +1078,42 @@ namespace UcbBack.Controllers
             // Query you provided
             var sql = "SELECT PERIODOSAP FROM ADMNAL.T_REG_PARALELOS_NS GROUP BY PERIODOSAP;";
 
-            var periodos = _context.Database
+            var periodosRaw = _context.Database
                 .SqlQuery<string>(sql)
-                .ToList()
+                .ToList();
+
+            // Sort by year (last 4 digits) descending, then by the prefix
+            var periodosSorted = periodosRaw
+                .Where(p => !string.IsNullOrWhiteSpace(p) && p.Length >= 4)
+                .OrderByDescending(p => {
+            // Extract last 4 characters (year)
+            var year = p.Substring(p.Length - 4);
+                    int yearNum;
+                    if (int.TryParse(year, out yearNum))
+                        return yearNum;
+                    return 0; // If not a valid year, put at bottom
+        })
+                .ThenBy(p => {
+            // Secondary sort by prefix (1S, 2S, A, V, etc.)
+            // This ensures: 2S2025, 1S2025, V2025, A2025 (alphabetical by prefix)
+            if (p.Length > 4)
+                        return p.Substring(0, p.Length - 4);
+                    return p;
+                })
                 .Select((p, index) => new
                 {
-                    Id = index + 1, // simple incremental id for the dropdown
-            Name = p,       // what the user will see, e.g. "2025-1"
-            Value = p       // raw value to save/send back
-        });
+                    Id = index + 1,
+                    Name = p,
+                    Value = p
+                })
+                .ToList();
 
-            return Ok(periodos);
+            return Ok(periodosSorted);
         }
 
 
         // Helpers
-       
+
 
         [NonAction]
         private async Task<System.Dynamic.ExpandoObject> HttpContentToVariables(MultipartMemoryStreamProvider req)

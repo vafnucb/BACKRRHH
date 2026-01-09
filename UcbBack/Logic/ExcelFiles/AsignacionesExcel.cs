@@ -111,7 +111,8 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                         "Paralelo",
                         "Horas_Semana",
                         "Horas_Mes",
-                        "Costo_Hora"
+                        "Costo_Hora",
+                        "Cantidad_Meses"
                 };
 
                 var columnIndexes = new Dictionary<string, int>();
@@ -132,8 +133,8 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
                 if (missing.Any())
                 {
-                    var msg = "Faltan las siguientes columnas obligatorias: " + string.Join(", ", missing);
-                    errorResponse = BuildSimpleErrorResponse(msg);
+                    // NEW: Return Excel with missing columns highlighted
+                    errorResponse = BuildMissingColumnsErrorResponse(workbook, missing, _headerRowIndex);
                     return false;
                 }
 
@@ -342,11 +343,24 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                         rowErrors.Add("El campo Paralelo es obligatorio.");
                         faltanCamposParalelo = true;
                     }
-                    
+
                     // if (string.IsNullOrEmpty(unidadOrg)) { ... }
                     // if (string.IsNullOrEmpty(sede)) { ... }
 
                     // Si faltan campos, no tiene sentido validar en la tabla de paralelos
+                    // Inside the row iteration loop, add:
+                    var cantidadMesesStr = row.Cell(columnIndexes["Cantidad_Meses"]).GetString().Trim();
+
+                    // Validate it's a number
+                    int cantidadMeses = 1; // default
+                    if (string.IsNullOrEmpty(cantidadMesesStr))
+                    {
+                        rowErrors.Add("El campo Cantidad_Meses es obligatorio.");
+                    }
+                    else if (!int.TryParse(cantidadMesesStr, out cantidadMeses) || cantidadMeses < 1 || cantidadMeses > 12)
+                    {
+                        rowErrors.Add("El campo Cantidad_Meses debe ser un número entero entre 1 y 12.");
+                    }
                     if (!faltanCamposParalelo)
                     {
                         // 1) Primero: validar que exista el Codigo_Paralelo (clave principal)
@@ -515,10 +529,12 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
             decimal horasSemana = 0;
             decimal horasMes = 0;
             decimal costoHora = 0;
+            int cantidadMeses = 1;
 
             decimal.TryParse(row.Cell(colIdx["Horas_Semana"]).GetString(), out horasSemana);
             decimal.TryParse(row.Cell(colIdx["Horas_Mes"]).GetString(), out horasMes);
             decimal.TryParse(row.Cell(colIdx["Costo_Hora"]).GetString(), out costoHora);
+            int.TryParse(row.Cell(colIdx["Cantidad_Meses"]).GetString(), out cantidadMeses);
 
             // Leemos los datos clave para buscar el paralelo en la tabla ADMNAL.T_REG_PARALELOS_NS
             var periodo = row.Cell(colIdx["Periodo"]).GetString().Trim();
@@ -559,13 +575,14 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                 CodigoParalelo = codigoParalelo,
                 Paralelo = paralelo,
 
-                // 🔹 Estos ya NO vienen del Excel, los sacamos de la tabla de paralelos:
+                // Estos ya NO vienen del Excel, los sacamos de la tabla de paralelos:
                 UnidadOrganizacional = unidadOrgDb,
                 Sede = sedeDb,
 
                 HorasSemana = horasSemana,
                 HorasMes = horasMes,
                 CostoHora = costoHora,
+                CantidadMeses = cantidadMeses,
 
                 NumeroContrato = null
             };
@@ -833,20 +850,118 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
         private HttpResponseMessage BuildSimpleErrorResponse(string msg)
         {
+            // Instead of returning plain text, return an Excel with the error message
+            using (var workbook = new XLWorkbook())
+            {
+                var ws = workbook.AddWorksheet("Errores");
+
+                // Header
+                ws.Cell(1, 1).Value = "Error";
+                ws.Cell(1, 1).Style.Font.Bold = true;
+                ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.Red;
+                ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+
+                // Error message
+                ws.Cell(2, 1).Value = msg;
+                ws.Cell(2, 1).Style.Fill.BackgroundColor = XLColor.LightPink;
+
+                // Auto-fit column
+                ws.Column(1).Width = 80;
+
+                var ms = new MemoryStream();
+                workbook.SaveAs(ms);
+                ms.Position = 0;
+
+                var resp = new HttpResponseMessage(HttpStatusCode.BadRequest);
+
+                var errorsJson = new JObject
+                {
+                    ["Error"] = msg
+                };
+
+                resp.Headers.Add("UploadErrors", errorsJson.ToString(Newtonsoft.Json.Formatting.None));
+                resp.Content = new StreamContent(ms);
+                resp.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                resp.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+                {
+                    FileName = "Errores_Columnas.xlsx"
+                };
+
+                return resp;
+            }
+        }
+
+        private HttpResponseMessage BuildMissingColumnsErrorResponse(XLWorkbook originalWorkbook, List<string> missingColumns, int headerRowIndex)
+        {
+            var ws = originalWorkbook.Worksheet(1);
+
+            // Add missing columns at the end
+            var lastCol = ws.LastColumnUsed()?.ColumnNumber() ?? 0;
+
+            foreach (var colName in missingColumns)
+            {
+                lastCol++;
+                var cell = ws.Cell(headerRowIndex, lastCol);
+                cell.Value = colName;
+                cell.Style.Fill.BackgroundColor = XLColor.Yellow;
+                cell.Style.Font.Bold = true;
+
+                // Add note in second row
+                ws.Cell(headerRowIndex + 1, lastCol).Value = "← COLUMNA FALTANTE";
+                ws.Cell(headerRowIndex + 1, lastCol).Style.Fill.BackgroundColor = XLColor.LightYellow;
+            }
+
+            // Add error message in a separate sheet
+            var errorSheet = originalWorkbook.AddWorksheet("INSTRUCCIONES");
+            errorSheet.Cell(1, 1).Value = "ERRORES ENCONTRADOS";
+            errorSheet.Cell(1, 1).Style.Font.Bold = true;
+            errorSheet.Cell(1, 1).Style.Font.FontSize = 14;
+            errorSheet.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.Red;
+            errorSheet.Cell(1, 1).Style.Font.FontColor = XLColor.White;
+
+            errorSheet.Cell(3, 1).Value = "Faltan las siguientes columnas obligatorias:";
+            errorSheet.Cell(3, 1).Style.Font.Bold = true;
+
+            for (int i = 0; i < missingColumns.Count; i++)
+            {
+                errorSheet.Cell(4 + i, 1).Value = $"• {missingColumns[i]}";
+                errorSheet.Cell(4 + i, 1).Style.Fill.BackgroundColor = XLColor.LightYellow;
+            }
+
+            errorSheet.Cell(6 + missingColumns.Count, 1).Value = "Las columnas faltantes han sido agregadas en amarillo en la hoja original.";
+            errorSheet.Cell(7 + missingColumns.Count, 1).Value = "Por favor, complete los datos y vuelva a cargar el archivo.";
+
+            errorSheet.Column(1).Width = 60;
+
+            // Save to stream
+            var ms = new MemoryStream();
+            originalWorkbook.SaveAs(ms);
+            ms.Position = 0;
+
             var resp = new HttpResponseMessage(HttpStatusCode.BadRequest);
+
             var errorsJson = new JObject
             {
-                ["Error"] = msg
+                ["Error"] = "Faltan columnas obligatorias",
+                ["MissingColumns"] = JToken.FromObject(missingColumns)
             };
+
             resp.Headers.Add("UploadErrors", errorsJson.ToString(Newtonsoft.Json.Formatting.None));
-            resp.Content = new StringContent(msg);
+            resp.Content = new StreamContent(ms);
+            resp.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            resp.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment")
+            {
+                FileName = "Errores_Columnas_Faltantes.xlsx"
+            };
+
             return resp;
         }
 
-        /// <summary>
         /// Devuelve un Excel con todas las filas erróneas marcadas y
         /// con una columna "Errores" que concatena todos los mensajes de la fila.
-        /// </summary>
+
         private HttpResponseMessage BuildExcelErrorResponse(XLWorkbook originalWorkbook, List<ExcelError> errors)
         {
             var ws = originalWorkbook.Worksheet(1);

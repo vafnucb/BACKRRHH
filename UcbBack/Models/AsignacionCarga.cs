@@ -65,7 +65,7 @@ namespace UcbBack.Models
         public decimal CostoHora { get; set; }
 
 
-
+        public int CantidadMeses { get; set; }
         /// Número de contrato que se asignará después de que
         /// la carga y las validaciones del archivo sean exitosas.
         /// Puede ser común al proceso o por fila, según tu lógica.

@@ -86,6 +86,10 @@ namespace UcbBack.Models
         //Asignaciones
         public DbSet<AsigProceso> AsigProcesos { get; set; }
         public DbSet<AsignacionCarga> AsignacionesCarga { get; set; }
+        public DbSet<AsigContrato> AsigContratos { get; set; }
+        public DbSet<ProgramacionPago> ProgramacionPagos { get; set; }
+        public DbSet<FechaPago> FechasPago { get; set; }
+        public DbSet<PagoProgramado> PagosProgramados { get; set; }
 
 
         public DbSet<Antiguedad> Antiguedades { get; set; }
