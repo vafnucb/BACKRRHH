@@ -166,9 +166,8 @@ namespace UcbBack.Controllers
             });
         }
 
-        // ---------------------------
-        //  2) Create Schedule (same as before but for months)
-        // ---------------------------
+
+        //  2) Create Schedule
         [HttpPost]
         [Route("CrearProgramacion")]
         public IHttpActionResult CrearProgramacion([FromBody] CrearProgramacionRequest model)
@@ -247,9 +246,8 @@ namespace UcbBack.Controllers
             });
         }
 
-        // ---------------------------
+
         //  3) Generate Payments for Assignments
-        // ---------------------------
         [HttpPost]
         [Route("GenerarPagosAsignaciones")]
         public IHttpActionResult GenerarPagosAsignaciones([FromBody] GenerarPagosAsignacionesRequest model)
@@ -267,9 +265,6 @@ namespace UcbBack.Controllers
                 .OrderBy(f => f.Orden)
                 .ToList();
 
-            if (!meses.Any())
-                return BadRequest("No hay meses de pago configurados");
-
             // Get assignments
             var asignaciones = _context.AsignacionesCarga
                 .Where(a => model.AsignacionesIds.Contains(a.Id))
@@ -277,6 +272,18 @@ namespace UcbBack.Controllers
 
             if (!asignaciones.Any())
                 return BadRequest("No hay asignaciones para programar");
+
+            // Build exception dictionary
+            var excepcionesDic = model.Excepciones != null
+                ? model.Excepciones.ToDictionary(e => e.AsignacionId, e => e.PagosCustom)
+                : new Dictionary<int, List<PagoCustomDto>>();
+
+            // UPDATED VALIDATION: Check if all assignments have exceptions
+            var allAreExceptions = asignaciones.All(a => excepcionesDic.ContainsKey(a.Id));
+
+            // Only require meses if not all are exceptions
+            if (!meses.Any() && !allAreExceptions)
+                return BadRequest("No hay meses de pago configurados y no todas las asignaciones tienen programación personalizada");
 
             // Delete existing payments for these assignments
             var pagosExistentes = _context.PagosProgramados
@@ -287,11 +294,6 @@ namespace UcbBack.Controllers
             _context.SaveChanges();
 
             int totalPagosGenerados = 0;
-
-            // Build exception dictionary
-            var excepcionesDic = model.Excepciones != null
-                ? model.Excepciones.ToDictionary(e => e.AsignacionId, e => e.PagosCustom)
-                : new Dictionary<int, List<PagoCustomDto>>();
 
             foreach (var asignacion in asignaciones)
             {
@@ -311,6 +313,7 @@ namespace UcbBack.Controllers
                             MesPago = pagoCustom.Mes,
                             AnioPago = pagoCustom.Anio,
                             Monto = pagoCustom.Monto,
+                            MontoOriginal = pagoCustom.Monto,
                             Porcentaje = (pagoCustom.Monto / montoTotal) * 100,
                             Estado = "PROGRAMADO",
                             EsExcepcion = true,
@@ -337,6 +340,7 @@ namespace UcbBack.Controllers
                             MesPago = mes.Mes.HasValue ? mes.Mes.Value : mes.FechaPagos.Month,
                             AnioPago = mes.Anio.HasValue ? mes.Anio.Value : mes.FechaPagos.Year,
                             Monto = pagos[i],
+                            MontoOriginal = pagos[i],
                             Porcentaje = mes.PorcentajePorDefecto,
                             Estado = "PROGRAMADO",
                             EsExcepcion = false,
@@ -367,9 +371,8 @@ namespace UcbBack.Controllers
             });
         }
 
-        // ---------------------------
-        //  Helper: Calculate Precise Payments (2 decimals)
-        // ---------------------------
+
+        //Helper: Calculate 2 decimals
         [NonAction]
         private List<decimal> CalculatePrecisePayments(decimal totalAmount, int numberOfPayments)
         {
@@ -519,7 +522,7 @@ namespace UcbBack.Controllers
             return Ok(plantillas);
         }*/
 
-        //  6) Get Existing Schedule
+        //  Get Existing Schedule
         [HttpGet]
         [Route("GetProgramacion")]
         public IHttpActionResult GetProgramacion(int branchesId, string periodoId)
@@ -565,5 +568,389 @@ namespace UcbBack.Controllers
                 Meses = meses
             });
         }
+
+
+        //  5) Get Payment Detail
+        [HttpGet]
+        [Route("GetPagoDetalle/{pagoId}")]
+        public IHttpActionResult GetPagoDetalle(int pagoId)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            var pagoQuery = from p in _context.PagosProgramados
+                            join a in _context.AsignacionesCarga on p.AsignacionCargaId equals a.Id
+                            join proc in _context.AsigProcesos on a.AsigProcesoId equals proc.Id
+                            join b in _context.Branch on proc.BranchesId equals b.Id
+                            join ou in _context.OrganizationalUnits on a.UnidadOrganizacional equals ou.Cod into ouLeft
+                            from ou in ouLeft.DefaultIfEmpty()
+                            where p.Id == pagoId
+                            select new
+                            {
+                                // Payment info
+                                PagoId = p.Id,
+                                p.AsignacionCargaId,
+                                p.FechaPagoId,
+                                p.MesPago,
+                                p.AnioPago,
+                                p.Monto,
+                                p.MontoOriginal,
+                                p.Porcentaje,
+                                p.Estado,
+                                p.EsExcepcion,
+                                p.Observaciones,
+                                p.CreatedAt,
+                                p.CreatedBy,
+
+                                // Assignment info
+                                a.CiDocente,
+                                a.PrimerApellido,
+                                a.SegundoApellido,
+                                a.TercerApellido,
+                                a.Nombres,
+                                a.Sigla,
+                                a.CodigoParalelo,
+                                a.Paralelo,
+                                a.HorasMes,
+                                a.HorasSemana,
+                                a.CostoHora,
+                                a.CantidadMeses,
+                                a.NumeroContrato,
+                                a.UnidadOrganizacional,
+
+                                // Organizational Unit
+                                NombreUnidadOrganizacional = ou != null ? ou.Name : "",
+
+                                // Process info
+                                ProcesoId = proc.Id,
+                                proc.BranchesId,
+                                SedeName = b.Name,
+                                proc.PeriodoId,
+                                proc.State
+                            };
+
+            var pago = pagoQuery.FirstOrDefault();
+
+            if (pago == null)
+                return NotFound();
+
+            // Build response
+            var result = new
+            {
+                // Payment details
+                PagoId = pago.PagoId,
+                AsignacionCargaId = pago.AsignacionCargaId,
+                FechaPagoId = pago.FechaPagoId,
+                MesPago = pago.MesPago,
+                MesNombre = GetMonthName(pago.MesPago),
+                AnioPago = pago.AnioPago,
+                Monto = pago.Monto,
+                MontoOriginal = pago.MontoOriginal,
+                Porcentaje = pago.Porcentaje,
+                Estado = pago.Estado ?? "PENDIENTE",
+                EsExcepcion = pago.EsExcepcion,
+                Observaciones = pago.Observaciones ?? "",
+                CreatedAt = pago.CreatedAt,
+
+                // Assignment details
+                CiDocente = pago.CiDocente,
+                NombreCompleto = string.Join(" ", new[] {
+            pago.PrimerApellido,
+            pago.SegundoApellido,
+            pago.TercerApellido,
+            pago.Nombres
+        }.Where(s => !string.IsNullOrWhiteSpace(s))),
+                Sigla = pago.Sigla,
+                CodigoParalelo = pago.CodigoParalelo,
+                Paralelo = pago.Paralelo,
+                HorasMes = pago.HorasMes,
+                HorasSemana = pago.HorasSemana,
+                CostoHora = pago.CostoHora,
+                CantidadMeses = pago.CantidadMeses,
+                MontoTotalAsignacion = pago.HorasMes * pago.CostoHora * pago.CantidadMeses,
+                NumeroContrato = pago.NumeroContrato,
+                CodUnidadOrganizacional = pago.UnidadOrganizacional ?? "",
+                UnidadOrganizacional = pago.NombreUnidadOrganizacional ?? "",
+
+                // Process details
+                ProcesoId = pago.ProcesoId,
+                BranchesId = pago.BranchesId,
+                SedeName = pago.SedeName,
+                PeriodoId = pago.PeriodoId,
+                ProcesoEstado = pago.State
+            };
+
+            return Ok(result);
+        }
+
+        // ---------------------------
+        //  6) Update Payment
+        // ---------------------------
+        public class UpdatePagoRequest
+        {
+            public int PagoId { get; set; }
+            public decimal Monto { get; set; }
+            public decimal Porcentaje { get; set; }
+            public string Estado { get; set; }
+            public string ObservacionCambio { get; set; }  // Required if Monto changed
+        }
+
+        [HttpPost]
+        [Route("UpdatePago")]
+        public IHttpActionResult UpdatePago([FromBody] UpdatePagoRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.PagoId <= 0)
+                return BadRequest("Datos inválidos");
+
+            var pago = _context.PagosProgramados.FirstOrDefault(p => p.Id == model.PagoId);
+            if (pago == null)
+                return NotFound();
+
+            // Check if amount changed
+            bool montoChanged = pago.Monto != model.Monto;
+
+            if (montoChanged && string.IsNullOrWhiteSpace(model.ObservacionCambio))
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "Debe proporcionar una observación al cambiar el monto del pago." }
+                );
+            }
+
+            // Update payment
+            pago.Monto = model.Monto;
+            pago.Porcentaje = model.Porcentaje;
+
+            if (!string.IsNullOrWhiteSpace(model.Estado))
+            {
+                pago.Estado = model.Estado;
+            }
+
+            // Add observation if amount changed
+            if (montoChanged)
+            {
+                var fechaHora = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                var nuevaObservacion = $"[{fechaHora}] Cambio de monto: {model.ObservacionCambio}";
+
+                if (string.IsNullOrWhiteSpace(pago.Observaciones))
+                {
+                    pago.Observaciones = nuevaObservacion;
+                }
+                else
+                {
+                    pago.Observaciones += "\n" + nuevaObservacion;
+                }
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Pago actualizado correctamente",
+                PagoId = pago.Id,
+                Monto = pago.Monto,
+                Observaciones = pago.Observaciones
+            });
+        }
+
+        //  7) Delete Payment
+
+        public class DeletePagoRequest
+        {
+            public int PagoId { get; set; }
+        }
+
+        [HttpPost]
+        [Route("DeletePago")]
+        public IHttpActionResult DeletePago([FromBody] DeletePagoRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.PagoId <= 0)
+                return BadRequest("ID de pago inválido");
+
+            var pago = _context.PagosProgramados.FirstOrDefault(p => p.Id == model.PagoId);
+            if (pago == null)
+                return NotFound();
+
+            // Optional: Check if payment can be deleted (e.g., not PAGADO status)
+            if (pago.Estado == "PAGADO")
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "No se puede eliminar un pago que ya fue pagado." }
+                );
+            }
+
+            _context.PagosProgramados.Remove(pago);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Pago eliminado correctamente",
+                PagoId = model.PagoId
+            });
+        }
+
+        //  8) Update TipoDocente
+
+        public class UpdateTipoDocenteRequest
+        {
+            public int PagoId { get; set; }
+            public string TipoDocente { get; set; }
+        }
+
+        [HttpPost]
+        [Route("UpdateTipoDocente")]
+        public IHttpActionResult UpdateTipoDocente([FromBody] UpdateTipoDocenteRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.PagoId <= 0)
+                return BadRequest("Datos inválidos");
+
+            // Validate TipoDocente value
+            var tiposValidos = new[] { "INDEPENDIENTE_CON_FACTURA", "INDEPENDIENTE_SIN_FACTURA", "EXTRANJERO" };
+            if (!string.IsNullOrWhiteSpace(model.TipoDocente) && !tiposValidos.Contains(model.TipoDocente))
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "Tipo de docente inválido. Valores permitidos: INDEPENDIENTE_CON_FACTURA, INDEPENDIENTE_SIN_FACTURA, EXTRANJERO" }
+                );
+            }
+
+            var pago = _context.PagosProgramados.FirstOrDefault(p => p.Id == model.PagoId);
+            if (pago == null)
+                return NotFound();
+
+            // Check if payment can be modified
+            if (pago.Estado == "ENVIADO" || pago.Estado == "APROBADO")
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "No se puede modificar un pago que ya fue enviado o aprobado." }
+                );
+            }
+
+            // Update TipoDocente
+            pago.TipoDocente = model.TipoDocente;
+
+            // Update Estado if needed
+            if (!string.IsNullOrWhiteSpace(model.TipoDocente) && pago.Estado == "PROGRAMADO")
+            {
+                pago.Estado = "CON_TIPO_DOCENTE";
+            }
+            else if (string.IsNullOrWhiteSpace(model.TipoDocente))
+            {
+                pago.Estado = "PROGRAMADO";
+            }
+
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Tipo de docente actualizado correctamente",
+                PagoId = pago.Id,
+                TipoDocente = pago.TipoDocente,
+                Estado = pago.Estado
+            });
+        }
+
+
+        //  9) Get Summary for Sending
+        public class ResumenEnvioDto
+        {
+            public int TotalPagos { get; set; }
+            public decimal MontoBruto { get; set; }
+            public decimal TotalRetenciones { get; set; }
+            public decimal MontoLiquido { get; set; }
+            public List<DetalleRetencionDto> DetallesPorTipo { get; set; }
+        }
+
+        public class DetalleRetencionDto
+        {
+            public string TipoDocente { get; set; }
+            public int Cantidad { get; set; }
+            public decimal Porcentaje { get; set; }
+            public decimal MontoBruto { get; set; }
+            public decimal MontoRetencion { get; set; }
+            public decimal MontoLiquido { get; set; }
+        }
+
+        [HttpPost]
+        [Route("GetResumenEnvio")]
+        public IHttpActionResult GetResumenEnvio([FromBody] List<int> pagosIds)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (pagosIds == null || !pagosIds.Any())
+                return BadRequest("Debe seleccionar al menos un pago");
+
+            var pagos = _context.PagosProgramados
+                .Where(p => pagosIds.Contains(p.Id))
+                .ToList();
+
+            if (!pagos.Any())
+                return BadRequest("No se encontraron pagos con los IDs proporcionados");
+
+            // Check if all have TipoDocente
+            var sinTipo = pagos.Where(p => string.IsNullOrWhiteSpace(p.TipoDocente)).ToList();
+            if (sinTipo.Any())
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = $"Hay {sinTipo.Count} pago(s) sin tipo de docente asignado" }
+                );
+            }
+
+            // Check if any already sent
+            var yaEnviados = pagos.Where(p => p.Estado == "ENVIADO" || p.Estado == "APROBADO").ToList();
+            if (yaEnviados.Any())
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = $"Hay {yaEnviados.Count} pago(s) que ya fueron enviados o aprobados" }
+                );
+            }
+
+            // Calculate summary
+            var detallesPorTipo = pagos
+                .GroupBy(p => p.TipoDocente)
+                .Select(g => new DetalleRetencionDto
+                {
+                    TipoDocente = g.Key,
+                    Cantidad = g.Count(),
+                    Porcentaje = EjecucionPago.GetPorcentajeRetencion(g.Key),
+                    MontoBruto = g.Sum(p => p.Monto),
+                    MontoRetencion = g.Sum(p => EjecucionPago.CalculateMontoRetencion(p.Monto, p.TipoDocente)),
+                    MontoLiquido = g.Sum(p => EjecucionPago.CalculateMontoContrato(p.Monto, p.TipoDocente))
+                })
+                .ToList();
+
+            var resumen = new ResumenEnvioDto
+            {
+                TotalPagos = pagos.Count,
+                MontoBruto = pagos.Sum(p => p.Monto),
+                TotalRetenciones = detallesPorTipo.Sum(d => d.MontoRetencion),
+                MontoLiquido = detallesPorTipo.Sum(d => d.MontoLiquido),  // CHANGED
+                DetallesPorTipo = detallesPorTipo
+            };
+
+            return Ok(resumen);
+        }
+
+
+
     }
 }

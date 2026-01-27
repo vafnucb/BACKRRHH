@@ -17,6 +17,9 @@ namespace UcbBack.Models
         [Required]
         [MaxLength(50)]
         public string NumeroContrato { get; set; }
+        
+        [StringLength(255)]
+        public string NombreDocente { get; set; }
 
         [Required]
         public int BranchesId { get; set; }

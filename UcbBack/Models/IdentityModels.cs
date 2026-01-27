@@ -90,6 +90,7 @@ namespace UcbBack.Models
         public DbSet<ProgramacionPago> ProgramacionPagos { get; set; }
         public DbSet<FechaPago> FechasPago { get; set; }
         public DbSet<PagoProgramado> PagosProgramados { get; set; }
+        public DbSet<EjecucionPago> EjecucionPagos { get; set; }
 
 
         public DbSet<Antiguedad> Antiguedades { get; set; }

@@ -27,13 +27,13 @@ namespace UcbBack.Controllers
             auth = new ValidateAuth();
         }
 
-        // ---------------------------
+
         //  DTOs
-        // ---------------------------
         public class ContratoListItem
         {
             public int Id { get; set; }
             public string NumeroContrato { get; set; }
+            public string NombreDocente { get; set; }
             public int BranchesId { get; set; }
             public string SedeAbr { get; set; }
             public string SedeNombre { get; set; }
@@ -56,6 +56,7 @@ namespace UcbBack.Controllers
         {
             public int Id { get; set; }
             public string NumeroContrato { get; set; }
+            public string NombreDocente { get; set; }
             public int BranchesId { get; set; }
             public string SedeAbr { get; set; }
             public string SedeNombre { get; set; }
@@ -111,6 +112,7 @@ namespace UcbBack.Controllers
                         {
                             c.Id,
                             c.NumeroContrato,
+                            c.NombreDocente,
                             c.BranchesId,
                             SedeAbr = b.Abr,
                             SedeNombre = b.Name,
@@ -143,11 +145,12 @@ namespace UcbBack.Controllers
             // Get assignment counts with a simpler query
             var contratoIds = contratos.Select(c => c.Id).ToList();
 
-            // Use raw SQL for the count (much simpler and avoids EF limitations)
+            // Use raw SQL
             var result = contratos.Select(c => new ContratoListItem
             {
                 Id = c.Id,
-                NumeroContrato = c.NumeroContrato,             
+                NumeroContrato = c.NumeroContrato,
+                NombreDocente = c.NombreDocente,
                 MontoTotal = c.MontoTotal,
                 Estado = c.Estado,
                 Observaciones = c.Observaciones,
@@ -194,9 +197,7 @@ namespace UcbBack.Controllers
             }
         }
 
-        // ---------------------------
         //  2) Get Contract Detail (with assignments)
-        // ---------------------------
         [HttpGet]
         [Route("GetDetalle/{contratoId}")]
         public IHttpActionResult GetDetalle(int contratoId)
@@ -214,8 +215,8 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigContratos, user)
                 .OfType<AsigContrato>();
 
-            if (!contratosUser.Any(c => c.Id == contratoId))
-                return Unauthorized();
+            /*if (!contratosUser.Any(c => c.Id == contratoId))
+                return Unauthorized(); */
 
             // Get branch info
             var branch = _context.Branch.FirstOrDefault(b => b.Id == contrato.BranchesId);
@@ -234,6 +235,7 @@ namespace UcbBack.Controllers
                 {
                     Id = contrato.Id,
                     NumeroContrato = contrato.NumeroContrato,
+                    NombreDocente = contrato.NombreDocente,
                     BranchesId = contrato.BranchesId,
                     SedeAbr = branch != null ? branch.Abr : "",
                     SedeNombre = branch != null ? branch.Name : "",
@@ -266,9 +268,8 @@ namespace UcbBack.Controllers
             return Ok(response);
         }
 
-        // ---------------------------
+
         //  3) Update Contract State/Observaciones
-        // ---------------------------
         [HttpPost]
         [Route("UpdateEstado")]
         public IHttpActionResult UpdateEstado([FromBody] UpdateEstadoRequest model)

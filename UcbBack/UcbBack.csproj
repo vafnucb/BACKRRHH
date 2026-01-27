@@ -293,6 +293,7 @@
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\B1Controller.cs" />
     <Compile Include="Controllers\BranchesController.cs" />
+    <Compile Include="Controllers\EjecucionPagosController.cs" />
     <Compile Include="Controllers\PlanillaInformacionController.cs" />
     <Compile Include="Controllers\ListadoController.cs" />
     <Compile Include="Controllers\DistProcessController.cs" />
@@ -360,6 +361,7 @@
     <Compile Include="Models\AsigProceso.cs" />
     <Compile Include="Models\AsignacionCarga.cs" />
     <Compile Include="Models\AsigContrato.cs" />
+    <Compile Include="Models\EjecucionPago.cs" />
     <Compile Include="Models\FechaPago.cs" />
     <Compile Include="Models\PagoProgramado.cs" />
     <Compile Include="Models\ProgramacionPago.cs" />
@@ -852,6 +854,7 @@
     <Folder Include="Views\AsigContratos\" />
     <Folder Include="Views\AsignacionesExcel\" />
     <Folder Include="Views\AsignacionesMasivas\" />
+    <Folder Include="Views\EjecucionPagos\" />
     <Folder Include="Views\ProgramacionPagos\" />
   </ItemGroup>
   <ItemGroup>

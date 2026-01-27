@@ -913,13 +913,24 @@ namespace UcbBack.Controllers
             {
                 var numeroContrato = grupo.Key;
                 var asignaciones = grupo.ToList();
-                // NEW CALCULATION: Include CantidadMeses
+
+                // Calculate total amount
                 var montoTotal = asignaciones.Sum(a => a.HorasMes * a.CostoHora * a.CantidadMeses);
 
+                // Get teacher name from first assignment (all should have same teacher for same contract number)
+                var primeraAsignacion = asignaciones.First();
+                var nombreDocente = string.Join(" ", new[]
+                {
+                    primeraAsignacion.PrimerApellido,
+                    primeraAsignacion.SegundoApellido,
+                    primeraAsignacion.TercerApellido,
+                    primeraAsignacion.Nombres
+                }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
                 var contrato = new AsigContrato
                 {
                     NumeroContrato = numeroContrato,
+                    NombreDocente = nombreDocente,  // ADD THIS LINE
                     BranchesId = proceso.BranchesId,
                     AsigProcesoId = proceso.Id,
                     PeriodoId = proceso.PeriodoId,
@@ -953,6 +964,7 @@ namespace UcbBack.Controllers
                 {
                     c.Id,
                     c.NumeroContrato,
+                    c.NombreDocente,
                     c.MontoTotal
                 }).ToList()
             });
@@ -1111,6 +1123,65 @@ namespace UcbBack.Controllers
             return Ok(periodosSorted);
         }
 
+        public class DeleteProcesoRequest
+        {
+            public int ProcesoId { get; set; }
+        }
+
+        [HttpPost]
+        [Route("DeleteProceso")]
+        public IHttpActionResult DeleteProceso([FromBody] DeleteProcesoRequest model)
+        {
+            if (model == null || model.ProcesoId <= 0)
+                return BadRequest("ID de proceso inválido");
+
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            var proceso = _context.AsigProcesos.FirstOrDefault(p => p.Id == model.ProcesoId);
+            if (proceso == null)
+                return NotFound();
+
+            // Validate permissions
+            var procesosUser = auth
+                .filerByRegional(_context.AsigProcesos, user)
+                .OfType<AsigProceso>();
+
+           /* if (!procesosUser.Any(p => p.Id == model.ProcesoId))
+                return Unauthorized();*/
+
+            // Check if already finalized
+            if (proceso.State == "FINALIZADO")
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "No se puede eliminar un proceso finalizado." }
+                );
+            }
+
+            // Delete associated asignaciones first
+            var asignaciones = _context.AsignacionesCarga
+                .Where(a => a.AsigProcesoId == model.ProcesoId)
+                .ToList();
+
+            if (asignaciones.Any())
+            {
+                _context.AsignacionesCarga.RemoveRange(asignaciones);
+            }
+
+            // Delete the proceso
+            _context.AsigProcesos.Remove(proceso);
+            _context.SaveChanges();
+
+            return Ok(new
+            {
+                Message = "Proceso eliminado correctamente",
+                ProcesoId = model.ProcesoId,
+                AsignacionesEliminadas = asignaciones.Count
+            });
+        }
+
 
         // Helpers
 
@@ -1152,7 +1223,7 @@ namespace UcbBack.Controllers
         {
             var proceso = new AsigProceso
             {
-                Id = AsigProceso.GetNextId(_context),   // <-- usa el GetNextId nuevo
+                Id = AsigProceso.GetNextId(_context),
                 BranchesId = branchesId,
                 PeriodoId = periodoId,
                 State = "INICIADO",

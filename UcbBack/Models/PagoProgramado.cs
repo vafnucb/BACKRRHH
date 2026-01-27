@@ -27,6 +27,8 @@ namespace UcbBack.Models
         [Required]
         public decimal Monto { get; set; }
 
+        public decimal? MontoOriginal { get; set; }
+
         public decimal? Porcentaje { get; set; }
 
         [MaxLength(20)]
@@ -36,6 +38,9 @@ namespace UcbBack.Models
 
         [MaxLength(255)]
         public string Observaciones { get; set; }
+
+        [StringLength(50)]
+        public string TipoDocente { get; set; }
 
         public DateTime? FechaPagado { get; set; }
 
