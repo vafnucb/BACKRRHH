@@ -80,6 +80,7 @@ namespace UcbBack.Controllers
             public decimal HorasMes { get; set; }
             public decimal CostoHora { get; set; }
             public decimal MontoTotal { get; set; }
+            public int CantidadMeses { get; set; }
             public string Sede { get; set; }
             public string UnidadOrganizacional { get; set; }
         }
@@ -259,7 +260,8 @@ namespace UcbBack.Controllers
                     HorasSemana = a.HorasSemana,
                     HorasMes = a.HorasMes,
                     CostoHora = a.CostoHora,
-                    MontoTotal = a.HorasMes * a.CostoHora,
+                    CantidadMeses = a.CantidadMeses,
+                    MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
                     Sede = a.Sede,
                     UnidadOrganizacional = a.UnidadOrganizacional
                 }).ToList()

@@ -310,6 +310,7 @@ namespace UcbBack.Controllers
                         {
                             AsignacionCargaId = asignacion.Id,
                             FechaPagoId = null,
+                            ProgramacionPagosId = programacion.Id,
                             MesPago = pagoCustom.Mes,
                             AnioPago = pagoCustom.Anio,
                             Monto = pagoCustom.Monto,
@@ -337,6 +338,7 @@ namespace UcbBack.Controllers
                         {
                             AsignacionCargaId = asignacion.Id,
                             FechaPagoId = mes.Id,
+                            ProgramacionPagosId = programacion.Id,
                             MesPago = mes.Mes.HasValue ? mes.Mes.Value : mes.FechaPagos.Month,
                             AnioPago = mes.Anio.HasValue ? mes.Anio.Value : mes.FechaPagos.Year,
                             Monto = pagos[i],
@@ -711,39 +713,51 @@ namespace UcbBack.Controllers
             if (pago == null)
                 return NotFound();
 
-            // Check if amount changed
-            bool montoChanged = pago.Monto != model.Monto;
-
-            if (montoChanged && string.IsNullOrWhiteSpace(model.ObservacionCambio))
+            // Validate estado
+            if (pago.Estado == "ENVIADO" || pago.Estado == "APROBADO")
             {
                 return Content(
                     HttpStatusCode.BadRequest,
-                    new { Message = "Debe proporcionar una observación al cambiar el monto del pago." }
+                    new { Message = "No se puede editar un pago que ya fue enviado o aprobado" }
                 );
             }
 
-            // Update payment
+            bool montoChanged = pago.Monto != model.Monto;
+
+            // If monto changed, observation is required
+            if (montoChanged && string.IsNullOrWhiteSpace(model.ObservacionCambio))
+            {
+                return BadRequest("Debe proporcionar una observación al cambiar el monto");
+            }
+
+            // Update MontoOriginal only on first edit (if it's null)
+            if (pago.MontoOriginal == null || pago.MontoOriginal == 0)
+            {
+                pago.MontoOriginal = pago.Monto;
+            }
+
+            // Update values
             pago.Monto = model.Monto;
             pago.Porcentaje = model.Porcentaje;
 
-            if (!string.IsNullOrWhiteSpace(model.Estado))
+            // ADD/APPEND observations (ALWAYS, not just when monto changes)
+            if (!string.IsNullOrWhiteSpace(model.ObservacionCambio))
             {
-                pago.Estado = model.Estado;
-            }
+                var timestamp = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                var newObservation = $"[{timestamp}] {model.ObservacionCambio}";
 
-            // Add observation if amount changed
-            if (montoChanged)
-            {
-                var fechaHora = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                var nuevaObservacion = $"[{fechaHora}] Cambio de monto: {model.ObservacionCambio}";
+                if (montoChanged)
+                {
+                    newObservation = $"[{timestamp}] Cambio de monto: {model.ObservacionCambio}";
+                }
 
                 if (string.IsNullOrWhiteSpace(pago.Observaciones))
                 {
-                    pago.Observaciones = nuevaObservacion;
+                    pago.Observaciones = newObservation;
                 }
                 else
                 {
-                    pago.Observaciones += "\n" + nuevaObservacion;
+                    pago.Observaciones += "\n" + newObservation;
                 }
             }
 
@@ -924,26 +938,33 @@ namespace UcbBack.Controllers
                 );
             }
 
-            // Calculate summary
+            // Calculate summary - ROUND EACH PAYMENT INDIVIDUALLY FIRST
             var detallesPorTipo = pagos
+                .Select(p => new
+                {
+                    p.TipoDocente,
+                    p.Monto,
+                    MontoRetencion = EjecucionPago.CalculateMontoRetencion(p.Monto, p.TipoDocente),
+                    MontoLiquido = EjecucionPago.CalculateMontoContrato(p.Monto, p.TipoDocente)
+                })
                 .GroupBy(p => p.TipoDocente)
                 .Select(g => new DetalleRetencionDto
                 {
                     TipoDocente = g.Key,
                     Cantidad = g.Count(),
                     Porcentaje = EjecucionPago.GetPorcentajeRetencion(g.Key),
-                    MontoBruto = g.Sum(p => p.Monto),
-                    MontoRetencion = g.Sum(p => EjecucionPago.CalculateMontoRetencion(p.Monto, p.TipoDocente)),
-                    MontoLiquido = g.Sum(p => EjecucionPago.CalculateMontoContrato(p.Monto, p.TipoDocente))
+                    MontoBruto = Math.Round(g.Sum(p => p.Monto), 2, MidpointRounding.AwayFromZero),
+                    MontoRetencion = Math.Round(g.Sum(p => p.MontoRetencion), 2, MidpointRounding.AwayFromZero),
+                    MontoLiquido = Math.Round(g.Sum(p => p.MontoLiquido), 2, MidpointRounding.AwayFromZero)
                 })
                 .ToList();
 
             var resumen = new ResumenEnvioDto
             {
                 TotalPagos = pagos.Count,
-                MontoBruto = pagos.Sum(p => p.Monto),
-                TotalRetenciones = detallesPorTipo.Sum(d => d.MontoRetencion),
-                MontoLiquido = detallesPorTipo.Sum(d => d.MontoLiquido),  // CHANGED
+                MontoBruto = Math.Round(detallesPorTipo.Sum(d => d.MontoBruto), 2, MidpointRounding.AwayFromZero),
+                TotalRetenciones = Math.Round(detallesPorTipo.Sum(d => d.MontoRetencion), 2, MidpointRounding.AwayFromZero),
+                MontoLiquido = Math.Round(detallesPorTipo.Sum(d => d.MontoLiquido), 2, MidpointRounding.AwayFromZero),
                 DetallesPorTipo = detallesPorTipo
             };
 

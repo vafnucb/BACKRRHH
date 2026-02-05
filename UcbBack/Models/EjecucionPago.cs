@@ -48,7 +48,7 @@ namespace UcbBack.Models
 
         public int? CreatedBy { get; set; }
 
-      
+
 
 
         /// TAX RETENTION RATES - MODIFY HERE IF LAWS CHANGE
@@ -62,44 +62,72 @@ namespace UcbBack.Models
         /// - INDEPENDIENTE_CON_FACTURA: 0% (teacher provides invoice)
         /// - INDEPENDIENTE_SIN_FACTURA: 13% (no invoice - UCB retains tax)
         /// - EXTRANJERO: 12% (foreign teacher - special rate)
- 
-    
+
+
+        // Corregir el método GetPorcentajeRetencion
+       // Helper: Always round to 2 decimals
+        private static decimal Round2(decimal value)
+        {
+            return Math.Round(value, 2, MidpointRounding.AwayFromZero);
+        }
+
+        // Calculate IUE (13%)
+        public static decimal CalculateMontoIUE(decimal montoBruto, string tipoDocente)
+        {
+            if (tipoDocente?.ToUpper() == "INDEPENDIENTE_SIN_FACTURA")
+                return Round2(montoBruto * 0.13m);
+            return 0.00m;
+        }
+
+        // Calculate IT (3%)
+        public static decimal CalculateMontoIT(decimal montoBruto, string tipoDocente)
+        {
+            if (tipoDocente?.ToUpper() == "INDEPENDIENTE_SIN_FACTURA")
+                return Round2(montoBruto * 0.03m);
+            return 0.00m;
+        }
+
+        // Calculate IUE Exterior (12.5%)
+        public static decimal CalculateIUEExterior(decimal montoBruto, string tipoDocente)
+        {
+            if (tipoDocente?.ToUpper() == "EXTRANJERO")
+                return Round2(montoBruto * 0.125m);
+            return 0.00m;
+        }
+
+        // Calculate TOTAL retention = IUE + IT + IUEExterior
+        public static decimal CalculateMontoRetencion(decimal montoBruto, string tipoDocente)
+        {
+            decimal iue = CalculateMontoIUE(montoBruto, tipoDocente);
+            decimal it = CalculateMontoIT(montoBruto, tipoDocente);
+            decimal iueExterior = CalculateIUEExterior(montoBruto, tipoDocente);
+
+            return Round2(iue + it + iueExterior);
+        }
+
+        // Calculate NET amount (Bruto - Retention)
+        public static decimal CalculateMontoContrato(decimal montoBruto, string tipoDocente)
+        {
+            decimal retencion = CalculateMontoRetencion(montoBruto, tipoDocente);
+            return Round2(montoBruto - retencion);
+        }
+
+        // Get percentage for display
         public static decimal GetPorcentajeRetencion(string tipoDocente)
         {
-            // IMPORTANT: Modificar aqui los porcentajes si cambiaran
             switch (tipoDocente?.ToUpper())
             {
-                case "INDEPENDIENTE_CON_FACTURA":
-                    return 0M;      // 0% - Teacher provides invoice and pays own taxes
-
                 case "INDEPENDIENTE_SIN_FACTURA":
-                    return 16M;     // 13% - UCB retains and pays tax on behalf of teacher
-
+                    return 16.00m; // 13% + 3%
+                case "INDEPENDIENTE_CON_FACTURA":
+                    return 0.00m;
                 case "EXTRANJERO":
-                    return 12.5M;     // 12% - Foreign teacher retention rate
-
+                    return 12.50m;
                 default:
-                    return 0M;      // Default: no retention
+                    return 0.00m;
             }
         }
 
-  
-        /// Calculate net amount after tax retention
 
-        public static decimal CalculateMontoContrato(decimal montoBruto, string tipoDocente)
-        {
-            var porcentaje = GetPorcentajeRetencion(tipoDocente);
-            var retencion = montoBruto * (porcentaje / 100M);
-            return montoBruto - retencion;
-        }
-
-        /// <summary>
-        /// Calculate retention amount
-
-        public static decimal CalculateMontoRetencion(decimal montoBruto, string tipoDocente)
-        {
-            var porcentaje = GetPorcentajeRetencion(tipoDocente);
-            return montoBruto * (porcentaje / 100M);
-        }
     }
 }

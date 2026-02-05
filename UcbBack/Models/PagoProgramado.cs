@@ -17,6 +17,7 @@ namespace UcbBack.Models
         public int AsignacionCargaId { get; set; }
 
         public int? FechaPagoId { get; set; }
+        public int? ProgramacionPagosId { get; set; }
 
         [Required]
         public int MesPago { get; set; }
