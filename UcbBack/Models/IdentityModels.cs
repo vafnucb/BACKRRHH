@@ -83,6 +83,15 @@ namespace UcbBack.Models
         public DbSet<ProjectModules> ProjectModuleses { get; set; }
         public DbSet<AsesoriaPostgrado> AsesoriaPostgrado { get; set; }
 
+        //Asignaciones
+        public DbSet<AsigProceso> AsigProcesos { get; set; }
+        public DbSet<AsignacionCarga> AsignacionesCarga { get; set; }
+        public DbSet<AsigContrato> AsigContratos { get; set; }
+        public DbSet<ProgramacionPago> ProgramacionPagos { get; set; }
+        public DbSet<FechaPago> FechasPago { get; set; }
+        public DbSet<PagoProgramado> PagosProgramados { get; set; }
+        public DbSet<EjecucionPago> EjecucionPagos { get; set; }
+
 
         public DbSet<Antiguedad> Antiguedades { get; set; }
         public DbSet<Vacaciones> Vacacioneses { get; set; }

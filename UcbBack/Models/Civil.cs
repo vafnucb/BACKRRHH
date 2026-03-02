@@ -21,6 +21,7 @@ namespace UcbBack.Models
         public string SAPId { get; set; }
         public string NIT { get; set; }
         public string Document { get; set; }
+        public bool? IsEnabled { get; set; }
         public int CreatedBy { get; set; }
         public int BranchesId { get; set; }
         [NotMapped] public Branches Branches { get; set; }
@@ -41,17 +42,26 @@ namespace UcbBack.Models
                 condicion = " and ocrd.\"LicTradNum\"= '" + CardCode + "'";
             }
             var auth = new ValidateAuth();
-            var query = "select 0 \"Id\",0 \"CreatedBy\",null \"Document\", ocrd.\"CardCode\" \"SAPId\", ocrd.\"CardName\" \"FullName\",ocrd.\"LicTradNum\" \"NIT\", br.\"Id\" \"BranchesId\"" +
-                        " from " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
-                        " inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".crd8" +
-                        " on ocrd.\"CardCode\" = crd8.\"CardCode\"" +
-                        " inner join " + CustomSchema.Schema + ".\"Branches\" br" +
-                        " on br.\"CodigoSAP\" = crd8.\"BPLId\"" +
-                        " where ocrd.\"validFor\" = 'Y'" +
-                        " and ocrd.\"frozenFor\" = 'N'" +
-                        " and crd8.\"DisabledBP\" = 'N'" +
-                        " and ocrd.\"CardType\" = 'S'" +
-                        condicion;
+            var query =
+        "select " +
+        "  0 \"Id\", " +
+        "  0 \"CreatedBy\", " +
+        "  null \"Document\", " +
+        "  ocrd.\"CardCode\" \"SAPId\", " +
+        "  ocrd.\"CardName\" \"FullName\", " +
+        "  ocrd.\"LicTradNum\" \"NIT\", " +
+        "  br.\"Id\" \"BranchesId\", " +
+        "  TRUE \"IsEnabled\" " +                 //NUEVA COLUMNA
+        " from " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
+        " inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".crd8" +
+        "   on ocrd.\"CardCode\" = crd8.\"CardCode\"" +
+        " inner join " + CustomSchema.Schema + ".\"Branches\" br" +
+        "   on br.\"CodigoSAP\" = crd8.\"BPLId\"" +
+        " where ocrd.\"validFor\" = 'Y'" +
+        "   and ocrd.\"frozenFor\" = 'N'" +
+        "   and crd8.\"DisabledBP\" = 'N'" +
+        "   and ocrd.\"CardType\" = 'S'" +
+            condicion;
 
             var rawresult = _context.Database.SqlQuery<Civil>(query).ToList();
 

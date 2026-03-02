@@ -289,9 +289,12 @@
     <Compile Include="Controllers\AsesoriaDocenteController.cs" />
     <Compile Include="Controllers\AltasContratosController.cs" />
     <Compile Include="Controllers\AsesoriaPostgradoController.cs" />
+    <Compile Include="Controllers\AsigContratosController.cs" />
+    <Compile Include="Controllers\AsignacionesMasivasController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\B1Controller.cs" />
     <Compile Include="Controllers\BranchesController.cs" />
+    <Compile Include="Controllers\EjecucionPagosController.cs" />
     <Compile Include="Controllers\PlanillaInformacionController.cs" />
     <Compile Include="Controllers\ListadoController.cs" />
     <Compile Include="Controllers\DistProcessController.cs" />
@@ -316,6 +319,7 @@
     <Compile Include="Controllers\PeopleController.cs" />
     <Compile Include="Controllers\PerformanceAreaController.cs" />
     <Compile Include="Controllers\PositionController.cs" />
+    <Compile Include="Controllers\ProgramacionPagosController.cs" />
     <Compile Include="Controllers\ProjectModulesController.cs" />
     <Compile Include="Controllers\ResourceController.cs" />
     <Compile Include="Controllers\RolController.cs" />
@@ -331,6 +335,7 @@
     <Compile Include="Logic\B1\B1Connection.cs" />
     <Compile Include="Logic\ExcelFiles\AcademicExcel.cs" />
     <Compile Include="Logic\ExcelFiles\AltasPersonalExcel.cs" />
+    <Compile Include="Logic\ExcelFiles\AsignacionesExcel.cs" />
     <Compile Include="Logic\ExcelFiles\ContractExcel.cs" />
     <Compile Include="Logic\ExcelFiles\DiscountExcel.cs" />
     <Compile Include="Logic\ExcelFiles\ORExcel.cs" />
@@ -354,6 +359,13 @@
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\AccountBindingModels.cs" />
+    <Compile Include="Models\AsigProceso.cs" />
+    <Compile Include="Models\AsignacionCarga.cs" />
+    <Compile Include="Models\AsigContrato.cs" />
+    <Compile Include="Models\EjecucionPago.cs" />
+    <Compile Include="Models\FechaPago.cs" />
+    <Compile Include="Models\PagoProgramado.cs" />
+    <Compile Include="Models\ProgramacionPago.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailListadoSalomon.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailForWatch.cs" />
     <Compile Include="Models\TipoPago.cs" />
@@ -840,6 +852,11 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Views\AsigContratos\" />
+    <Folder Include="Views\AsignacionesExcel\" />
+    <Folder Include="Views\AsignacionesMasivas\" />
+    <Folder Include="Views\EjecucionPagos\" />
+    <Folder Include="Views\ProgramacionPagos\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
