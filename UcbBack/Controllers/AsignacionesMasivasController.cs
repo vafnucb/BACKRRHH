@@ -262,7 +262,7 @@ namespace UcbBack.Controllers
                             model.AssignmentIds.Contains(a.Id))
                 .ToList();
 
-            // NEW: Validate same CI
+            // Validate same CI
             if (asignaciones.Count > 1)
             {
                 var uniqueCIs = asignaciones
@@ -282,17 +282,42 @@ namespace UcbBack.Controllers
                 }
             }
 
+            // NEW: Check for duplicate CodigoParalelo (WARNING, not error)
+            var duplicateCodigoParalelo = asignaciones
+                .Where(a => !string.IsNullOrWhiteSpace(a.CodigoParalelo))
+                .GroupBy(a => a.CodigoParalelo.Trim())
+                .Where(g => g.Count() > 1)
+                .Select(g => new
+                {
+                    CodigoParalelo = g.Key,
+                    Count = g.Count()
+                })
+                .ToList();
+
+            string warning = null;
+            if (duplicateCodigoParalelo.Any())
+            {
+                var codes = string.Join(", ", duplicateCodigoParalelo.Select(d => $"{d.CodigoParalelo} ({d.Count}x)"));
+                warning = $"⚠️ Advertencia: Hay códigos de paralelo duplicados en este contrato: {codes}. " +
+                          "Esto puede ser correcto si el mismo docente dicta múltiples horarios del mismo paralelo.";
+            }
+
+            // Assign contract number
             foreach (var a in asignaciones)
             {
                 a.NumeroContrato = model.ContractNumber;
-                // If you want to store observaciones per assignment, add a field to the model
-                // Otherwise, you could store it at proceso level or in a separate table
             }
 
             proceso.LastUpdateBy = user.Id;
             _context.SaveChanges();
 
-            return Ok();
+            var response = new
+            {
+                Message = "Número de contrato asignado correctamente",
+                Warning = warning
+            };
+
+            return Ok(response);
         }
 
         public class AddAsignacionManualRequest
@@ -698,15 +723,21 @@ namespace UcbBack.Controllers
             if (proceso == null)
                 return BadRequest("El proceso asociado no existe.");
 
-            // 3) Validate permissions 
+            // 3) NEW: Check if proceso is FINALIZADO
+            if (proceso.State == "FINALIZADO")
+            {
+                return Content(
+                    HttpStatusCode.BadRequest,
+                    new { Message = "No se puede eliminar una asignación de un proceso finalizado." }
+                );
+            }
+
+            // 4) Validate permissions 
             var procesosUser = auth
                 .filerByRegional(_context.AsigProcesos, user)
                 .OfType<AsigProceso>();
 
-            /*if (!procesosUser.Any(p => p.Id == proceso.Id))
-                return Unauthorized();*/
-
-            // 4) Delete the assignment
+            // 5) Delete the assignment
             _context.AsignacionesCarga.Remove(asignacion);
             proceso.LastUpdateBy = user.Id;
             _context.SaveChanges();

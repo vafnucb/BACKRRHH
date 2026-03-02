@@ -121,6 +121,7 @@ namespace UcbBack.Controllers
 
         //  2) Get Payments Pending Approval
 
+        //  2) Get Payments Pending Approval
         [HttpGet]
         [Route("GetPagosPendientes")]
         public IHttpActionResult GetPagosPendientes(int? branchId = null, string periodoId = null)
@@ -160,6 +161,8 @@ namespace UcbBack.Controllers
                             a.TercerApellido,
                             a.Nombres,
                             a.NumeroContrato,
+                            a.Sigla,
+                            a.Paralelo,
 
                             // Process
                             proc.BranchesId,
@@ -200,12 +203,14 @@ namespace UcbBack.Controllers
                 p.MontoBruto,
                 p.CiDocente,
                 NombreCompleto = string.Join(" ", new[] {
-                    p.PrimerApellido,
-                    p.SegundoApellido,
-                    p.TercerApellido,
-                    p.Nombres
-                }.Where(s => !string.IsNullOrWhiteSpace(s))),
+            p.PrimerApellido,
+            p.SegundoApellido,
+            p.TercerApellido,
+            p.Nombres
+        }.Where(s => !string.IsNullOrWhiteSpace(s))),
                 p.NumeroContrato,
+                p.Sigla,
+                p.Paralelo,
                 p.BranchesId,
                 p.PeriodoId
             }).ToList();
@@ -249,9 +254,12 @@ namespace UcbBack.Controllers
                             pe.CreatedAt,
 
                             // PagoProgramado
+                            pp.AsignacionCargaId,
                             pp.MesPago,
                             pp.AnioPago,
                             MontoBruto = pp.Monto,
+                            pp.MontoOriginal,
+                            pp.Observaciones,
                             pp.Porcentaje,
                             pp.EsExcepcion,
 
@@ -281,6 +289,23 @@ namespace UcbBack.Controllers
             if (pago == null)
                 return NotFound();
 
+            // NEW: Get all scheduled payments for this assignment
+            var todosLosPagos = _context.PagosProgramados
+                .Where(p => p.AsignacionCargaId == pago.AsignacionCargaId)
+                .OrderBy(p => p.AnioPago)
+                .ThenBy(p => p.MesPago)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.MesPago,
+                    p.AnioPago,
+                    p.Monto,
+                    p.Porcentaje,
+                    p.EsExcepcion,
+                    p.Estado
+                })
+                .ToList();
+
             var result = new
             {
                 // EjecucionPago details
@@ -302,17 +327,19 @@ namespace UcbBack.Controllers
                 pago.MesPago,
                 pago.AnioPago,
                 pago.MontoBruto,
+                pago.MontoOriginal,
+                pago.Observaciones,
                 pago.Porcentaje,
                 pago.EsExcepcion,
 
                 // Assignment details
                 pago.CiDocente,
                 NombreCompleto = string.Join(" ", new[] {
-                    pago.PrimerApellido,
-                    pago.SegundoApellido,
-                    pago.TercerApellido,
-                    pago.Nombres
-                }.Where(s => !string.IsNullOrWhiteSpace(s))),
+            pago.PrimerApellido,
+            pago.SegundoApellido,
+            pago.TercerApellido,
+            pago.Nombres
+        }.Where(s => !string.IsNullOrWhiteSpace(s))),
                 pago.Sigla,
                 pago.Paralelo,
                 pago.CodigoParalelo,
@@ -326,7 +353,10 @@ namespace UcbBack.Controllers
                 pago.ProcesoId,
                 pago.BranchesId,
                 pago.SedeName,
-                pago.PeriodoId
+                pago.PeriodoId,
+
+                // NEW: Payment schedule for entire assignment
+                CalendarioPagos = todosLosPagos
             };
 
             return Ok(result);
@@ -474,9 +504,7 @@ namespace UcbBack.Controllers
             });
         }
 
-        // ---------------------------
         //  6) Approve Multiple Payments in Batch and Generate Excel
-        // ---------------------------
         public class AprobarPagosLoteRequest
         {
             public List<int> PagosIds { get; set; }
