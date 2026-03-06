@@ -149,21 +149,21 @@ namespace UcbBack.Controllers
                     a.Id,
                     p.BranchesId,   // IMPORTANTE para filerByRegional
 
-            // Datos del docente
-            a.CiDocente,
+                    // Datos del docente
+                    a.CiDocente,
                     a.PrimerApellido,
                     a.SegundoApellido,
                     a.TercerApellido,
                     a.Nombres,
 
-            // Datos académicos
-            a.Periodo,
+                    // Datos académicos
+                    a.Periodo,
                     a.Sigla,
                     a.CodigoParalelo,
                     a.Paralelo,
 
-            // Datos de carga horaria
-            a.HorasSemana,
+                    // Datos de carga horaria
+                    a.HorasSemana,
                     a.HorasMes,
                     a.UnidadOrganizacional,
                     a.Sede,
@@ -172,10 +172,10 @@ namespace UcbBack.Controllers
                                       // NEW CALCULATION: HorasMes * CostoHora * CantidadMeses
                     MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
 
-               
 
-            // Número de contrato
-            a.NumeroContrato
+
+                    // Número de contrato
+                    a.NumeroContrato
                 };
 
             // 2) Filtrar por sedes autorizadas (igual que antes)
@@ -297,9 +297,8 @@ namespace UcbBack.Controllers
             string warning = null;
             if (duplicateCodigoParalelo.Any())
             {
-                var codes = string.Join(", ", duplicateCodigoParalelo.Select(d => $"{d.CodigoParalelo} ({d.Count}x)"));
-                warning = $"⚠️ Advertencia: Hay códigos de paralelo duplicados en este contrato: {codes}. " +
-                          "Esto puede ser correcto si el mismo docente dicta múltiples horarios del mismo paralelo.";
+                var codes = string.Join(", ", duplicateCodigoParalelo.Select(d => string.Format("{0} ({1}x)", d.CodigoParalelo, d.Count)));
+                warning = string.Format("⚠️ Advertencia: Hay códigos de paralelo duplicados en este contrato: {0}. Esto puede ser correcto si el mismo docente dicta múltiples horarios del mismo paralelo.", codes);
             }
 
             // Assign contract number
@@ -682,7 +681,7 @@ namespace UcbBack.Controllers
             {
                 return Content(
                     HttpStatusCode.NotFound,
-                    new { Message = $"No se encontró ningún paralelo con Sigla='{sigla}', Paralelo='{paralelo}', Sede='{sedeAbr}', Periodo='{periodo}'" }
+                    new { Message = string.Format("No se encontró ningún paralelo con Sigla='{0}', Paralelo='{1}', Sede='{2}', Periodo='{3}'", sigla, paralelo, sedeAbr, periodo) }
                 );
             }
 
@@ -870,8 +869,8 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigProcesos, user)
                 .OfType<AsigProceso>();
 
-          /*  if (!procesosUser.Any(p => p.Id == procesoId))
-                return Unauthorized();*/
+            /*  if (!procesosUser.Any(p => p.Id == procesoId))
+                  return Unauthorized();*/
 
             // Call private validation method
             var response = ValidarProcesoInterno(procesoId, proceso);
@@ -896,8 +895,8 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigProcesos, user)
                 .OfType<AsigProceso>();
 
-           /* if (!procesosUser.Any(p => p.Id == procesoId))
-                return Unauthorized();*/
+            /* if (!procesosUser.Any(p => p.Id == procesoId))
+                 return Unauthorized();*/
 
             // Check if already finalized
             if (proceso.State == "FINALIZADO")
@@ -929,11 +928,11 @@ namespace UcbBack.Controllers
     .Where(a => a.AsigProcesoId == procesoId
              && a.NumeroContrato != null
              && a.NumeroContrato != "")
-    .ToList();  
+    .ToList();
 
-            
+
             var asignacionesPorContrato = asignacionesConContrato
-                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))  
+                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))
                 .GroupBy(a => a.NumeroContrato.Trim())
                 .ToList();
 
@@ -1001,7 +1000,7 @@ namespace UcbBack.Controllers
             });
         }
 
-      
+
         [NonAction]
         private ValidacionFinalizarResponse ValidarProcesoInterno(int procesoId, AsigProceso proceso)
         {
@@ -1044,7 +1043,7 @@ namespace UcbBack.Controllers
             {
                 response.IsValid = false;
                 response.AsignacionesSinContrato = sinContrato;
-                response.Errors.Add($"Hay {sinContrato.Count} asignación(es) sin número de contrato.");
+                response.Errors.Add(string.Format("Hay {0} asignación(es) sin número de contrato.", sinContrato.Count));
             }
 
             // 3) Get unique contract numbers in this batch
@@ -1081,7 +1080,7 @@ namespace UcbBack.Controllers
             {
                 response.IsValid = false;
                 response.ContratosDuplicados = duplicados;
-                response.Errors.Add($"Hay {duplicados.Count} número(s) de contrato duplicado(s) en la misma sede y período.");
+                response.Errors.Add(string.Format("Hay {0} número(s) de contrato duplicado(s) en la misma sede y período.", duplicados.Count));
             }
 
             return response;
@@ -1129,17 +1128,17 @@ namespace UcbBack.Controllers
             var periodosSorted = periodosRaw
                 .Where(p => !string.IsNullOrWhiteSpace(p) && p.Length >= 4)
                 .OrderByDescending(p => {
-            // Extract last 4 characters (year)
-            var year = p.Substring(p.Length - 4);
+                    // Extract last 4 characters (year)
+                    var year = p.Substring(p.Length - 4);
                     int yearNum;
                     if (int.TryParse(year, out yearNum))
                         return yearNum;
                     return 0; // If not a valid year, put at bottom
-        })
+                })
                 .ThenBy(p => {
-            // Secondary sort by prefix (1S, 2S, A, V, etc.)
-            // This ensures: 2S2025, 1S2025, V2025, A2025 (alphabetical by prefix)
-            if (p.Length > 4)
+                    // Secondary sort by prefix (1S, 2S, A, V, etc.)
+                    // This ensures: 2S2025, 1S2025, V2025, A2025 (alphabetical by prefix)
+                    if (p.Length > 4)
                         return p.Substring(0, p.Length - 4);
                     return p;
                 })
@@ -1179,8 +1178,8 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigProcesos, user)
                 .OfType<AsigProceso>();
 
-           /* if (!procesosUser.Any(p => p.Id == model.ProcesoId))
-                return Unauthorized();*/
+            /* if (!procesosUser.Any(p => p.Id == model.ProcesoId))
+                 return Unauthorized();*/
 
             // Check if already finalized
             if (proceso.State == "FINALIZADO")
