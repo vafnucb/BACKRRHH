@@ -34,7 +34,7 @@ namespace UcbBack.Controllers
             public List<int> PagosIds { get; set; }
         }
 
- 
+
         //  1) Send Payments for Approval
 
         [HttpPost]
@@ -62,7 +62,7 @@ namespace UcbBack.Controllers
             {
                 return Content(
                     HttpStatusCode.BadRequest,
-                    new { Message = $"Hay {sinTipo.Count} pago(s) sin tipo de docente asignado" }
+                    new { Message = string.Format("Hay {0} pago(s) sin tipo de docente asignado", sinTipo.Count) }
                 );
             }
 
@@ -72,7 +72,7 @@ namespace UcbBack.Controllers
             {
                 return Content(
                     HttpStatusCode.BadRequest,
-                    new { Message = $"Hay {yaEnviados.Count} pago(s) que ya fueron enviados o aprobados" }
+                    new { Message = string.Format("Hay {0} pago(s) que ya fueron enviados o aprobados", yaEnviados.Count) }
                 );
             }
 
@@ -483,7 +483,7 @@ namespace UcbBack.Controllers
 
                 // ADD REJECTION REASON TO OBSERVACIONES with timestamp
                 var timestamp = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                var rejectionNote = $"[{timestamp}] PAGO RECHAZADO: {model.MotivoRechazo}";
+                var rejectionNote = string.Format("[{0}] PAGO RECHAZADO: {1}", timestamp, model.MotivoRechazo);
 
                 if (string.IsNullOrWhiteSpace(pagoProgramado.Observaciones))
                 {
@@ -554,7 +554,7 @@ namespace UcbBack.Controllers
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
             {
-                FileName = $"Pagos_Aprobados_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+                FileName = string.Format("Pagos_Aprobados_{0}.xlsx", DateTime.Now.ToString("yyyyMMdd_HHmmss"))
             };
 
             return response;
@@ -685,7 +685,7 @@ namespace UcbBack.Controllers
                 }
 
                 // Format number columns
-                worksheet.Range($"K2:O{row - 1}").Style.NumberFormat.Format = "#,##0.00";
+                worksheet.Range(string.Format("K2:O{0}", row - 1)).Style.NumberFormat.Format = "#,##0.00";
 
                 // Auto-fit columns
                 worksheet.Columns().AdjustToContents();
@@ -825,7 +825,7 @@ namespace UcbBack.Controllers
             catch (Exception ex)
             {
                 // Log error if needed
-                System.Diagnostics.Debug.WriteLine($"Error getting Cod_Dependencia: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine(string.Format("Error getting Cod_Dependencia: {0}", ex.Message));
                 return "";
             }
         }

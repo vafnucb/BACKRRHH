@@ -2387,11 +2387,10 @@ namespace UcbBack.Controllers
                         "SELECT p.\"CUNI\", p.\"Names\", p.\"FirstSurName\", p.\"SecondSurName\" " +
                         "FROM " + CustomSchema.Schema + ".\"People\" p " +
                         "WHERE p.\"CUNI\" IN (" + string.Join(",", teacherCUNIs.Select(t => string.Format("'{0}'", t))) + ")";
-
                     var rawTeacherCUNINames = _context.Database.SqlQuery<TeacherCUNIModel>(teacherCUNIQuery).ToList();
                     teacherCUNINames = rawTeacherCUNINames.ToDictionary(
                         x => x.CUNI,
-                        x => $"{x.Names?.Trim()} {x.FirstSurName?.Trim()} {x.SecondSurName?.Trim()}".Trim()
+                        x => string.Format("{0} {1} {2}", x.Names?.Trim(), x.FirstSurName?.Trim(), x.SecondSurName?.Trim()).Trim()
                     );
                 }
 

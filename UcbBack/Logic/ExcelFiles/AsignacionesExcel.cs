@@ -79,7 +79,12 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
         private class ExcelError
         {
             public int RowNumber { get; set; }
-            public List<string> Messages { get; set; } = new List<string>();
+            public List<string> Messages { get; set; }
+
+            public ExcelError()
+            {
+                Messages = new List<string>();
+            }
         }
 
         public bool ValidateFile(out HttpResponseMessage errorResponse)
@@ -192,7 +197,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
                             if (!similares.Any())
                             {
-                                rowErrors.Add($"No existe ningún registro en Civil con NIT = {ciDocente}.");
+                                rowErrors.Add(string.Format("No existe ningún registro en Civil con NIT = {0}.", ciDocente));
                             }
                             else
                             {
@@ -210,17 +215,17 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                             .Select(id =>
                                                 _branchesNames != null && _branchesNames.ContainsKey(id)
                                                     ? _branchesNames[id]
-                                                    : $"Sede {id}")
+                                                    : string.Format("Sede {0}", id))
                                             .ToList();
 
-                                        return $"{g.Key} (Sedes: {string.Join(", ", sedesNombres)})";
+                                        return string.Format("{0} (Sedes: {1})", g.Key, string.Join(", ", sedesNombres));
                                     })
                                     .ToList();
 
                                 rowErrors.Add(
-                                    $"No existe un NIT exactamente igual a {ciDocente} en Civil, " +
-                                    $"pero se encontraron NIT similares: {string.Join("; ", candidatosTexto)}. " +
-                                    $"Verifique si alguno de ellos corresponde al docente."
+                                    string.Format("No existe un NIT exactamente igual a {0} en Civil, ", ciDocente) +
+                                    string.Format("pero se encontraron NIT similares: {0}. ", string.Join("; ", candidatosTexto)) +
+                                    "Verifique si alguno de ellos corresponde al docente."
                                 );
                             }
                         }
@@ -240,17 +245,17 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                     .Select(id =>
                                         _branchesNames != null && _branchesNames.ContainsKey(id)
                                             ? _branchesNames[id]
-                                            : $"Sede {id}")
+                                            : string.Format("Sede {0}", id))
                                     .ToList();
 
                                 string sedeProcesoNombre =
                                     _branchesNames != null && _branchesNames.ContainsKey(branchIdProceso)
                                         ? _branchesNames[branchIdProceso]
-                                        : $"Sede {branchIdProceso}";
+                                        : string.Format("Sede {0}", branchIdProceso);
 
                                 rowErrors.Add(
-                                    $"El CI {ciDocente} existe en Civil pero en otras sedes ({string.Join(", ", otrasSedesNombres)}), " +
-                                    $"no en la sede seleccionada ({sedeProcesoNombre}).");
+                                    string.Format("El CI {0} existe en Civil pero en otras sedes ({1}), no en la sede seleccionada ({2}).",
+                                        ciDocente, string.Join(", ", otrasSedesNombres), sedeProcesoNombre));
                             }
                             else
                             {
@@ -270,16 +275,16 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
                                 // Excel: opción 1 -> Primer + Segundo + Tercer + Nombres
                                 var excelFullName1 = normalize(
-                                    $"{primerApellido} {segundoApellido} {tercerApellido} {nombres}"
+                                    string.Format("{0} {1} {2} {3}", primerApellido, segundoApellido, tercerApellido, nombres)
                                 );
 
                                 // Excel: opción 2 -> Segundo + Primer + Tercer + Nombres
                                 var excelFullName2 = normalize(
-                                    $"{segundoApellido} {primerApellido} {tercerApellido} {nombres}"
+                                    string.Format("{0} {1} {2} {3}", segundoApellido, primerApellido, tercerApellido, nombres)
                                 );
-                                // Excel: opción 2 -> Nombre + Primer + Segundo + Tercer
+                                // Excel: opción 3 -> Nombre + Primer + Segundo + Tercer
                                 var excelFullName3 = normalize(
-                                    $"{nombres} {primerApellido} {segundoApellido} {tercerApellido}"
+                                    string.Format("{0} {1} {2} {3}", nombres, primerApellido, segundoApellido, tercerApellido)
                                 );
 
 
@@ -310,8 +315,8 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                         : "(sin nombre registrado)";
 
                                     rowErrors.Add(
-                                        $"El CI {ciDocente} existe en Civil para la sede seleccionada, " +
-                                        $"pero el nombre no coincide. En Civil figura como: {listadoCivil}. " +
+                                        string.Format("El CI {0} existe en Civil para la sede seleccionada, ", ciDocente) +
+                                        string.Format("pero el nombre no coincide. En Civil figura como: {0}. ", listadoCivil) +
                                         "Verifique que el CI y los apellidos/nombres del Excel correspondan al mismo docente."
                                     );
                                 }
@@ -320,7 +325,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                         }
                     }
 
-                   
+
                     bool faltanCamposParalelo = false;
 
                     if (string.IsNullOrEmpty(codigoParalelo))
@@ -372,7 +377,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                         {
                             // Si no existe el código, ahí mismo paramos
                             rowErrors.Add(
-                                $"No existe ningún registro en T_REG_PARALELOS_NS con Codigo_Paralelo = '{codigoParalelo}'.");
+                                string.Format("No existe ningún registro en T_REG_PARALELOS_NS con Codigo_Paralelo = '{0}'.", codigoParalelo));
                         }
                         else
                         {
@@ -384,19 +389,19 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                             if (!periodoOk)
                             {
                                 rowErrors.Add(
-                                    $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Periodo = '{periodo}'.");
+                                    string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Periodo = '{1}'.", codigoParalelo, periodo));
                             }
 
                             if (!siglaOk)
                             {
                                 rowErrors.Add(
-                                    $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Sigla = '{sigla}'.");
+                                    string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Sigla = '{1}'.", codigoParalelo, sigla));
                             }
 
                             if (!paraleloOk)
                             {
                                 rowErrors.Add(
-                                    $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Paralelo = '{paralelo}'.");
+                                    string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Paralelo = '{1}'.", codigoParalelo, paralelo));
                             }
 
                             // ======== VALIDACIÓN PERÍODO VS PERÍODO SELECCIONADO EN EL PROCESO ========
@@ -408,7 +413,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                 if (!string.Equals(periodo, periodoProceso, StringComparison.OrdinalIgnoreCase))
                                 {
                                     rowErrors.Add(
-                                        $"El período '{periodo}' de la fila no coincide con el período seleccionado en el paso 1 ('{periodoProceso}')."
+                                        string.Format("El período '{0}' de la fila no coincide con el período seleccionado en el paso 1 ('{1}').", periodo, periodoProceso)
                                     );
                                 }
                             }
@@ -542,7 +547,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
             var codigoParalelo = row.Cell(colIdx["Codigo_Paralelo"]).GetString().Trim();
             var paralelo = row.Cell(colIdx["Paralelo"]).GetString().Trim();
 
-            // 1) Intento “ideal”: match por código + periodo + sigla + paralelo
+            // 1) Intento "ideal": match por código + periodo + sigla + paralelo
             var paraleloDb = _paralelosDb.FirstOrDefault(p =>
                 p.CODIGOSAP == codigoParalelo &&
                 p.PERIODOSAP == periodo &&
@@ -639,7 +644,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
                     if (!similares.Any())
                     {
-                        rowErrors.Add($"No existe ningún registro en Civil con NIT = {ciDocente}.");
+                        rowErrors.Add(string.Format("No existe ningún registro en Civil con NIT = {0}.", ciDocente));
                     }
                     else
                     {
@@ -657,17 +662,17 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                     .Select(id =>
                                         _branchesNames != null && _branchesNames.ContainsKey(id)
                                             ? _branchesNames[id]
-                                            : $"Sede {id}")
+                                            : string.Format("Sede {0}", id))
                                     .ToList();
 
-                                return $"{g.Key} (Sedes: {string.Join(", ", sedesNombres)})";
+                                return string.Format("{0} (Sedes: {1})", g.Key, string.Join(", ", sedesNombres));
                             })
                             .ToList();
 
                         rowErrors.Add(
-                            $"No existe un NIT exactamente igual a {ciDocente} en Civil, " +
-                            $"pero se encontraron NIT similares: {string.Join("; ", candidatosTexto)}. " +
-                            $"Verifique si alguno de ellos corresponde al docente."
+                            string.Format("No existe un NIT exactamente igual a {0} en Civil, ", ciDocente) +
+                            string.Format("pero se encontraron NIT similares: {0}. ", string.Join("; ", candidatosTexto)) +
+                            "Verifique si alguno de ellos corresponde al docente."
                         );
                     }
                 }
@@ -687,17 +692,17 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                             .Select(id =>
                                 _branchesNames != null && _branchesNames.ContainsKey(id)
                                     ? _branchesNames[id]
-                                    : $"Sede {id}")
+                                    : string.Format("Sede {0}", id))
                             .ToList();
 
                         string sedeProcesoNombre =
                             _branchesNames != null && _branchesNames.ContainsKey(branchIdProceso)
                                 ? _branchesNames[branchIdProceso]
-                                : $"Sede {branchIdProceso}";
+                                : string.Format("Sede {0}", branchIdProceso);
 
                         rowErrors.Add(
-                            $"El CI {ciDocente} existe en Civil pero en otras sedes ({string.Join(", ", otrasSedesNombres)}), " +
-                            $"no en la sede seleccionada ({sedeProcesoNombre}).");
+                            string.Format("El CI {0} existe en Civil pero en otras sedes ({1}), no en la sede seleccionada ({2}).",
+                                ciDocente, string.Join(", ", otrasSedesNombres), sedeProcesoNombre));
                     }
                     else
                     {
@@ -717,17 +722,17 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
                         // Excel: opción 1 -> Primer + Segundo + Tercer + Nombres
                         var excelFullName1 = normalize(
-                            $"{primerApellido} {segundoApellido} {tercerApellido} {nombres}"
+                            string.Format("{0} {1} {2} {3}", primerApellido, segundoApellido, tercerApellido, nombres)
                         );
 
                         // Excel: opción 2 -> Segundo + Primer + Tercer + Nombres
                         var excelFullName2 = normalize(
-                            $"{segundoApellido} {primerApellido} {tercerApellido} {nombres}"
+                            string.Format("{0} {1} {2} {3}", segundoApellido, primerApellido, tercerApellido, nombres)
                         );
 
                         // Excel: opción 3 -> Nombres + Primer + Segundo + Tercer
                         var excelFullName3 = normalize(
-                            $"{nombres} {primerApellido} {segundoApellido} {tercerApellido}"
+                            string.Format("{0} {1} {2} {3}", nombres, primerApellido, segundoApellido, tercerApellido)
                         );
 
                         var coincidenciasNombre = civilesMismaSede
@@ -755,8 +760,8 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                                 : "(sin nombre registrado)";
 
                             rowErrors.Add(
-                                $"El CI {ciDocente} existe en Civil para la sede seleccionada, " +
-                                $"pero el nombre no coincide. En Civil figura como: {listadoCivil}. " +
+                                string.Format("El CI {0} existe en Civil para la sede seleccionada, ", ciDocente) +
+                                string.Format("pero el nombre no coincide. En Civil figura como: {0}. ", listadoCivil) +
                                 "Verifique que el CI y los apellidos/nombres del Excel correspondan al mismo docente."
                             );
                         }
@@ -799,7 +804,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                 if (!candidatosCodigo.Any())
                 {
                     rowErrors.Add(
-                        $"No existe ningún registro en T_REG_PARALELOS_NS con Codigo_Paralelo = '{codigoParalelo}'.");
+                        string.Format("No existe ningún registro en T_REG_PARALELOS_NS con Codigo_Paralelo = '{0}'.", codigoParalelo));
                 }
                 else
                 {
@@ -811,19 +816,19 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                     if (!periodoOk)
                     {
                         rowErrors.Add(
-                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Periodo = '{periodo}'.");
+                            string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Periodo = '{1}'.", codigoParalelo, periodo));
                     }
 
                     if (!siglaOk)
                     {
                         rowErrors.Add(
-                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Sigla = '{sigla}'.");
+                            string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Sigla = '{1}'.", codigoParalelo, sigla));
                     }
 
                     if (!paraleloOk)
                     {
                         rowErrors.Add(
-                            $"Para el Codigo_Paralelo '{codigoParalelo}' no existe ningún registro con Paralelo = '{paralelo}'.");
+                            string.Format("Para el Codigo_Paralelo '{0}' no existe ningún registro con Paralelo = '{1}'.", codigoParalelo, paralelo));
                     }
 
                     // ======== VALIDACIÓN PERÍODO VS PERÍODO SELECCIONADO EN EL PROCESO ========
@@ -835,7 +840,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
                         if (!string.Equals(periodo, periodoProceso, StringComparison.OrdinalIgnoreCase))
                         {
                             rowErrors.Add(
-                                $"El período '{periodo}' de la fila no coincide con el período seleccionado en el paso 1 ('{periodoProceso}')."
+                                string.Format("El período '{0}' de la fila no coincide con el período seleccionado en el paso 1 ('{1}').", periodo, periodoProceso)
                             );
                         }
                     }
@@ -925,7 +930,7 @@ namespace UcbBack.Logic.ExcelFiles.Asignaciones
 
             for (int i = 0; i < missingColumns.Count; i++)
             {
-                errorSheet.Cell(4 + i, 1).Value = $"• {missingColumns[i]}";
+                errorSheet.Cell(4 + i, 1).Value = string.Format("• {0}", missingColumns[i]);
                 errorSheet.Cell(4 + i, 1).Style.Fill.BackgroundColor = XLColor.LightYellow;
             }
 

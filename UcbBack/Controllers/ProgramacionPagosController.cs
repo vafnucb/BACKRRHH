@@ -495,34 +495,34 @@ namespace UcbBack.Controllers
 
         [NonAction]
         private string GetMonthName(int mes)
-        { 
+        {
             var meses = new[] { "", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
                                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre" };
             return mes >= 1 && mes <= 12 ? meses[mes] : "";
         }
 
-    /*
-        [Route("GetPlantillas")]
-        public IHttpActionResult GetPlantillas()
-        {
-            var user = auth.getUser(Request);
-            if (user == null)
-                return Unauthorized();
+        /*
+            [Route("GetPlantillas")]
+            public IHttpActionResult GetPlantillas()
+            {
+                var user = auth.getUser(Request);
+                if (user == null)
+                    return Unauthorized();
 
-            var plantillas = _context.ProgramacionPagos
-                .Where(p => p.EsPlantilla == true)
-                .OrderByDescending(p => p.CreatedAt)
-                .Select(p => new
-                {
-                    p.Id,
-                    p.NombrePlantilla,
-                    p.Descripcion,
-                    TotalMeses = _context.FechasPago.Count(f => f.ProgramacionPagosId == p.Id)
-                })
-                .ToList();
+                var plantillas = _context.ProgramacionPagos
+                    .Where(p => p.EsPlantilla == true)
+                    .OrderByDescending(p => p.CreatedAt)
+                    .Select(p => new
+                    {
+                        p.Id,
+                        p.NombrePlantilla,
+                        p.Descripcion,
+                        TotalMeses = _context.FechasPago.Count(f => f.ProgramacionPagosId == p.Id)
+                    })
+                    .ToList();
 
-            return Ok(plantillas);
-        }*/
+                return Ok(plantillas);
+            }*/
 
         //  Get Existing Schedule
         [HttpGet]
@@ -744,11 +744,11 @@ namespace UcbBack.Controllers
             if (!string.IsNullOrWhiteSpace(model.ObservacionCambio))
             {
                 var timestamp = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                var newObservation = $"[{timestamp}] {model.ObservacionCambio}";
+                var newObservation = string.Format("[{0}] {1}", timestamp, model.ObservacionCambio);
 
                 if (montoChanged)
                 {
-                    newObservation = $"[{timestamp}] Cambio de monto: {model.ObservacionCambio}";
+                    newObservation = string.Format("[{0}] Cambio de monto: {1}", timestamp, model.ObservacionCambio);
                 }
 
                 if (string.IsNullOrWhiteSpace(pago.Observaciones))
@@ -924,7 +924,7 @@ namespace UcbBack.Controllers
             {
                 return Content(
                     HttpStatusCode.BadRequest,
-                    new { Message = $"Hay {sinTipo.Count} pago(s) sin tipo de docente asignado" }
+                    new { Message = string.Format("Hay {0} pago(s) sin tipo de docente asignado", sinTipo.Count) }
                 );
             }
 
@@ -934,7 +934,7 @@ namespace UcbBack.Controllers
             {
                 return Content(
                     HttpStatusCode.BadRequest,
-                    new { Message = $"Hay {yaEnviados.Count} pago(s) que ya fueron enviados o aprobados" }
+                    new { Message = string.Format("Hay {0} pago(s) que ya fueron enviados o aprobados", yaEnviados.Count) }
                 );
             }
 
