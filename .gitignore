@@ -1,4 +1,4 @@
-﻿﻿# .gitignore para proyectos C#
+# .gitignore para proyectos C#
 
 # Archivos de usuario de Visual Studio
 .vs/
@@ -7,8 +7,5 @@
 
 *.suo
 *.userosscache
-<<<<<<< HEAD
 *.sln.docstates
-=======
 *.cache
->>>>>>> devBack
