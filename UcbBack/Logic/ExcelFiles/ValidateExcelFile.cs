@@ -767,7 +767,7 @@ namespace UcbBack.Logic
                 //todo comparar con el nombre que esta en SAP ya no usar el nombre que está en la tabla CIVIL solo utilizar el código
                 //todo verificar la validacion del socio de negocio con la regional en sap
                 //var BPog = 
-                Civil BP = _context.Database.SqlQuery<Civil>("select c.\"Id\", ocrd.\"CardName\" \"FullName\", c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"BranchesId\", c.\"CreatedBy\"\r\nfrom "+ ConfigurationManager.AppSettings["B1CompanyDB"] +".ocrd\r\ninner join " + CustomSchema.Schema + ".\"Civil\" c on c.\"SAPId\" = ocrd.\"CardCode\"\r\nwhere c.\"SAPId\" = '" + CardCode + "'").FirstOrDefault();
+                Civil BP = _context.Database.SqlQuery<Civil>("select c.\"Id\", ocrd.\"CardName\" \"FullName\", c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"BranchesId\", c.\"CreatedBy\", c.\"IsEnabled\"\r\nfrom " + ConfigurationManager.AppSettings["B1CompanyDB"] +".ocrd\r\ninner join " + CustomSchema.Schema + ".\"Civil\" c on c.\"SAPId\" = ocrd.\"CardCode\"\r\nwhere c.\"SAPId\" = '" + CardCode + "'").FirstOrDefault();
 
                 if (BP == null)
                 {
