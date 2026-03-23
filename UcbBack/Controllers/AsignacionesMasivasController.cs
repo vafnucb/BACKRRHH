@@ -785,11 +785,11 @@ namespace UcbBack.Controllers
                             p.State
                         };
 
-            // 3) Get total count before pagination
-            var total = query.Count();
-
-            // 4) Apply pagination
-            var procesos = query
+            // 3) Materialize to avoid LINQ to Entities issues with filerByRegional
+            var materialized = query.ToList();
+            var total = materialized.Count;
+            // 4) Apply pagination in memory
+            var procesos = materialized
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
