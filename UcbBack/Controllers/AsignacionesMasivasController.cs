@@ -764,14 +764,8 @@ namespace UcbBack.Controllers
             var user = auth.getUser(Request);
             if (user == null)
                 return Unauthorized();
-
-            // 1) Get processes with regional filtering
-            var procesosBase = auth
-                .filerByRegional(_context.AsigProcesos, user)
-                .OfType<AsigProceso>();
-
-            // 2) Join with Branches to get Abr and Name
-            var query = from p in procesosBase
+            // 1) Join first, then filter by regional (same pattern as GetContratos)
+            var query = from p in _context.AsigProcesos
                         join b in _context.Branch on p.BranchesId equals b.Id
                         orderby p.CreatedAt descending
                         select new
@@ -784,29 +778,31 @@ namespace UcbBack.Controllers
                             p.CreatedAt,
                             p.State
                         };
-
-            // 3) Materialize to avoid LINQ to Entities issues with filerByRegional
-            var materialized = query.ToList();
+            // 2) Apply regional filtering and materialize
+            var materialized = auth.filerByRegional(query.AsQueryable(), user).ToList();
             var total = materialized.Count;
-            // 4) Apply pagination in memory
+            // 3) Apply pagination in memory
             var procesos = materialized
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            // 5) Count asignaciones for each proceso
-            var items = procesos.Select(p => new ProcesoListItem
+            // 4) Count asignaciones for each proceso
+            var items = new List<ProcesoListItem>();
+            foreach (var p in procesos)
             {
-                Id = p.Id,
-                BranchesId = p.BranchesId,
-                SedeAbr = p.SedeAbr ?? "",
-                PeriodoId = p.PeriodoId ?? "",
-                CreatedAt = p.CreatedAt,
-                State = p.State ?? "INICIADO",
-                TotalAsignaciones = _context.AsignacionesCarga
-                    .Count(a => a.AsigProcesoId == p.Id)
-            }).ToList();
-
+                int procesoId = (int)p.Id;
+                items.Add(new ProcesoListItem
+                {
+                    Id = p.Id,
+                    BranchesId = p.BranchesId,
+                    SedeAbr = p.SedeAbr ?? "",
+                    PeriodoId = p.PeriodoId ?? "",
+                    CreatedAt = p.CreatedAt,
+                    State = p.State ?? "INICIADO",
+                    TotalAsignaciones = _context.AsignacionesCarga
+                        .Count(a => a.AsigProcesoId == procesoId)
+                });
+            }
             return Ok(new
             {
                 Items = items,
