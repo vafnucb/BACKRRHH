@@ -98,10 +98,12 @@ namespace UcbBack.Controllers
                         x.Document,
                         x.CreatedBy,
                         x.BranchesId,
-                        x.IsEnabled, // NEW
-                Abr = x.BranchesId != null
+                        x.IsEnabled,
+                        Abr = x.BranchesId != null
                             ? _context.Branch.Where(br => br.Id == x.BranchesId).FirstOrDefault().Abr
-                            : ""
+                            : "",
+                        BankName = _context.CivilExtras.Where(ce => ce.CivilId == x.Id).Select(ce => ce.BankName).FirstOrDefault() ?? "",
+                        BankAccountNumber = _context.CivilExtras.Where(ce => ce.CivilId == x.Id).Select(ce => ce.BankAccountNumber).FirstOrDefault() ?? ""
                     });
 
                 var res = auth.filerByRegional(rawresult.AsQueryable(), user);
