@@ -1173,5 +1173,78 @@ namespace UcbBack.Controllers
 
             return Ok(response);
         }
+
+        // 11) Get Excel Values for Multiple Payments (for PDF generation)
+        [HttpPost]
+        [Route("GetValoresExcelLote")]
+        public IHttpActionResult GetValoresExcelLote([FromBody] AprobarPagosLoteRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.PagosIds == null || !model.PagosIds.Any())
+                return BadRequest("No se enviaron IDs de pagos");
+
+            var pagos = _context.EjecucionPagos
+                .Where(ep => model.PagosIds.Contains(ep.Id))
+                .ToList();
+
+            if (!pagos.Any())
+                return BadRequest("No se encontraron pagos con los IDs proporcionados");
+
+            var result = new List<ExcelValoresResponse>();
+
+            foreach (var pago in pagos)
+            {
+                var pagoProgramado = _context.PagosProgramados.FirstOrDefault(p => p.Id == pago.PagoProgramadoId);
+                var asignacion = pagoProgramado != null
+                    ? _context.AsignacionesCarga.FirstOrDefault(a => a.Id == pagoProgramado.AsignacionCargaId)
+                    : null;
+                var proceso = asignacion != null
+                    ? _context.AsigProcesos.FirstOrDefault(ap => ap.Id == asignacion.AsigProcesoId)
+                    : null;
+                var programacion = pagoProgramado != null && pagoProgramado.ProgramacionPagosId.HasValue
+                    ? _context.ProgramacionPagos.FirstOrDefault(pg => pg.Id == pagoProgramado.ProgramacionPagosId.Value)
+                    : null;
+
+                var codigoSocio = GetCodigoSocio(asignacion);
+                var nombreSocio = asignacion != null
+                    ? string.Join(" ", new[] {
+                        asignacion.PrimerApellido,
+                        asignacion.SegundoApellido,
+                        asignacion.TercerApellido,
+                        asignacion.Nombres
+                    }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    : "";
+                var codDependencia = GetCodDependencia(asignacion?.UnidadOrganizacional, proceso?.BranchesId);
+
+                var montoIUE = RoundTo2Decimals(CalculateMontoIUE(pago.MontoContrato, pago.TipoDocente));
+                var montoIT = RoundTo2Decimals(CalculateMontoIT(pago.MontoContrato, pago.TipoDocente));
+                var iueExterior = RoundTo2Decimals(CalculateIUEExterior(pago.MontoContrato, pago.TipoDocente));
+
+                result.Add(new ExcelValoresResponse
+                {
+                    CodigoSocio = codigoSocio,
+                    NombreSocio = nombreSocio,
+                    CodDependencia = codDependencia,
+                    PEIPO = "PO",
+                    NombreDelServicio = programacion?.NombrePlantilla ?? "",
+                    PeriodoAcademico = proceso?.PeriodoId ?? "",
+                    SiglaAsignatura = asignacion?.Sigla ?? "",
+                    Paralelo = asignacion?.Paralelo ?? "",
+                    CodigoParaleloSAP = asignacion?.CodigoParalelo ?? "",
+                    CuentaAsignada = "CC_TEMPORAL",
+                    MontoContrato = RoundTo2Decimals(pago.MontoContrato),
+                    MontoIUE = montoIUE,
+                    MontoIT = montoIT,
+                    IUEExterior = iueExterior,
+                    MontoAPagar = RoundTo2Decimals(pago.MontoReal),
+                    Observaciones = pagoProgramado?.Observaciones ?? ""
+                });
+            }
+
+            return Ok(result);
+        }
     }
 }
