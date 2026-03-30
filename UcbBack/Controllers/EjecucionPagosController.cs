@@ -678,8 +678,8 @@ namespace UcbBack.Controllers
                     // O - Monto_a_Pagar (after taxes) - ROUNDED
                     worksheet.Cell(row, 15).Value = RoundTo2Decimals(pago.MontoReal);
 
-                    // P - Observaciones (from PagoProgramado)
-                    worksheet.Cell(row, 16).Value = pagoProgramado?.Observaciones ?? "";
+                    // P - Observaciones (from PagoProgramado + Bank Info)
+                    worksheet.Cell(row, 16).Value = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion);
 
                     row++;
                 }
@@ -1240,11 +1240,39 @@ namespace UcbBack.Controllers
                     MontoIT = montoIT,
                     IUEExterior = iueExterior,
                     MontoAPagar = RoundTo2Decimals(pago.MontoReal),
-                    Observaciones = pagoProgramado?.Observaciones ?? ""
+                    Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion)
                 });
             }
 
             return Ok(result);
+        }
+        [NonAction]
+        private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion)
+        {
+            string obs = observaciones ?? "";
+
+            if (asignacion != null && !string.IsNullOrWhiteSpace(asignacion.CiDocente))
+            {
+                var civil = _context.Civils.FirstOrDefault(c => c.NIT == asignacion.CiDocente || c.Document == asignacion.CiDocente);
+                if (civil != null)
+                {
+                    var civilExtra = _context.CivilExtras.FirstOrDefault(ce => ce.CivilId == civil.Id);
+                    if (civilExtra != null && (!string.IsNullOrWhiteSpace(civilExtra.BankName) || !string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber)))
+                    {
+                        string bankInfo = "";
+                        if (!string.IsNullOrWhiteSpace(civilExtra.BankName))
+                            bankInfo += "Banco: " + civilExtra.BankName;
+                        if (!string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber))
+                            bankInfo += (bankInfo.Length > 0 ? " | " : "") + "Cuenta: " + civilExtra.BankAccountNumber;
+
+                        obs = string.IsNullOrWhiteSpace(obs)
+                            ? bankInfo
+                            : obs + " | " + bankInfo;
+                    }
+                }
+            }
+
+            return obs;
         }
     }
 }
