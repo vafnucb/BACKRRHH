@@ -83,6 +83,7 @@ namespace UcbBack.Controllers
             public int CantidadMeses { get; set; }
             public string Sede { get; set; }
             public string UnidadOrganizacional { get; set; }
+            public string NombreMateria { get; set; }
         }
 
         public class UpdateEstadoRequest
@@ -216,9 +217,6 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigContratos, user)
                 .OfType<AsigContrato>();
 
-            /*if (!contratosUser.Any(c => c.Id == contratoId))
-                return Unauthorized(); */
-
             // Get branch info
             var branch = _context.Branch.FirstOrDefault(b => b.Id == contrato.BranchesId);
 
@@ -263,11 +261,35 @@ namespace UcbBack.Controllers
                     CantidadMeses = a.CantidadMeses,
                     MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
                     Sede = a.Sede,
-                    UnidadOrganizacional = a.UnidadOrganizacional
+                    UnidadOrganizacional = a.UnidadOrganizacional,
+                    NombreMateria = GetNombreMateria(a.CodigoParalelo)
                 }).ToList()
             };
 
             return Ok(response);
+        }
+
+        [NonAction]
+        private string GetNombreMateria(string codigoParalelo)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codigoParalelo))
+                    return "";
+
+                var sql = "SELECT NOMBREMATERIA FROM ADMNAL.T_REG_PARALELOS_NS " +
+                          "WHERE CODIGOSAP = :codigo";
+
+                var result = _context.Database.SqlQuery<string>(sql,
+                    new Sap.Data.Hana.HanaParameter("codigo", codigoParalelo.Trim())
+                ).FirstOrDefault();
+
+                return result ?? "";
+            }
+            catch
+            {
+                return "";
+            }
         }
 
 

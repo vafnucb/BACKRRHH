@@ -289,7 +289,7 @@ namespace UcbBack.Controllers
             if (pago == null)
                 return NotFound();
 
-            // NEW: Get all scheduled payments for this assignment
+            // Get all scheduled payments for this assignment
             var todosLosPagos = _context.PagosProgramados
                 .Where(p => p.AsignacionCargaId == pago.AsignacionCargaId)
                 .OrderBy(p => p.AnioPago)
@@ -348,6 +348,7 @@ namespace UcbBack.Controllers
                 pago.CostoHora,
                 pago.CantidadMeses,
                 MontoTotalAsignacion = pago.HorasMes * pago.CostoHora * pago.CantidadMeses,
+                NombreMateria = GetNombreMateria(pago.CodigoParalelo),
 
                 // Process details
                 pago.ProcesoId,
@@ -355,16 +356,38 @@ namespace UcbBack.Controllers
                 pago.SedeName,
                 pago.PeriodoId,
 
-                // NEW: Payment schedule for entire assignment
+                // Payment schedule for entire assignment
                 CalendarioPagos = todosLosPagos
             };
 
             return Ok(result);
         }
 
-        // ---------------------------
+        [NonAction]
+        private string GetNombreMateria(string codigoParalelo)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(codigoParalelo))
+                    return "";
+
+                var sql = "SELECT NOMBREMATERIA FROM ADMNAL.T_REG_PARALELOS_NS " +
+                          "WHERE CODIGOSAP = :codigo";
+
+                var result = _context.Database.SqlQuery<string>(sql,
+                    new Sap.Data.Hana.HanaParameter("codigo", codigoParalelo.Trim())
+                ).FirstOrDefault();
+
+                return result ?? "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
         //  4) Approve Payment
-        // ---------------------------
+  
         public class AprobarPagoRequest
         {
             public int PagoEjecutadoId { get; set; }

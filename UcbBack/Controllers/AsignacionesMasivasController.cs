@@ -168,10 +168,9 @@ namespace UcbBack.Controllers
                     a.UnidadOrganizacional,
                     a.Sede,
                     a.CostoHora,
-                    a.CantidadMeses,  // NEW
-                                      // NEW CALCULATION: HorasMes * CostoHora * CantidadMeses
+                    a.CantidadMeses,
+                                      
                     MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
-
 
 
                     // Número de contrato
