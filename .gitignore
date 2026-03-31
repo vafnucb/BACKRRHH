@@ -4,8 +4,11 @@
 .vs/
 
 # Carpeta de archivos temporales generados por Visual Studio
-
 *.suo
 *.userosscache
 *.sln.docstates
 *.cache
+
+# Build output - prevent obj files from being tracked
+UcbBack/obj/Debug/UcbBack.dll
+UcbBack/obj/Debug/UcbBack.pdb
