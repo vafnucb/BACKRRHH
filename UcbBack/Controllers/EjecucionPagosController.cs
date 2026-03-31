@@ -1273,35 +1273,20 @@ namespace UcbBack.Controllers
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion)
         {
             string obs = observaciones ?? "";
-            string debug = "[DEBUG: ";
-
             if (asignacion == null)
-                return obs + " " + debug + "asignacion=null]";
-
-            debug += "CI=" + (asignacion.CiDocente ?? "null") + ", ";
+                return obs;
 
             string sapId = GetCodigoSocio(asignacion);
-            debug += "SAPId=" + (sapId ?? "null") + ", ";
-
             if (string.IsNullOrWhiteSpace(sapId))
-                return obs + " " + debug + "NO_SAPID]";
+                return obs;
 
             var civil = _context.Civils.FirstOrDefault(c => c.SAPId == sapId);
-            debug += "CivilFound=" + (civil != null);
-
             if (civil == null)
-                return obs + " " + debug + "]";
-
-            debug += " CivilId=" + civil.Id + ", ";
+                return obs;
 
             var civilExtra = _context.CivilExtras.FirstOrDefault(ce => ce.CivilId == civil.Id);
-            debug += "ExtraFound=" + (civilExtra != null);
-
-            if (civilExtra != null)
-                debug += " Bank=" + (civilExtra.BankName ?? "null") + " Acct=" + (civilExtra.BankAccountNumber ?? "null");
-
             if (civilExtra == null || (string.IsNullOrWhiteSpace(civilExtra.BankName) && string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber)))
-                return obs + " " + debug + " NO_BANK_DATA]";
+                return obs;
 
             string bankInfo = "";
             if (!string.IsNullOrWhiteSpace(civilExtra.BankName))
@@ -1310,8 +1295,8 @@ namespace UcbBack.Controllers
                 bankInfo += (bankInfo.Length > 0 ? " | " : "") + "Cuenta: " + civilExtra.BankAccountNumber;
 
             return string.IsNullOrWhiteSpace(obs)
-                ? bankInfo + " " + debug + "]"
-                : obs + " | " + bankInfo + " " + debug + "]";
+                ? bankInfo
+                : obs + " | " + bankInfo;
         }
     }
 }
