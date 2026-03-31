@@ -1273,29 +1273,31 @@ namespace UcbBack.Controllers
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion)
         {
             string obs = observaciones ?? "";
+            if (asignacion == null)
+                return obs;
 
-            if (asignacion != null && !string.IsNullOrWhiteSpace(asignacion.CiDocente))
-            {
-                var civil = _context.Civils.FirstOrDefault(c => c.NIT == asignacion.CiDocente || c.Document == asignacion.CiDocente);
-                if (civil != null)
-                {
-                    var civilExtra = _context.CivilExtras.FirstOrDefault(ce => ce.CivilId == civil.Id);
-                    if (civilExtra != null && (!string.IsNullOrWhiteSpace(civilExtra.BankName) || !string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber)))
-                    {
-                        string bankInfo = "";
-                        if (!string.IsNullOrWhiteSpace(civilExtra.BankName))
-                            bankInfo += "Banco: " + civilExtra.BankName;
-                        if (!string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber))
-                            bankInfo += (bankInfo.Length > 0 ? " | " : "") + "Cuenta: " + civilExtra.BankAccountNumber;
+            // Find Civil by SAPId (using GetCodigoSocio which resolves by NIT or FullName)
+            string sapId = GetCodigoSocio(asignacion);
+            if (string.IsNullOrWhiteSpace(sapId))
+                return obs;
 
-                        obs = string.IsNullOrWhiteSpace(obs)
-                            ? bankInfo
-                            : obs + " | " + bankInfo;
-                    }
-                }
-            }
+            var civil = _context.Civils.FirstOrDefault(c => c.SAPId == sapId);
+            if (civil == null)
+                return obs;
 
-            return obs;
+            var civilExtra = _context.CivilExtras.FirstOrDefault(ce => ce.CivilId == civil.Id);
+            if (civilExtra == null || (string.IsNullOrWhiteSpace(civilExtra.BankName) && string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber)))
+                return obs;
+
+            string bankInfo = "";
+            if (!string.IsNullOrWhiteSpace(civilExtra.BankName))
+                bankInfo += "Banco: " + civilExtra.BankName;
+            if (!string.IsNullOrWhiteSpace(civilExtra.BankAccountNumber))
+                bankInfo += (bankInfo.Length > 0 ? " | " : "") + "Cuenta: " + civilExtra.BankAccountNumber;
+
+            return string.IsNullOrWhiteSpace(obs)
+                ? bankInfo
+                : obs + " | " + bankInfo;
         }
     }
 }
