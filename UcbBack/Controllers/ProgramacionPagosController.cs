@@ -481,13 +481,45 @@ namespace UcbBack.Controllers
                 Sigla = p.Sigla,
                 Paralelo = p.Paralelo,
                 NumeroContrato = p.NumeroContrato,
-
-                // NEW: Organizational Unit fields
                 CodUnidadOrganizacional = p.CodUnidadOrganizacional ?? "",
-                UnidadOrganizacional = p.NombreUnidadOrganizacional ?? ""
+                UnidadOrganizacional = p.NombreUnidadOrganizacional ?? "",
+                NombreMateria = GetNombreMateria(p.Sigla, p.Paralelo, branchId, periodoId)
             }).ToList();
 
             return Ok(result);
+        }
+
+        //Helper nombre materia
+
+        [NonAction]
+        private string GetNombreMateria(string sigla, string paralelo, int branchesId, string periodoId)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(sigla))
+                    return "";
+
+                var branch = _context.Branch.FirstOrDefault(b => b.Id == branchesId);
+                if (branch == null)
+                    return "";
+
+                var sql = "SELECT NOMBREMATERIA FROM ADMNAL.T_REG_PARALELOS_NS " +
+                          "WHERE SIGLA = :sigla AND NUMPARALELO = :paralelo " +
+                          "AND SEDE = :sede AND PERIODOSAP = :periodo";
+
+                var result = _context.Database.SqlQuery<string>(sql,
+                    new Sap.Data.Hana.HanaParameter("sigla", (sigla ?? "").Trim()),
+                    new Sap.Data.Hana.HanaParameter("paralelo", (paralelo ?? "").Trim()),
+                    new Sap.Data.Hana.HanaParameter("sede", branch.Abr),
+                    new Sap.Data.Hana.HanaParameter("periodo", periodoId ?? "")
+                ).FirstOrDefault();
+
+                return result ?? "";
+            }
+            catch
+            {
+                return "";
+            }
         }
 
 
