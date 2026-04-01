@@ -281,7 +281,7 @@ namespace UcbBack.Controllers
                 }
             }
 
-            // NEW: Check for duplicate CodigoParalelo (WARNING, not error)
+            // WARNING 1: Duplicate CodigoParalelo within the selected assignments
             var duplicateCodigoParalelo = asignaciones
                 .Where(a => !string.IsNullOrWhiteSpace(a.CodigoParalelo))
                 .GroupBy(a => a.CodigoParalelo.Trim())
@@ -293,11 +293,52 @@ namespace UcbBack.Controllers
                 })
                 .ToList();
 
+            // WARNING 2: Same CodigoParalelo already exists in ANY other assignment (same branch+period)
+            var codigosSeleccionados = asignaciones
+                .Where(a => !string.IsNullOrWhiteSpace(a.CodigoParalelo))
+                .Select(a => a.CodigoParalelo.Trim())
+                .Distinct()
+                .ToList();
+
+            var existentes = _context.AsignacionesCarga
+                .Where(a => a.AsigProceso.BranchesId == proceso.BranchesId
+                         && a.AsigProceso.PeriodoId == proceso.PeriodoId
+                         && !model.AssignmentIds.Contains(a.Id)
+                         && a.CodigoParalelo != null
+                         && a.NumeroContrato != null
+                         && a.NumeroContrato != "")
+                .ToList()
+                .Where(a => codigosSeleccionados.Contains(a.CodigoParalelo.Trim()))
+                .Select(a => new { Codigo = a.CodigoParalelo.Trim(), a.NumeroContrato })
+                .Distinct()
+                .ToList();
+
             string warning = null;
+            var warnings = new List<string>();
+
             if (duplicateCodigoParalelo.Any())
             {
                 var codes = string.Join(", ", duplicateCodigoParalelo.Select(d => string.Format("{0} ({1}x)", d.CodigoParalelo, d.Count)));
-                warning = string.Format("⚠️ Advertencia: Hay códigos de paralelo duplicados en este contrato: {0}. Esto puede ser correcto si el mismo docente dicta múltiples horarios del mismo paralelo.", codes);
+                warnings.Add(string.Format("Hay códigos de paralelo duplicados en esta selección: {0}", codes));
+            }
+
+            if (existentes.Any())
+            {
+                var details = string.Join(", ", existentes.Select(e => string.Format("{0} (contrato: {1})", e.Codigo, e.NumeroContrato)));
+                warnings.Add(string.Format("Los siguientes códigos de paralelo ya están asignados a otro contrato en la misma sede y período: {0}", details));
+            }
+
+            if (warnings.Any())
+            {
+                warning = "⚠️ Advertencia: " + string.Join(". ", warnings) + ". Verifique que no sea una asignación duplicada.";
+            }
+            else
+            {
+                warning = "[DEBUG] Codigos seleccionados: " + string.Join(", ", codigosSeleccionados)
+                    + " | BranchesId: " + proceso.BranchesId
+                    + " | PeriodoId: " + proceso.PeriodoId
+                    + " | Existentes encontrados: " + existentes.Count
+                    + " | IDs excluidos: " + string.Join(",", model.AssignmentIds);
             }
 
             // Assign contract number
