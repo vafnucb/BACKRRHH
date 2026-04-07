@@ -44,11 +44,7 @@ namespace UcbBack.Models
         /// Paralelo (NUMPARALELO en ADMNAL.T_REG_PARALELOS_NS).
         public string Paralelo { get; set; }
 
-        /// Horas_Semana
-
         public decimal HorasSemana { get; set; }
-
-        /// Horas_Mes.
 
         public decimal HorasMes { get; set; }
 
@@ -61,9 +57,8 @@ namespace UcbBack.Models
 
         public string Sede { get; set; }
 
-
         public decimal CostoHora { get; set; }
-
+       
 
         public int CantidadMeses { get; set; }
         /// Número de contrato que se asignará después de que
@@ -72,6 +67,8 @@ namespace UcbBack.Models
 
         public string NumeroContrato { get; set; }
 
+        [System.ComponentModel.DataAnnotations.Schema.Column("Observaciones")]
+        public string Observaciones { get; set; }
 
         public static int GetNextId(ApplicationDbContext _context)
         {

@@ -345,6 +345,10 @@ namespace UcbBack.Controllers
             foreach (var a in asignaciones)
             {
                 a.NumeroContrato = model.ContractNumber;
+                if (!string.IsNullOrWhiteSpace(model.Observaciones))
+                {
+                    a.Observaciones = model.Observaciones.Trim();
+                }
             }
 
             proceso.LastUpdateBy = user.Id;
@@ -931,8 +935,6 @@ namespace UcbBack.Controllers
                 .filerByRegional(_context.AsigProcesos, user)
                 .OfType<AsigProceso>();
 
-            /* if (!procesosUser.Any(p => p.Id == procesoId))
-                 return Unauthorized();*/
 
             // Check if already finalized
             if (proceso.State == "FINALIZADO")
@@ -993,16 +995,22 @@ namespace UcbBack.Controllers
                     primeraAsignacion.Nombres
                 }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
+                // Get observaciones from the first assignment that has one
+                var obsContrato = asignaciones
+                    .Where(a => !string.IsNullOrWhiteSpace(a.Observaciones))
+                    .Select(a => a.Observaciones)
+                    .FirstOrDefault();
+
                 var contrato = new AsigContrato
                 {
                     NumeroContrato = numeroContrato,
-                    NombreDocente = nombreDocente,  // ADD THIS LINE
+                    NombreDocente = nombreDocente,
                     BranchesId = proceso.BranchesId,
                     AsigProcesoId = proceso.Id,
                     PeriodoId = proceso.PeriodoId,
                     MontoTotal = montoTotal,
                     Estado = "PENDIENTE",
-                    Observaciones = null,
+                    Observaciones = obsContrato,
                     CreatedAt = DateTime.Now,
                     CreatedBy = user.Id
                 };
