@@ -84,6 +84,19 @@ namespace UcbBack.Controllers
             public string Sede { get; set; }
             public string UnidadOrganizacional { get; set; }
             public string NombreMateria { get; set; }
+            public List<PagoProgramadoInfo> PagosProgramados { get; set; }
+        }
+
+        public class PagoProgramadoInfo
+        {
+            public int Id { get; set; }
+            public int MesPago { get; set; }
+            public int AnioPago { get; set; }
+            public decimal Monto { get; set; }
+            public decimal? Porcentaje { get; set; }
+            public string Estado { get; set; }
+            public bool EsExcepcion { get; set; }
+            public string TipoDocente { get; set; }
         }
 
         public class UpdateEstadoRequest
@@ -262,7 +275,22 @@ namespace UcbBack.Controllers
                     MontoTotal = a.HorasMes * a.CostoHora * a.CantidadMeses,
                     Sede = a.Sede,
                     UnidadOrganizacional = a.UnidadOrganizacional,
-                    NombreMateria = GetNombreMateria(a.CodigoParalelo)
+                    NombreMateria = GetNombreMateria(a.CodigoParalelo),
+                    PagosProgramados = _context.PagosProgramados
+                        .Where(p => p.AsignacionCargaId == a.Id)
+                        .OrderBy(p => p.AnioPago)
+                        .ThenBy(p => p.MesPago)
+                        .Select(p => new PagoProgramadoInfo
+                        {
+                            Id = p.Id,
+                            MesPago = p.MesPago,
+                            AnioPago = p.AnioPago,
+                            Monto = p.Monto,
+                            Porcentaje = p.Porcentaje,
+                            Estado = p.Estado,
+                            EsExcepcion = p.EsExcepcion,
+                            TipoDocente = p.TipoDocente
+                        }).ToList()
                 }).ToList()
             };
 
