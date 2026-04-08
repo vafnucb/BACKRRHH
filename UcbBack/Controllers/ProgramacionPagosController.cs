@@ -443,9 +443,10 @@ namespace UcbBack.Controllers
                                  a.Nombres,
                                  a.Sigla,
                                  a.Paralelo,
+                                 a.HorasMes,
                                  a.NumeroContrato,
 
-                                 // NEW: Organizational Unit info
+                                 // Organizational Unit info
                                  CodUnidadOrganizacional = a.UnidadOrganizacional,
                                  NombreUnidadOrganizacional = ou != null ? ou.Name : "",
 
@@ -480,6 +481,7 @@ namespace UcbBack.Controllers
         }.Where(s => !string.IsNullOrWhiteSpace(s))),
                 Sigla = p.Sigla,
                 Paralelo = p.Paralelo,
+                HorasMes = p.HorasMes,
                 NumeroContrato = p.NumeroContrato,
                 CodUnidadOrganizacional = p.CodUnidadOrganizacional ?? "",
                 UnidadOrganizacional = p.NombreUnidadOrganizacional ?? "",
