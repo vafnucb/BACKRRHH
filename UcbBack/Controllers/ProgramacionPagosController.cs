@@ -700,6 +700,7 @@ namespace UcbBack.Controllers
                 Sigla = pago.Sigla,
                 CodigoParalelo = pago.CodigoParalelo,
                 Paralelo = pago.Paralelo,
+                NombreMateria = GetNombreMateria(pago.Sigla, pago.Paralelo, pago.BranchesId, pago.PeriodoId),
                 HorasMes = pago.HorasMes,
                 HorasSemana = pago.HorasSemana,
                 CostoHora = pago.CostoHora,
