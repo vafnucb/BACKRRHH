@@ -1115,12 +1115,11 @@ namespace UcbBack.Controllers
 
             if (codigosDuplicados.Any())
             {
-                response.IsValid = false;
                 var details = codigosDuplicados.Select(d =>
                     string.Format("{0} (contrato: {1})", d.CodigoParalelo, d.NumeroContrato ?? "sin contrato")
                 );
                 response.Errors.Add(string.Format(
-                    "Los siguientes códigos de paralelo ya existen en otro proceso finalizado de la misma sede y período: {0}",
+                    "⚠️ Advertencia: Los siguientes códigos de paralelo ya existen en otro proceso finalizado de la misma sede y período: {0}. Verifique que no sea una asignación duplicada.",
                     string.Join(", ", details)
                 ));
             }
