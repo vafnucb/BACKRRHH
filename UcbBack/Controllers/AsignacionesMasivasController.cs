@@ -1090,41 +1090,39 @@ namespace UcbBack.Controllers
                 response.Errors.Add(string.Format("Hay {0} asignación(es) sin número de contrato.", sinContrato.Count));
             }
 
-            // 3) Get unique contract numbers in this batch
-            var numerosContratoActual = asignaciones
-                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))
-                .Select(a => a.NumeroContrato.Trim())
+            // 3) Check for duplicate CodigoParalelo in other finalized processes (same Sede + Periodo)
+            var codigosParaleloActual = asignaciones
+                .Where(a => !string.IsNullOrWhiteSpace(a.CodigoParalelo))
+                .Select(a => a.CodigoParalelo.Trim())
                 .Distinct()
                 .ToList();
 
-            // 4) Check for duplicates in AsigContratos table (same Sede + Periodo)
-            var duplicados = new List<ContratoDuplicado>();
-
-            foreach (var numeroContrato in numerosContratoActual)
-            {
-                var contratoExistente = _context.AsigContratos
-                    .Where(c => c.NumeroContrato == numeroContrato
-                             && c.BranchesId == proceso.BranchesId
-                             && c.PeriodoId == proceso.PeriodoId)
-                    .OrderByDescending(c => c.CreatedAt)
-                    .FirstOrDefault();
-
-                if (contratoExistente != null)
+            var codigosDuplicados = _context.AsignacionesCarga
+                .Where(a => a.AsigProcesoId != procesoId
+                         && a.AsigProceso.BranchesId == proceso.BranchesId
+                         && a.AsigProceso.PeriodoId == proceso.PeriodoId
+                         && a.AsigProceso.State == "FINALIZADO"
+                         && a.CodigoParalelo != null)
+                .ToList()
+                .Where(a => codigosParaleloActual.Contains(a.CodigoParalelo.Trim()))
+                .Select(a => new
                 {
-                    duplicados.Add(new ContratoDuplicado
-                    {
-                        NumeroContrato = numeroContrato,
-                        ContratoIdExistente = contratoExistente.Id,
-                        FechaExistente = contratoExistente.CreatedAt ?? DateTime.Now
-                    });
-                }
-            }
+                    CodigoParalelo = a.CodigoParalelo.Trim(),
+                    a.NumeroContrato
+                })
+                .Distinct()
+                .ToList();
 
-            if (duplicados.Any())
+            if (codigosDuplicados.Any())
             {
                 response.IsValid = false;
-                response.ContratosDuplicados = duplicados;
-                response.Errors.Add(string.Format("Hay {0} número(s) de contrato duplicado(s) en la misma sede y período.", duplicados.Count));
+                var details = codigosDuplicados.Select(d =>
+                    string.Format("{0} (contrato: {1})", d.CodigoParalelo, d.NumeroContrato ?? "sin contrato")
+                );
+                response.Errors.Add(string.Format(
+                    "Los siguientes códigos de paralelo ya existen en otro proceso finalizado de la misma sede y período: {0}",
+                    string.Join(", ", details)
+                ));
             }
 
             return response;
