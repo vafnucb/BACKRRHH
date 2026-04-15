@@ -1133,6 +1133,8 @@ namespace UcbBack.Controllers
             public decimal IUEExterior { get; set; }
             public decimal MontoAPagar { get; set; }
             public string Observaciones { get; set; }
+            public string NombreMateria { get; set; }
+            public string UnidadOrganizacional { get; set; }
         }
 
         [HttpGet]
@@ -1263,12 +1265,29 @@ namespace UcbBack.Controllers
                     MontoIT = montoIT,
                     IUEExterior = iueExterior,
                     MontoAPagar = RoundTo2Decimals(pago.MontoReal),
-                    Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion)
+                    Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion),
+                    NombreMateria = GetNombreMateria(asignacion?.CodigoParalelo),
+                    UnidadOrganizacional = asignacion != null && !string.IsNullOrWhiteSpace(asignacion.UnidadOrganizacional)
+                        ? (_context.OrganizationalUnits.Where(ou => ou.Cod == asignacion.UnidadOrganizacional).Select(ou => ou.Name).FirstOrDefault() ?? asignacion.UnidadOrganizacional)
+                        : ""
                 });
             }
 
-            return Ok(result);
+            // Get branch name from the first payment's process
+            var branchName = "";
+            var firstPago = pagos.FirstOrDefault();
+            if (firstPago != null)
+            {
+                var firstPP = _context.PagosProgramados.FirstOrDefault(p => p.Id == firstPago.PagoProgramadoId);
+                var firstAsig = firstPP != null ? _context.AsignacionesCarga.FirstOrDefault(a => a.Id == firstPP.AsignacionCargaId) : null;
+                var firstProc = firstAsig != null ? _context.AsigProcesos.FirstOrDefault(ap => ap.Id == firstAsig.AsigProcesoId) : null;
+                var firstBranch = firstProc != null ? _context.Branch.FirstOrDefault(b => b.Id == firstProc.BranchesId) : null;
+                if (firstBranch != null) branchName = firstBranch.Name;
+            }
+
+            return Ok(new { BranchName = branchName, Pagos = result });
         }
+
         [NonAction]
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion)
         {
