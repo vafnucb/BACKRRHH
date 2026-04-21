@@ -93,10 +93,12 @@ namespace UcbBack.Controllers
             public int MesPago { get; set; }
             public int AnioPago { get; set; }
             public decimal Monto { get; set; }
+            public decimal? MontoOriginal { get; set; }
             public decimal? Porcentaje { get; set; }
             public string Estado { get; set; }
             public bool EsExcepcion { get; set; }
             public string TipoDocente { get; set; }
+            public string Observaciones { get; set; }
         }
 
         public class UpdateEstadoRequest
@@ -286,10 +288,12 @@ namespace UcbBack.Controllers
                             MesPago = p.MesPago,
                             AnioPago = p.AnioPago,
                             Monto = p.Monto,
+                            MontoOriginal = p.MontoOriginal,
                             Porcentaje = p.Porcentaje,
                             Estado = p.Estado,
                             EsExcepcion = p.EsExcepcion,
-                            TipoDocente = p.TipoDocente
+                            TipoDocente = p.TipoDocente,
+                            Observaciones = p.Observaciones
                         }).ToList()
                 }).ToList()
             };
