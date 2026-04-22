@@ -280,6 +280,15 @@ namespace UcbBack.Controllers
                     );
                 }
             }
+            // WARNING 0: Check if contract number already exists in AsigContratos (must be globally unique)
+            var contratoExistente = _context.AsigContratos.FirstOrDefault(c => c.NumeroContrato == model.ContractNumber);
+            string warningContrato = null;
+            if (contratoExistente != null)
+            {
+                var branchAbr = _context.Branch.Where(b => b.Id == contratoExistente.BranchesId).Select(b => b.Abr).FirstOrDefault() ?? "";
+                warningContrato = string.Format("El número de contrato '{0}' ya existe en el sistema (Sede: {1}, Período: {2}). Si finaliza el proceso con este número, será bloqueado",
+                    model.ContractNumber, branchAbr, contratoExistente.PeriodoId);
+            }
 
             // WARNING 1: Duplicate CodigoParalelo within the selected assignments
             var duplicateCodigoParalelo = asignaciones
@@ -316,6 +325,11 @@ namespace UcbBack.Controllers
             string warning = null;
             var warnings = new List<string>();
 
+            if (warningContrato != null)
+            {
+                warnings.Add(warningContrato);
+            }
+
             if (duplicateCodigoParalelo.Any())
             {
                 var codes = string.Join(", ", duplicateCodigoParalelo.Select(d => string.Format("{0} ({1}x)", d.CodigoParalelo, d.Count)));
@@ -331,14 +345,6 @@ namespace UcbBack.Controllers
             if (warnings.Any())
             {
                 warning = "⚠️ Advertencia: " + string.Join(". ", warnings) + ". Verifique que no sea una asignación duplicada.";
-            }
-            else
-            {
-                warning = "[DEBUG] Codigos seleccionados: " + string.Join(", ", codigosSeleccionados)
-                    + " | BranchesId: " + proceso.BranchesId
-                    + " | PeriodoId: " + proceso.PeriodoId
-                    + " | Existentes encontrados: " + existentes.Count
-                    + " | IDs excluidos: " + string.Join(",", model.AssignmentIds);
             }
 
             // Assign contract number
@@ -1090,7 +1096,34 @@ namespace UcbBack.Controllers
                 response.Errors.Add(string.Format("Hay {0} asignación(es) sin número de contrato.", sinContrato.Count));
             }
 
-            // 3) Check for duplicate CodigoParalelo in other finalized processes (same Sede + Periodo)
+            // 3) Check contract numbers are unique in the entire database
+            var numerosContratoActual = asignaciones
+                .Where(a => !string.IsNullOrWhiteSpace(a.NumeroContrato))
+                .Select(a => a.NumeroContrato.Trim())
+                .Distinct()
+                .ToList();
+
+            var contratosDuplicados = _context.AsigContratos
+                .Where(c => numerosContratoActual.Contains(c.NumeroContrato))
+                .Select(c => new { c.NumeroContrato, c.BranchesId, c.PeriodoId })
+                .ToList();
+
+            if (contratosDuplicados.Any())
+            {
+                response.IsValid = false;
+                var details = contratosDuplicados.Select(d =>
+                    string.Format("{0} (Sede: {1}, Período: {2})",
+                        d.NumeroContrato,
+                        _context.Branch.Where(b => b.Id == d.BranchesId).Select(b => b.Abr).FirstOrDefault() ?? d.BranchesId.ToString(),
+                        d.PeriodoId)
+                );
+                response.Errors.Add(string.Format(
+                    "Los siguientes números de contrato ya existen en el sistema: {0}. El número de contrato debe ser único.",
+                    string.Join(", ", details)
+                ));
+            }
+
+            // 4) Check for duplicate CodigoParalelo in other finalized processes (same Sede + Periodo)
             var codigosParaleloActual = asignaciones
                 .Where(a => !string.IsNullOrWhiteSpace(a.CodigoParalelo))
                 .Select(a => a.CodigoParalelo.Trim())
