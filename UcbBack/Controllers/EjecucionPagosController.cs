@@ -124,7 +124,7 @@ namespace UcbBack.Controllers
         //  2) Get Payments Pending Approval
         [HttpGet]
         [Route("GetPagosPendientes")]
-        public IHttpActionResult GetPagosPendientes(int? branchId = null, string periodoId = null)
+        public IHttpActionResult GetPagosPendientes(int? branchId = null, string periodoId = null, int? mes = null, int? anio = null)
         {
             var user = auth.getUser(Request);
             if (user == null)
@@ -178,6 +178,14 @@ namespace UcbBack.Controllers
             if (!string.IsNullOrWhiteSpace(periodoId))
             {
                 query = query.Where(q => q.PeriodoId == periodoId);
+            }
+            if (mes.HasValue)
+            {
+                query = query.Where(q => q.MesPago == mes.Value);
+            }
+            if (anio.HasValue)
+            {
+                query = query.Where(q => q.AnioPago == anio.Value);
             }
 
             // Apply regional filtering
