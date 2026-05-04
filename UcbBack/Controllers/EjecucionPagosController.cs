@@ -153,6 +153,7 @@ namespace UcbBack.Controllers
                             pp.MesPago,
                             pp.AnioPago,
                             MontoBruto = pp.Monto,
+                            pp.MontoOriginal,
 
                             // Assignment
                             a.CiDocente,
@@ -220,7 +221,9 @@ namespace UcbBack.Controllers
                 p.Sigla,
                 p.Paralelo,
                 p.BranchesId,
-                p.PeriodoId
+                p.PeriodoId,
+                p.MontoOriginal,
+                MontoModificado = p.MontoOriginal != null && p.MontoOriginal != p.MontoBruto
             }).ToList();
 
             return Ok(result);
