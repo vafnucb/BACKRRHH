@@ -119,9 +119,7 @@ namespace UcbBack.Controllers
         }
 
 
-        //  2) Get Payments Pending Approval
-
-        //  2) Get Payments Pending Approval
+        // 2) Get Payments Pending Approval
         [HttpGet]
         [Route("GetPagosPendientes")]
         public IHttpActionResult GetPagosPendientes(int? branchId = null, string periodoId = null, int? mes = null, int? anio = null)
@@ -332,6 +330,7 @@ namespace UcbBack.Controllers
                 pago.MotivoRechazo,
                 pago.FechaEnvio,
                 pago.FechaAprobacion,
+                pago.AprobadoPor,
                 pago.CreatedAt,
 
                 // PagoProgramado details
