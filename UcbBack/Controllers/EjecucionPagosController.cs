@@ -1001,6 +1001,7 @@ namespace UcbBack.Controllers
             int? anio = null,
             DateTime? fechaDesde = null,
             DateTime? fechaHasta = null,
+            string search = null,
             int page = 1,
             int pageSize = 50)
         {
@@ -1067,9 +1068,24 @@ namespace UcbBack.Controllers
 
             if (fechaHasta.HasValue)
                 query = query.Where(q => q.FechaAprobacion <= fechaHasta.Value);
-
             // Apply regional filtering and materialize
             var filteredQuery = auth.filerByRegional(query.AsQueryable(), user).ToList();
+
+            // Apply search filter in memory
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchUpper = search.Trim().ToUpper();
+                filteredQuery = filteredQuery.Where(q =>
+                    (q.CiDocente != null && q.CiDocente.ToUpper().Contains(searchUpper)) ||
+                    (q.PrimerApellido != null && q.PrimerApellido.ToUpper().Contains(searchUpper)) ||
+                    (q.SegundoApellido != null && q.SegundoApellido.ToUpper().Contains(searchUpper)) ||
+                    (q.TercerApellido != null && q.TercerApellido.ToUpper().Contains(searchUpper)) ||
+                    (q.Nombres != null && q.Nombres.ToUpper().Contains(searchUpper)) ||
+                    (q.NumeroContrato != null && q.NumeroContrato.ToUpper().Contains(searchUpper)) ||
+                    (q.Sigla != null && q.Sigla.ToUpper().Contains(searchUpper)) ||
+                    (q.TipoDocente != null && q.TipoDocente.ToUpper().Contains(searchUpper))
+                ).ToList();
+            }
 
             // Order by FechaAprobacion descending (most recent first) - in memory
             var ordered = filteredQuery.OrderByDescending(q => q.FechaAprobacion).ToList();
