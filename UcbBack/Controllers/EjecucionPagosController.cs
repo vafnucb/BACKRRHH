@@ -643,7 +643,7 @@ namespace UcbBack.Controllers
                         : null;
 
                     // Get Codigo_Socio from T_REG_CIVIL
-                    string codigoSocio = GetCodigoSocio(asignacion);
+                    string codigoSocio = GetCodigoSocio(asignacion, proceso?.BranchesId);
 
                     // Build Nombre_Socio
                     string nombreSocio = asignacion != null
@@ -712,7 +712,7 @@ namespace UcbBack.Controllers
                     worksheet.Cell(row, 15).Value = RoundTo2Decimals(pago.MontoReal);
 
                     // P - Observaciones (from PagoProgramado + Bank Info)
-                    worksheet.Cell(row, 16).Value = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion);
+                    worksheet.Cell(row, 16).Value = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion, proceso?.BranchesId);
 
                     row++;
                 }
@@ -771,16 +771,28 @@ namespace UcbBack.Controllers
         }
 
         [NonAction]
-        private string GetCodigoSocio(AsignacionCarga asignacion)
+        private string GetCodigoSocio(AsignacionCarga asignacion, int? branchesId = null)
         {
             if (asignacion == null)
                 return "";
-
-            // Try 1: Search by CI (NIT in Civil)
-            var civilPorCI = _context.Database.SqlQuery<CivilRow>(
-                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci",
-                new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? "")
-            ).FirstOrDefault();
+            // Try 1: Search by CI (NIT in Civil) + Branch
+            CivilRow civilPorCI = null;
+            if (branchesId.HasValue)
+            {
+                civilPorCI = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci AND \"BranchesId\" = :branchId",
+                    new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? ""),
+                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+                ).FirstOrDefault();
+            }
+            // Fallback: Search by CI without branch
+            if (civilPorCI == null)
+            {
+                civilPorCI = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci",
+                    new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? "")
+                ).FirstOrDefault();
+            }
 
             if (civilPorCI != null && !string.IsNullOrWhiteSpace(civilPorCI.SAPId))
             {
@@ -802,22 +814,44 @@ namespace UcbBack.Controllers
         asignacion.TercerApellido
     }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim().ToUpper();
 
-            // Try 2: Search by FullName (variation 1)
-            var civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
-                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
-                new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1)
-            ).FirstOrDefault();
-
+            // Try 2: Search by FullName (variation 1) + Branch
+            CivilRow civilPorNombre1 = null;
+            if (branchesId.HasValue)
+            {
+                civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
+                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1),
+                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+                ).FirstOrDefault();
+            }
+            if (civilPorNombre1 == null)
+            {
+                civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
+                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1)
+                ).FirstOrDefault();
+            }
             if (civilPorNombre1 != null && !string.IsNullOrWhiteSpace(civilPorNombre1.SAPId))
             {
                 return civilPorNombre1.SAPId;
             }
-
-            // Try 3: Search by FullName (variation 2)
-            var civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
-                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
-                new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2)
-            ).FirstOrDefault();
+            // Try 3: Search by FullName (variation 2) + Branch
+            CivilRow civilPorNombre2 = null;
+            if (branchesId.HasValue)
+            {
+                civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
+                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2),
+                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+                ).FirstOrDefault();
+            }
+            if (civilPorNombre2 == null)
+            {
+                civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
+                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
+                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2)
+                ).FirstOrDefault();
+            }
 
             if (civilPorNombre2 != null && !string.IsNullOrWhiteSpace(civilPorNombre2.SAPId))
             {
@@ -1187,7 +1221,7 @@ namespace UcbBack.Controllers
                 : null;
 
             // Calculate all Excel values
-            var codigoSocio = GetCodigoSocio(asignacion);
+            var codigoSocio = GetCodigoSocio(asignacion, proceso?.BranchesId);
             var nombreSocio = asignacion != null
                 ? string.Join(" ", new[] {
             asignacion.PrimerApellido,
@@ -1259,7 +1293,7 @@ namespace UcbBack.Controllers
                     ? _context.ProgramacionPagos.FirstOrDefault(pg => pg.Id == pagoProgramado.ProgramacionPagosId.Value)
                     : null;
 
-                var codigoSocio = GetCodigoSocio(asignacion);
+                var codigoSocio = GetCodigoSocio(asignacion, proceso?.BranchesId);
                 var nombreSocio = asignacion != null
                     ? string.Join(" ", new[] {
                         asignacion.PrimerApellido,
@@ -1291,7 +1325,7 @@ namespace UcbBack.Controllers
                     MontoIT = montoIT,
                     IUEExterior = iueExterior,
                     MontoAPagar = RoundTo2Decimals(pago.MontoReal),
-                    Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion),
+                    Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion, proceso?.BranchesId),
                     NombreMateria = GetNombreMateria(asignacion?.CodigoParalelo),
                     UnidadOrganizacional = asignacion != null && !string.IsNullOrWhiteSpace(asignacion.UnidadOrganizacional)
                         ? (_context.OrganizationalUnits.Where(ou => ou.Cod == asignacion.UnidadOrganizacional).Select(ou => ou.Name).FirstOrDefault() ?? asignacion.UnidadOrganizacional)
@@ -1315,13 +1349,13 @@ namespace UcbBack.Controllers
         }
 
         [NonAction]
-        private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion)
+        private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion, int? branchesId = null)
         {
             string obs = observaciones ?? "";
             if (asignacion == null)
                 return obs;
 
-            string sapId = GetCodigoSocio(asignacion);
+            string sapId = GetCodigoSocio(asignacion, branchesId);
             if (string.IsNullOrWhiteSpace(sapId))
                 return obs;
 
