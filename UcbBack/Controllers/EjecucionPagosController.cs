@@ -1068,6 +1068,7 @@ namespace UcbBack.Controllers
                             pp.MesPago,
                             pp.AnioPago,
                             MontoBruto = pp.Monto,
+                            pp.MontoOriginal,
 
                             // Assignment
                             a.CiDocente,
@@ -1161,7 +1162,9 @@ namespace UcbBack.Controllers
                 p.Sigla,
                 p.Paralelo,
                 p.BranchesId,
-                p.PeriodoId
+                p.PeriodoId,
+                p.MontoOriginal,
+                MontoModificado = p.MontoOriginal != null && p.MontoOriginal != p.MontoBruto
             }).ToList();
 
             return Ok(new
@@ -1195,6 +1198,8 @@ namespace UcbBack.Controllers
             public string Observaciones { get; set; }
             public string NombreMateria { get; set; }
             public string UnidadOrganizacional { get; set; }
+            public int MesPago { get; set; }
+            public int AnioPago { get; set; }
         }
 
         [HttpGet]
@@ -1327,6 +1332,8 @@ namespace UcbBack.Controllers
                     MontoAPagar = RoundTo2Decimals(pago.MontoReal),
                     Observaciones = GetObservacionesWithBankInfo(pagoProgramado?.Observaciones, asignacion, proceso?.BranchesId),
                     NombreMateria = GetNombreMateria(asignacion?.CodigoParalelo),
+                    MesPago = pagoProgramado != null ? pagoProgramado.MesPago : 0,
+                    AnioPago = pagoProgramado != null ? pagoProgramado.AnioPago : 0,
                     UnidadOrganizacional = asignacion != null && !string.IsNullOrWhiteSpace(asignacion.UnidadOrganizacional)
                         ? (_context.OrganizationalUnits.Where(ou => ou.Cod == asignacion.UnidadOrganizacional).Select(ou => ou.Name).FirstOrDefault() ?? asignacion.UnidadOrganizacional)
                         : ""
