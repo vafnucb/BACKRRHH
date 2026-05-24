@@ -1035,6 +1035,7 @@ namespace UcbBack.Controllers
             int? anio = null,
             DateTime? fechaDesde = null,
             DateTime? fechaHasta = null,
+            string tipoDocente = null,
             string search = null,
             int page = 1,
             int pageSize = 50)
@@ -1103,6 +1104,9 @@ namespace UcbBack.Controllers
 
             if (fechaHasta.HasValue)
                 query = query.Where(q => q.FechaAprobacion <= fechaHasta.Value);
+
+            if (!string.IsNullOrWhiteSpace(tipoDocente))
+                query = query.Where(q => q.TipoDocente == tipoDocente);
             // Apply regional filtering and materialize
             var filteredQuery = auth.filerByRegional(query.AsQueryable(), user).ToList();
 
