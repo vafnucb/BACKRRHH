@@ -1114,16 +1114,27 @@ namespace UcbBack.Controllers
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var searchUpper = search.Trim().ToUpper();
+                var searchWords = searchUpper.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
                 filteredQuery = filteredQuery.Where(q =>
-                    (q.CiDocente != null && q.CiDocente.ToUpper().Contains(searchUpper)) ||
-                    (q.PrimerApellido != null && q.PrimerApellido.ToUpper().Contains(searchUpper)) ||
-                    (q.SegundoApellido != null && q.SegundoApellido.ToUpper().Contains(searchUpper)) ||
-                    (q.TercerApellido != null && q.TercerApellido.ToUpper().Contains(searchUpper)) ||
-                    (q.Nombres != null && q.Nombres.ToUpper().Contains(searchUpper)) ||
-                    (q.NumeroContrato != null && q.NumeroContrato.ToUpper().Contains(searchUpper)) ||
-                    (q.Sigla != null && q.Sigla.ToUpper().Contains(searchUpper)) ||
-                    (q.TipoDocente != null && q.TipoDocente.ToUpper().Contains(searchUpper))
-                ).ToList();
+                {
+                    // Build full name for multi-word search
+                    var fullName = string.Join(" ", new[] {
+                        q.PrimerApellido,
+                        q.SegundoApellido,
+                        q.TercerApellido,
+                        q.Nombres
+                    }.Where(s => !string.IsNullOrWhiteSpace(s))).ToUpper();
+
+                    // All search words must match somewhere
+                    return searchWords.All(word =>
+                        fullName.Contains(word) ||
+                        (q.CiDocente != null && q.CiDocente.ToUpper().Contains(word)) ||
+                        (q.NumeroContrato != null && q.NumeroContrato.ToUpper().Contains(word)) ||
+                        (q.Sigla != null && q.Sigla.ToUpper().Contains(word)) ||
+                        (q.TipoDocente != null && q.TipoDocente.ToUpper().Contains(word))
+                    );
+                }).ToList();
             }
 
             // Order by FechaAprobacion descending (most recent first) - in memory
