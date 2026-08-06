@@ -1264,6 +1264,17 @@ namespace UcbBack.Controllers
                 asesoria.Id = AsesoriaDocente.GetNextId(_context);
                 // asegura que no se junte el nuevo registro con los históricos
                 asesoria.Estado = "REGISTRADO";
+                // Con Factura: el formulario envía Origen='INDEP' + Factura=true.
+                // Tras pasar las validaciones (Socio/Civil, duplicados), reetiquetamos a 'FAC'
+                // para que Saraí/exportación lo distingan. Sin retenciones (garantizado abajo).
+                if (asesoria.Factura == true)
+                {
+                    asesoria.Origen = "FAC";
+                    asesoria.IUE = 0;
+                    asesoria.IT = 0;
+                    asesoria.IUEExterior = 0;
+                    asesoria.Deduccion = 0;
+                }
                 // identifica la dependencia del registro en base al nombre de la carrera y la regional
                 var dep = _context.Database.SqlQuery<int>("select de.\"Cod\" " +
                                         "from " +
@@ -1444,6 +1455,15 @@ namespace UcbBack.Controllers
                 thisAsesoria.UpdatedAt = DateTime.Now;
                 //Modifica su estado
                 thisAsesoria.Estado = asesoria.Estado;
+                // Con Factura: reetiquetar a 'FAC' y forzar retenciones a 0 (ver POST).
+                if (asesoria.Factura == true)
+                {
+                    thisAsesoria.Origen = "FAC";
+                    thisAsesoria.IUE = 0;
+                    thisAsesoria.IT = 0;
+                    thisAsesoria.IUEExterior = 0;
+                    thisAsesoria.Deduccion = 0;
+                }
                 _context.SaveChanges();
                 return Ok("Se actualizaron los datos correctamente");
             }
