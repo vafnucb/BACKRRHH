@@ -67,6 +67,7 @@ namespace UcbBack.Models
         public DbSet<Serv_Varios> ServVarioses { get; set; }
         public DbSet<ServProcess> ServProcesses { get; set; }
         public DbSet<Dist_Interregional> DistInterregionales { get; set; }
+        public DbSet<Factura> Facturas { get; set; }
 
         //auth models
         public DbSet<Access> Accesses { get; set; }

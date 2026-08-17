@@ -367,6 +367,7 @@
     <Compile Include="Models\AsigContrato.cs" />
     <Compile Include="Models\CivilBankInfo.cs" />
     <Compile Include="Models\CivilExtra.cs" />
+    <Compile Include="Models\Factura.cs" />
     <Compile Include="Models\EjecucionPago.cs" />
     <Compile Include="Models\FechaPago.cs" />
     <Compile Include="Models\PagoProgramado.cs" />

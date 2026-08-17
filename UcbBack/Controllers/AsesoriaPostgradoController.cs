@@ -140,7 +140,7 @@ namespace UcbBack.Controllers
             }
             else if (by.Equals("PRE-APROBADO"))
             {
-                string customQuery = query + "where a.\"Estado\"='PRE-APROBADO' and a.\"Factura\"=false " + orderBy;
+                string customQuery = query + "where a.\"Estado\"='PRE-APROBADO' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -325,6 +325,13 @@ namespace UcbBack.Controllers
                 // para la pantalla de aprobación nos interesan los registrados nada más
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"= true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
+
+                // Ids que ya tienen datos de factura asignados (para el flag/búsqueda)
+                var facturaIds = _context.Facturas
+                    .Where(f => f.ServiceType == "PROYECTOS")
+                    .Select(f => f.RecordId)
+                    .ToList();
+
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
                     {
@@ -336,8 +343,11 @@ namespace UcbBack.Controllers
                         x.TipoTarea,
                         TotalNeto = string.Format("{0,00}", x.TotalNeto),
                         TotalBruto = string.Format("{0,00}", x.TotalBruto),
-                        x.Ignored
-                    });
+                        x.Ignored,
+                        TieneFactura = facturaIds.Contains(x.Id) ? "✓ Con Factura" : "Sin Factura"
+                    })
+                    .ToList();
+
                 return Ok(filteredList);
             }
             else if (by.Equals("VERIFICADO-EXT"))
@@ -1114,6 +1124,102 @@ namespace UcbBack.Controllers
                 return response;
             }
         }
+        [HttpGet]
+        [Route("api/ToProyectosFileFAC")]
+        public HttpResponseMessage ToProyectosFileFAC([FromUri] string data)
+        {
+            string[] info = data.Split(';');
+            int segmentoId = Convert.ToInt16(info[0]);
+            string segmento = _context.Branch.FirstOrDefault(x => x.Id == segmentoId).Abr;
+            string mes = (info[1]);
+            string gestion = info[2];
+            string proy = info[3];
+            var user = auth.getUser(Request);
+
+            var auxDates = _context.Database.SqlQuery<Serv_ProyectosViewModel>("select * from " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj where \"PrjCode\" = '" + proy + "' and current_date between \"ValidFrom\" and \"ValidTo\"").ToList();
+            if (auxDates.Count < 1)
+            {
+                HttpResponseMessage response =
+                    new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                response.Content = new StringContent("No se puede generar el archivo porque el proyecto no tiene una fecha valida.");
+                response.RequestMessage = Request;
+                return response;
+            }
+            else
+            {
+                string query =
+                "select a.\"TeacherBP\" as \"Codigo_Socio\", case when fn.\"FullName\" is null then cr.\"CardName\" when cr.\"CardName\" is null then fn.\"FullName\" end as \"Nombre_Socio\", " +
+                "\r\na.\"DependencyCod\" as \"Cod_Dependencia\", cast(a.\"Id\" as varchar) as \"PEI_PO\", \r\nprj.\"NameModule\" \"Nombre_del_Servicio\", \r\no.\"PrjCode\" \"Código_Proyecto_SAP\"," +
+                "\r\n\r\ncase \r\nwhen a.\"Modulo\" = '0' then substring(concat ('', concat (concat(substring(a.\"StudentFullName\",1,20), ' '),  substring(prj.\"NameModule\",1,20))),1,40)\r\nelse substring(concat ('', concat (concat(a.\"Modulo\", ' '), concat ('', prj.\"NameModule\"))),1,40)\r\nend as \"Nombre_del_Proyecto\",\r\n'' \"Versión\", '' \"PeriodoAcadémico\", " +
+                "t.\"Abr\" as \"Tipo_Tarea_Asignada\", \r\ncase when o.\"U_Tipo\" = 'E' then 'CC_EC'\r\nwhen o.\"U_Tipo\" = 'F' then 'CC_FC'\r\nwhen o.\"U_Tipo\" = 'P' then 'CC_POST'" +
+                "\r\nwhen o.\"U_Tipo\" = 'S' then 'CC_SA'\r\nwhen o.\"U_Tipo\" = 'V' then 'CC_INV'\r\nelse '' end as  \"Cuenta_Asignada\",\r\na.\"TotalBruto\" as \"Monto_Contrato\", " +
+                "0 as \"Monto_IUE\", 0 as \"Monto_IT\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  \r\na.\"Observaciones\" " +
+                "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
+                " \r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" prj on prj.\"CodProject\" = a.\"Proyecto\" and prj.\"CodModule\" = '0'" +
+                "\r\ninner join " + CustomSchema.Schema + ".\"Civil\" c " +
+                "\r\non a.\"TeacherBP\"=c.\"SAPId\" " +
+                "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
+                "\r\non a.\"TipoTareaId\"=t.\"Id\" " +
+                "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br " +
+                "\r\non a.\"BranchesId\"=br.\"Id\" " +
+                "\r\ninner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
+                "\r\non a.\"Proyecto\"=o.\"PrjCode\" " +
+                "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\"  " +
+                "\r\nleft join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" cr\r\non a.\"TeacherBP\"=cr.\"CardCode\"  " +
+                "\r\nwhere \r\n   a.\"Estado\"='PRE-APROBADO' " +
+                "\r\nand br.\"Abr\" ='" + segmento + "' " +
+                "\r\n   and a.\"Origen\"='FAC' " +
+                "\r\n   and a.\"Proyecto\"='" + proy + "' " +
+                "\r\norder by a.\"Id\" asc;";
+
+                var excelContent = _context.Database.SqlQuery<Serv_ProyectosViewModel>(query).ToList();
+                string[] header = new string[]{"Codigo_Socio", "Nombre_Socio", "Cod_Dependencia",
+                                    "PEI_PO", "Nombre_del_Servicio", "Codigo_Proyecto_SAP", "Nombre_del_Proyecto", "Versión", "Periodo_Académico",
+                                    "Tipo_Tarea_Asignada", "Cuenta_Asignada",
+                                    "Monto_Contrato","Monto_IUE","Monto_IT", "IUEExterior", "Monto_a_Pagar", "Observaciones"};
+                var workbook = new XLWorkbook();
+                var ws = workbook.Worksheets.Add("Plantilla_PROYECTOS");
+                var rngTable = ws.Range(1, 1, 2, header.Length);
+                var columns = ws.Range(2, 1, excelContent.Count + 1, header.Length);
+                columns.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                columns.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                var headerPos = 1;
+                for (int i = 0; i < header.Length; i++)
+                {
+                    ws.Cell(headerPos, i + 1).Value = header[i];
+                    ws.Cell(headerPos, i + 1).Style.Font.Bold = true;
+                    ws.Cell(headerPos, i + 1).Style.Font.FontColor = XLColor.White;
+                    ws.Cell(headerPos, i + 1).Style.Fill.BackgroundColor = XLColor.FromTheme(XLThemeColor.Accent1);
+                }
+                ws.Cell(2, 1).Value = excelContent.AsEnumerable();
+                ws.Columns().AdjustToContents();
+                HttpResponseMessage response = new HttpResponseMessage();
+                var ms = new MemoryStream();
+                workbook.SaveAs(ms);
+                response.StatusCode = HttpStatusCode.OK;
+                response.Content = new StreamContent(ms);
+                response.Content.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment");
+                response.Content.Headers.ContentDisposition.FileName = segmento + "-CC_PROYECTOS_FAC.xlsx";
+                response.Content.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                response.Content.Headers.ContentLength = ms.Length;
+                ms.Seek(0, SeekOrigin.Begin);
+
+                //-------------------- Cambios en PRE-APROBADOS FAC --------------------
+                var branchesId = _context.Branch.FirstOrDefault(x => x.Abr == segmento);
+                var docentesPorAprobar = _context.AsesoriaPostgrado.Where(x => x.Origen.Equals("FAC") && x.Estado.Equals("PRE-APROBADO") && x.BranchesId == segmentoId && x.Proyecto == proy).ToList();
+                foreach (var docente in docentesPorAprobar)
+                {
+                    docente.Mes = Convert.ToInt16(mes);
+                    docente.Gestion = Convert.ToInt16(gestion);
+                    docente.Estado = "APROBADO";
+                    docente.ToAuthAt = DateTime.Now;
+                    docente.UserAuth = user.Id;
+                }
+                _context.SaveChanges();
+                return response;
+            }
+        }
+
         //Opciones de proyecto para generar el archivo Proyectos SARAI
         [HttpGet]
         [Route("api/GetProjectsOptions/")]
@@ -1202,7 +1308,7 @@ namespace UcbBack.Controllers
                     return BadRequest("No se pueden ingresar datos con valores vacios o iguales a 0.");
                 }
             }
-            if (asesoria.TotalBruto <= 0 || asesoria.TotalNeto <= 0)
+            if (asesoria.TotalBruto <= 0 || (asesoria.Factura != true && asesoria.TotalNeto <= 0))
             {
                 return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
             }
@@ -1250,6 +1356,18 @@ namespace UcbBack.Controllers
                 asesoria.Estado = "REGISTRADO";
                 asesoria.UserCreate = user.Id;
                 asesoria.CreatedAt = DateTime.Now;
+
+            // Con Factura: el formulario envía Origen='INDEP'/'EXT' + Factura=true.
+            // Tras pasar validaciones (sede/BP, duplicados), reetiquetamos a 'FAC'. Sin retenciones.
+            if (asesoria.Factura == true)
+            {
+                asesoria.Origen = "FAC";
+                asesoria.IUE = 0;
+                asesoria.IT = 0;
+                asesoria.IUEExterior = 0;
+                asesoria.Deduccion = 0;
+                asesoria.TotalNeto = asesoria.TotalBruto;
+            }
             //identifica la dependencia del registro en base al nombre de la carrera y la regional
             var dep = _context.Database.SqlQuery<int>("select dep.\"Cod\"" +
                                                           "\r\n    from " +
@@ -1314,7 +1432,7 @@ namespace UcbBack.Controllers
                         return BadRequest("El docente seleccionado no pertenece a la Sede del proyecto. No es posible realizar el registro.");
                     }
                 }
-                if (asesoria.TotalBruto <= 0 || asesoria.TotalNeto <= 0)
+                if (asesoria.TotalBruto <= 0 || (asesoria.Factura != true && asesoria.TotalNeto <= 0))
                 {
                     return BadRequest("No se pueden ingresar datos con valores negativos o iguales a 0");
                 }
@@ -1381,6 +1499,16 @@ namespace UcbBack.Controllers
                 }
                 thisAsesoria.UpdatedAt = DateTime.Now;
                 thisAsesoria.UserUpdate = user.Id;
+                // Con Factura: reetiquetar a 'FAC' y forzar retenciones a 0 (ver POST).
+                if (asesoria.Factura == true)
+                {
+                    thisAsesoria.Origen = "FAC";
+                    thisAsesoria.IUE = 0;
+                    thisAsesoria.IT = 0;
+                    thisAsesoria.IUEExterior = 0;
+                    thisAsesoria.Deduccion = 0;
+                    thisAsesoria.TotalNeto = asesoria.TotalBruto;
+                }
                 _context.SaveChanges();
                 return Ok("Se actualizaron los datos correctamente");
             }
@@ -2243,6 +2371,64 @@ namespace UcbBack.Controllers
                 });
                 return Ok(filteredListResult);
             }
+        }
+
+        public class AsignarFacturaDTO
+        {
+            public List<int> Ids { get; set; }
+            public string RazonSocial { get; set; }
+            public string NIT { get; set; }
+            public string NumeroFactura { get; set; }
+            public DateTime? FechaFactura { get; set; }
+        }
+
+        [HttpPost]
+        [Route("api/AsignarFacturaProyectos")]
+        public IHttpActionResult AsignarFacturaProyectos([FromBody] AsignarFacturaDTO data)
+        {
+            var user = auth.getUser(Request);
+
+            if (data == null || data.Ids == null || data.Ids.Count == 0)
+                return BadRequest("No se seleccionó ningún registro.");
+
+            if (string.IsNullOrWhiteSpace(data.RazonSocial)
+                || string.IsNullOrWhiteSpace(data.NIT)
+                || string.IsNullOrWhiteSpace(data.NumeroFactura)
+                || data.FechaFactura == null)
+                return BadRequest("Todos los campos de la factura son obligatorios.");
+
+            const string serviceType = "PROYECTOS";
+
+            foreach (var recordId in data.Ids)
+            {
+                var existing = _context.Facturas
+                    .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
+
+                if (existing != null)
+                {
+                    existing.RazonSocial = data.RazonSocial;
+                    existing.NIT = data.NIT;
+                    existing.NumeroFactura = data.NumeroFactura;
+                    existing.FechaFactura = data.FechaFactura;
+                }
+                else
+                {
+                    var factura = new Factura();
+                    factura.Id = Factura.GetNextId(_context);
+                    factura.RecordId = recordId;
+                    factura.ServiceType = serviceType;
+                    factura.RazonSocial = data.RazonSocial;
+                    factura.NIT = data.NIT;
+                    factura.NumeroFactura = data.NumeroFactura;
+                    factura.FechaFactura = data.FechaFactura;
+                    factura.CreatedAt = DateTime.Now;
+                    factura.CreatedBy = user.Id;
+                    _context.Facturas.Add(factura);
+                }
+            }
+
+            _context.SaveChanges();
+            return Ok("Datos de factura asignados a " + data.Ids.Count + " registro(s).");
         }
         public class AsesoriaPostgradoEstadoViewModel
         {

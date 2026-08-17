@@ -328,12 +328,25 @@ namespace UcbBack.Controllers
                 }
                 else
                 {
-                    // Standard payments - calculate with 2 decimals precision
-                    var pagos = CalculatePrecisePayments(montoTotal, meses.Count);
-
+                    // Standard payments - calculate using configured percentages
+                    decimal sumaMontosAnteriores = 0;
                     for (int i = 0; i < meses.Count; i++)
                     {
                         var mes = meses[i];
+                        bool isLast = (i == meses.Count - 1);
+                        decimal montoPago;
+
+                        if (isLast)
+                        {
+                            // Last payment gets the remainder to ensure exact total
+                            montoPago = Math.Round(montoTotal - sumaMontosAnteriores, 2);
+                        }
+                        else
+                        {
+                            montoPago = Math.Round(montoTotal * mes.PorcentajePorDefecto / 100, 2);
+                            sumaMontosAnteriores += montoPago;
+                        }
+
                         var pago = new PagoProgramado
                         {
                             AsignacionCargaId = asignacion.Id,
@@ -341,15 +354,14 @@ namespace UcbBack.Controllers
                             ProgramacionPagosId = programacion.Id,
                             MesPago = mes.Mes.HasValue ? mes.Mes.Value : mes.FechaPagos.Month,
                             AnioPago = mes.Anio.HasValue ? mes.Anio.Value : mes.FechaPagos.Year,
-                            Monto = pagos[i],
-                            MontoOriginal = pagos[i],
+                            Monto = montoPago,
+                            MontoOriginal = montoPago,
                             Porcentaje = mes.PorcentajePorDefecto,
                             Estado = "PROGRAMADO",
                             EsExcepcion = false,
                             CreatedAt = DateTime.Now,
                             CreatedBy = user.Id
                         };
-
                         _context.PagosProgramados.Add(pago);
                         totalPagosGenerados++;
                     }
