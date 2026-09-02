@@ -1637,6 +1637,20 @@ namespace UcbBack.Controllers
             {
                 var countRegister = 0;
                 int[] array = Array.ConvertAll(myArray.Split(','), int.Parse);
+                // Con Factura: no se puede enviar a aprobación sin datos de factura
+                var facturaIds = _context.Facturas
+                    .Where(f => f.ServiceType == "CARRERA")
+                    .Select(f => f.RecordId)
+                    .ToList();
+                var facSinFactura = _context.AsesoriaDocente
+                    .Where(a => array.Contains(a.Id) && a.Origen == "FAC")
+                    .Where(a => !facturaIds.Contains(a.Id))
+                    .Select(a => a.Id)
+                    .ToList();
+                if (facSinFactura.Any())
+                {
+                    return BadRequest("Hay " + facSinFactura.Count + " registro(s) Con Factura sin datos de factura asignados. Asigne la factura antes de enviar a aprobación.");
+                }
                 int[] failedUpdates = new int[array.Length];
                 for (int i = 0; i < array.Length; i++)
                 {

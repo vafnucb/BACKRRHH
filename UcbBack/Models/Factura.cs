@@ -20,6 +20,9 @@ namespace UcbBack.Models
         public string NumeroFactura { get; set; }
         public DateTime? CreatedAt { get; set; }
         public int? CreatedBy { get; set; }
+        public string CodigoAutorizacion { get; set; }
+        public decimal? Monto { get; set; }
+        public string TipoFactura { get; set; }
 
         public static int GetNextId(ApplicationDbContext _context)
         {

@@ -109,15 +109,16 @@ namespace UcbBack.Controllers
         }
 
         //  1) Get All Contracts (with filters)
- 
+
         [HttpGet]
         [Route("GetContratos")]
         public IHttpActionResult GetContratos(
-            int? branchesId = null,
-            string periodoId = null,
-            string estado = null,
-            int page = 1,
-            int pageSize = 20)
+    int? branchesId = null,
+    string periodoId = null,
+    string estado = null,
+    string search = null,
+    int page = 1,
+    int pageSize = 20)
         {
             var user = auth.getUser(Request);
             if (user == null)
@@ -141,28 +142,111 @@ namespace UcbBack.Controllers
                             c.AsigProcesoId
                         };
 
-            // Apply filters
+            // =========================
+            // FILTERS
+            // =========================
+
             if (branchesId.HasValue)
-                query = query.Where(x => x.BranchesId == branchesId.Value);
+            {
+                query = query.Where(x =>
+                    x.BranchesId == branchesId.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(periodoId))
-                query = query.Where(x => x.PeriodoId == periodoId);
+            {
+                query = query.Where(x =>
+                    x.PeriodoId == periodoId);
+            }
 
             if (!string.IsNullOrWhiteSpace(estado))
-                query = query.Where(x => x.Estado == estado);
+            {
+                query = query.Where(x =>
+                    x.Estado == estado);
+            }
 
-            // Apply regional filtering and materialize
-            var filtrado = auth.filerByRegional(query.AsQueryable(), user).ToList();
+            // =========================
+            // SERVER-SIDE SEARCH
+            // =========================
 
-            // Order, count, and paginate in memory
-            var ordered = filtrado.OrderByDescending(x => x.CreatedAt);
-            var total = ordered.Count();
-            var contratos = ordered.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+           
 
-            // Get assignment counts with a simpler query
-            var contratoIds = contratos.Select(c => c.Id).ToList();
+            // =========================
+            // REGIONAL FILTER
+            // =========================
 
-            // Use raw SQL
+            var filtrado = auth
+                .filerByRegional(query.AsQueryable(), user)
+                .ToList();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var searchTerms = search
+                    .Trim()
+                    .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                filtrado = filtrado
+                    .Where(x =>
+                    {
+                        var numeroContrato = (string)x.NumeroContrato ?? "";
+                        var nombreDocente = (string)x.NombreDocente ?? "";
+                        var sedeNombre = (string)x.SedeNombre ?? "";
+                        var sedeAbr = (string)x.SedeAbr ?? "";
+                        var periodo = (string)x.PeriodoId ?? "";
+
+                        return searchTerms.All(term =>
+                            numeroContrato.IndexOf(
+                                term,
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                            ||
+                            nombreDocente.IndexOf(
+                                term,
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                            ||
+                            sedeNombre.IndexOf(
+                                term,
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                            ||
+                            sedeAbr.IndexOf(
+                                term,
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                            ||
+                            periodo.IndexOf(
+                                term,
+                                StringComparison.OrdinalIgnoreCase
+                            ) >= 0
+                        );
+                    })
+                    .ToList();
+            }
+
+            // =========================
+            // TOTALS BEFORE PAGINATION
+            // =========================
+
+            // Total records
+            var total = filtrado.Count;
+
+            // Total amount of ALL filtered contracts
+            var montoTotalGeneral = filtrado
+                .Select(x => (decimal)x.MontoTotal)
+                .DefaultIfEmpty(0m)
+                .Sum();
+
+            // Pagination
+            var contratos = filtrado
+                .OrderByDescending(x => x.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // =========================
+            // ASSIGNMENT COUNTS
+            // =========================
+
             var result = contratos.Select(c => new ContratoListItem
             {
                 Id = c.Id,
@@ -173,7 +257,12 @@ namespace UcbBack.Controllers
                 Observaciones = c.Observaciones,
                 CreatedAt = c.CreatedAt,
                 AsigProcesoId = c.AsigProcesoId,
-                TotalAsignaciones = GetAsignacionesCount(c.NumeroContrato, c.BranchesId, c.PeriodoId)
+
+                TotalAsignaciones = GetAsignacionesCount(
+                    c.NumeroContrato,
+                    c.BranchesId,
+                    c.PeriodoId
+                )
             }).ToList();
 
             return Ok(new
@@ -182,7 +271,12 @@ namespace UcbBack.Controllers
                 Total = total,
                 Page = page,
                 PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)total / pageSize)
+
+                TotalPages = (int)Math.Ceiling(
+                    (double)total / pageSize
+                ),
+
+                MontoTotalGeneral = montoTotalGeneral
             });
         }
 

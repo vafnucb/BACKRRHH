@@ -1157,7 +1157,7 @@ namespace UcbBack.Controllers
                 "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
                 " \r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" prj on prj.\"CodProject\" = a.\"Proyecto\" and prj.\"CodModule\" = '0'" +
                 "\r\ninner join " + CustomSchema.Schema + ".\"Civil\" c " +
-                "\r\non a.\"TeacherBP\"=c.\"SAPId\" " +
+                "\r\non a.\"TeacherBP\"=c.\"SAPId\" and a.\"BranchesId\" = c.\"BranchesId\" " +
                 "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
                 "\r\non a.\"TipoTareaId\"=t.\"Id\" " +
                 "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br " +
@@ -1527,6 +1527,20 @@ namespace UcbBack.Controllers
             {
                 var countRegister = 0;
                 int[] array = Array.ConvertAll(myArray.Split(','), int.Parse);
+                // Con Factura: no se puede enviar a aprobación sin datos de factura
+                var facturaIds = _context.Facturas
+                    .Where(f => f.ServiceType == "PROYECTOS")
+                    .Select(f => f.RecordId)
+                    .ToList();
+                var facSinFactura = _context.AsesoriaPostgrado
+                    .Where(a => array.Contains(a.Id) && a.Origen == "FAC")
+                    .Where(a => !facturaIds.Contains(a.Id))
+                    .Select(a => a.Id)
+                    .ToList();
+                if (facSinFactura.Any())
+                {
+                    return BadRequest("Hay " + facSinFactura.Count + " registro(s) Con Factura sin datos de factura asignados. Asigne la factura antes de enviar a aprobación.");
+                }
                 int[] failedUpdates = new int[array.Length];
                 for (int i = 0; i < array.Length; i++)
                 {

@@ -193,6 +193,12 @@ namespace UcbBack.Controllers
             // Materialize
             var pagos = filteredQuery.ToList();
 
+            // Ids con factura asignada (para el flag)
+            var facturaIds = _context.Facturas
+                .Where(f => f.ServiceType == "PARALELO")
+                .Select(f => f.RecordId)
+                .ToList();
+
             // Build response
             var result = pagos.Select(p => new
             {
@@ -221,7 +227,8 @@ namespace UcbBack.Controllers
                 p.BranchesId,
                 p.PeriodoId,
                 p.MontoOriginal,
-                MontoModificado = p.MontoOriginal != null && p.MontoOriginal != p.MontoBruto
+                MontoModificado = p.MontoOriginal != null && p.MontoOriginal != p.MontoBruto,
+                TieneFactura = (p.TipoDocente == "INDEPENDIENTE_CON_FACTURA" && facturaIds.Contains(p.PagoEjecutadoId))
             }).ToList();
 
             return Ok(result);
@@ -562,6 +569,22 @@ namespace UcbBack.Controllers
             if (!pagos.Any())
                 return Request.CreateResponse(HttpStatusCode.BadRequest, new { Message = "No hay pagos pendientes para aprobar con los IDs proporcionados" });
 
+            // Con Factura: no se puede aprobar sin datos de factura asignados
+            var facturaIds = _context.Facturas
+                .Where(f => f.ServiceType == "PARALELO")
+                .Select(f => f.RecordId)
+                .ToList();
+            var facSinFactura = pagos
+                .Where(p => p.TipoDocente == "INDEPENDIENTE_CON_FACTURA" && !facturaIds.Contains(p.Id))
+                .ToList();
+            if (facSinFactura.Any())
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    Message = string.Format("Hay {0} pago(s) Con Factura sin datos de factura asignados. Asigne la factura antes de aprobar.", facSinFactura.Count)
+                });
+            }
+
             // Approve all
             foreach (var pago in pagos)
             {
@@ -675,8 +698,11 @@ namespace UcbBack.Controllers
                     // C - Cod_Dependencia
                     worksheet.Cell(row, 3).Value = codDependencia;
 
-                    // D - PEI_PO
-                    worksheet.Cell(row, 4).Value = "PO";
+                    // D - PEI_PO : Con Factura lleva el Id del registro (para que Saraí busque la factura); el resto "PO"
+                    worksheet.Cell(row, 4).Value =
+                        (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA")
+                            ? pago.Id.ToString()
+                            : "PO";
 
                     // E - Nombre_del_Servicio (NombrePlantilla from programacion)
                     worksheet.Cell(row, 5).Value = programacion?.NombrePlantilla ?? "";
@@ -1261,7 +1287,7 @@ namespace UcbBack.Controllers
                 CodigoSocio = codigoSocio,
                 NombreSocio = nombreSocio,
                 CodDependencia = codDependencia,
-                PEIPO = "PO",
+                PEIPO = (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA") ? pago.Id.ToString() : "PO",
                 NombreDelServicio = programacion?.NombrePlantilla ?? "",
                 PeriodoAcademico = proceso?.PeriodoId ?? "",
                 SiglaAsignatura = asignacion?.Sigla ?? "",
@@ -1333,7 +1359,7 @@ namespace UcbBack.Controllers
                     CodigoSocio = codigoSocio,
                     NombreSocio = nombreSocio,
                     CodDependencia = codDependencia,
-                    PEIPO = "PO",
+                    PEIPO = (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA") ? pago.Id.ToString() : "PO",
                     NombreDelServicio = programacion?.NombrePlantilla ?? "",
                     PeriodoAcademico = proceso?.PeriodoId ?? "",
                     SiglaAsignatura = asignacion?.Sigla ?? "",
@@ -1369,6 +1395,77 @@ namespace UcbBack.Controllers
 
             return Ok(new { BranchName = branchName, Pagos = result });
         }
+
+        public class AsignarFacturaParaleloRequest
+        {
+            public List<int> Ids { get; set; }
+            public string RazonSocial { get; set; }
+            public string NIT { get; set; }
+            public string NumeroFactura { get; set; }
+            public DateTime? FechaFactura { get; set; }
+            public string CodigoAutorizacion { get; set; }
+            public decimal? Monto { get; set; }
+        }
+
+        [HttpPost]
+        [Route("AsignarFacturaParalelo")]
+        public IHttpActionResult AsignarFacturaParalelo([FromBody] AsignarFacturaParaleloRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.Ids == null || !model.Ids.Any())
+                return BadRequest("No se seleccionó ningún pago.");
+
+            if (string.IsNullOrWhiteSpace(model.RazonSocial)
+            || string.IsNullOrWhiteSpace(model.NIT)
+            || string.IsNullOrWhiteSpace(model.NumeroFactura)
+            || model.FechaFactura == null
+            || string.IsNullOrWhiteSpace(model.CodigoAutorizacion)
+            || model.Monto == null || model.Monto <= 0)
+               return BadRequest("Todos los campos de la factura son obligatorios.");
+
+            const string serviceType = "PARALELO";
+
+            foreach (var recordId in model.Ids)
+            {
+                var existing = _context.Facturas
+                    .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
+
+                if (existing != null)
+                {
+                    existing.RazonSocial = model.RazonSocial;
+                    existing.NIT = model.NIT;
+                    existing.NumeroFactura = model.NumeroFactura;
+                    existing.FechaFactura = model.FechaFactura;
+                    existing.CodigoAutorizacion = model.CodigoAutorizacion;
+                    existing.Monto = model.Monto;
+                    existing.TipoFactura = "MANUAL";
+                }
+                else
+                {
+                    var factura = new Factura();
+                    factura.Id = Factura.GetNextId(_context);
+                    factura.RecordId = recordId;
+                    factura.ServiceType = serviceType;
+                    factura.RazonSocial = model.RazonSocial;
+                    factura.NIT = model.NIT;
+                    factura.NumeroFactura = model.NumeroFactura;
+                    factura.FechaFactura = model.FechaFactura;
+                    factura.CreatedAt = DateTime.Now;
+                    factura.CreatedBy = user.Id;
+                    factura.CodigoAutorizacion = model.CodigoAutorizacion;
+                    factura.Monto = model.Monto;
+                    factura.TipoFactura = "MANUAL";
+                    _context.Facturas.Add(factura);
+                }
+            }
+
+            _context.SaveChanges();
+            return Ok(new { Message = "Datos de factura asignados a " + model.Ids.Count + " pago(s)." });
+        }
+
 
         [NonAction]
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion, int? branchesId = null)
