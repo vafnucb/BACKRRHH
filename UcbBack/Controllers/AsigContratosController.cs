@@ -164,9 +164,7 @@ namespace UcbBack.Controllers
                     x.Estado == estado);
             }
 
-            // =========================
-            // SERVER-SIDE SEARCH
-            // =========================
+           
 
            
 
@@ -177,6 +175,8 @@ namespace UcbBack.Controllers
             var filtrado = auth
                 .filerByRegional(query.AsQueryable(), user)
                 .ToList();
+
+            // Search
 
             if (!string.IsNullOrWhiteSpace(search))
             {
