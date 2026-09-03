@@ -1405,6 +1405,7 @@ namespace UcbBack.Controllers
             public DateTime? FechaFactura { get; set; }
             public string CodigoAutorizacion { get; set; }
             public decimal? Monto { get; set; }
+            public bool EncontradaEnSap { get; set; }
         }
 
         [HttpPost]
@@ -1441,7 +1442,7 @@ namespace UcbBack.Controllers
                     existing.FechaFactura = model.FechaFactura;
                     existing.CodigoAutorizacion = model.CodigoAutorizacion;
                     existing.Monto = model.Monto;
-                    existing.TipoFactura = "MANUAL";
+                    existing.TipoFactura = model.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
                 }
                 else
                 {
@@ -1457,7 +1458,7 @@ namespace UcbBack.Controllers
                     factura.CreatedBy = user.Id;
                     factura.CodigoAutorizacion = model.CodigoAutorizacion;
                     factura.Monto = model.Monto;
-                    factura.TipoFactura = "MANUAL";
+                    factura.TipoFactura = model.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
                     _context.Facturas.Add(factura);
                 }
             }

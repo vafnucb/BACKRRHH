@@ -2394,6 +2394,9 @@ namespace UcbBack.Controllers
             public string NIT { get; set; }
             public string NumeroFactura { get; set; }
             public DateTime? FechaFactura { get; set; }
+            public string CodigoAutorizacion { get; set; }
+            public decimal? Monto { get; set; }
+            public bool EncontradaEnSap { get; set; }
         }
 
         [HttpPost]
@@ -2408,7 +2411,9 @@ namespace UcbBack.Controllers
             if (string.IsNullOrWhiteSpace(data.RazonSocial)
                 || string.IsNullOrWhiteSpace(data.NIT)
                 || string.IsNullOrWhiteSpace(data.NumeroFactura)
-                || data.FechaFactura == null)
+                || data.FechaFactura == null
+                || string.IsNullOrWhiteSpace(data.CodigoAutorizacion)
+                || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
 
             const string serviceType = "PROYECTOS";
@@ -2424,6 +2429,9 @@ namespace UcbBack.Controllers
                     existing.NIT = data.NIT;
                     existing.NumeroFactura = data.NumeroFactura;
                     existing.FechaFactura = data.FechaFactura;
+                    existing.CodigoAutorizacion = data.CodigoAutorizacion;
+                    existing.Monto = data.Monto;
+                    existing.TipoFactura = data.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
                 }
                 else
                 {
@@ -2437,6 +2445,9 @@ namespace UcbBack.Controllers
                     factura.FechaFactura = data.FechaFactura;
                     factura.CreatedAt = DateTime.Now;
                     factura.CreatedBy = user.Id;
+                    factura.CodigoAutorizacion = data.CodigoAutorizacion;
+                    factura.Monto = data.Monto;
+                    factura.TipoFactura = data.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
                     _context.Facturas.Add(factura);
                 }
             }
