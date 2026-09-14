@@ -1162,6 +1162,109 @@ namespace UcbBack.Logic.B1
             return goodText.Substring(0, goodText.Length > size ? size : goodText.Length);
         }
 
+        public string addServVoucherFAC(int UserId, List<Serv_Voucher> voucher, ServProcess process)
+        {
+            var log = initLog(UserId, BusinessObjectType.Voucher, voucher.FirstOrDefault().Memo);
+            try
+            {
+                var debe = voucher.Sum(x => x.Debit);
+                var haber = voucher.Sum(x => x.Credit);
+                if (debe != haber)
+                {
+                    log.Success = false;
+                    log.ErrorCode = errorCode.ToString();
+                    log.ErrorMessage = "System: Diferencia entre deba y haber. Debe(" + debe + ") - Haber(" + haber + ")";
+                    _context.SdkErrorLogs.Add(log);
+                    _context.SaveChanges();
+                    return "ERROR";
+                }
+
+                DateTime date = process.InSAPAt == null ? DateTime.Now : process.InSAPAt.Value;
+
+                // PRELIMINAR: JournalVouchers (borrador). Para producción cambiar a JournalEntries (oJournalEntries).
+                JournalVouchers businessObject =
+                    (JournalVouchers)company.GetBusinessObject(BoObjectTypes.oJournalVouchers);
+
+                // header (anidado bajo .JournalEntries)
+                businessObject.JournalEntries.ReferenceDate = date;
+                businessObject.JournalEntries.Memo = voucher.FirstOrDefault().Memo;
+                businessObject.JournalEntries.TaxDate = date;
+                businessObject.JournalEntries.Series = Int32.Parse(process.Branches.SerieComprobanteContalbeSAP);
+                businessObject.JournalEntries.DueDate = date;
+                businessObject.JournalEntries.Reference = "SARAI LOTE N. " + process.Id;
+
+                string serviceType = process.FileType;  // 'PARALELO' / 'CARRERA' / 'PROYECTOS' / 'VARIOS'
+
+                businessObject.JournalEntries.Lines.SetCurrentLine(0);
+                foreach (var line in voucher)
+                {
+                    businessObject.JournalEntries.Lines.LineMemo = line.LineMemo;
+                    businessObject.JournalEntries.Lines.AccountCode = this.getAccountId(line.Account);
+                    businessObject.JournalEntries.Lines.Credit = (double)line.Credit;
+                    businessObject.JournalEntries.Lines.Debit = (double)line.Debit;
+                    if (line.CardCode != null)
+                        businessObject.JournalEntries.Lines.ShortName = line.CardCode;
+                    businessObject.JournalEntries.Lines.CostingCode = line.OU;
+                    businessObject.JournalEntries.Lines.CostingCode2 = "PO";   // FAC: PEI_PO lleva el Id, se fuerza "PO"
+                    businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
+                    businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
+                    businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
+                    businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
+                    businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
+
+                    // Solo las líneas PPAGAR llevan el Id del registro en line.PEI -> buscar factura y setear UDFs
+                    int recordId;
+                    if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
+                    {
+                        var factura = _context.Facturas
+                            .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
+                        if (factura != null)
+                        {
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = factura.RazonSocial ?? "";
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = factura.NIT ?? "";
+                            if (factura.FechaFactura.HasValue)
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = factura.FechaFactura.Value;
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = factura.NumeroFactura ?? "";
+                        }
+                    }
+
+                    businessObject.JournalEntries.Lines.Add();
+                }
+
+                businessObject.Add();
+                company.GetLastError(out errorCode, out errorMessage);
+                if (errorCode != 0)
+                {
+                    log.Success = false;
+                    log.ErrorCode = errorCode.ToString();
+                    log.ErrorMessage = "SDK: " + errorMessage;
+                    _context.SdkErrorLogs.Add(log);
+                    _context.SaveChanges();
+                    return "ERROR";
+                }
+                else
+                {
+                    if (company.InTransaction)
+                        company.EndTransaction(SAPbobsCOM.BoWfTransOpt.wf_Commit);
+                    string newKey = company.GetNewObjectKey();
+                    newKey = newKey.Replace("\t1", "");
+                    process.SAPId = newKey;
+                    _context.ServProcesses.AddOrUpdate(process);
+                    _context.SdkErrorLogs.Add(log);
+                    _context.SaveChanges();
+                    return newKey;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Success = false;
+                log.ErrorMessage = "Catch: " + ex.Message;
+                _context.SdkErrorLogs.Add(log);
+                _context.SaveChanges();
+                return "ERROR";
+            }
+        }
+
         public string addServVoucher(int UserId, List<Serv_Voucher> voucher, ServProcess process)
         {
             var log = initLog(UserId, BusinessObjectType.Voucher, voucher.FirstOrDefault().Memo);

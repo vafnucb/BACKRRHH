@@ -1427,6 +1427,15 @@ namespace UcbBack.Controllers
             || model.Monto == null || model.Monto <= 0)
                return BadRequest("Todos los campos de la factura son obligatorios.");
 
+            // Validar que todos los pagos sean del mismo docente
+            var cis = (from pe in _context.EjecucionPagos
+                       join pp in _context.PagosProgramados on pe.PagoProgramadoId equals pp.Id
+                       join a in _context.AsignacionesCarga on pp.AsignacionCargaId equals a.Id
+                       where model.Ids.Contains(pe.Id)
+                       select a.CiDocente).Distinct().ToList();
+            if (cis.Count > 1)
+                return BadRequest("Solo se puede asignar factura a pagos del mismo docente.");
+
             const string serviceType = "PARALELO";
 
             foreach (var recordId in model.Ids)

@@ -125,9 +125,14 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                     // Verifica si el paralelo existe y concuerda con la dependencia ingresada
                     v6 = VerifyParalel(cod: 9, periodo: 6, sigla: 7, paralelo: 8, dependency: 3, branch: this.process.BranchesId);//esta dependencia debe estar en 3, no 17
                 }
-                var pei = connB1.getCostCenter(B1Connection.Dimension.PEI).Cast<string>().ToList();
-                // Verifica existencia PEI
-                bool v3 = VerifyColumnValueIn(4, pei, comment: "Este PEI no existe en SAP.");
+                // Con Factura: la columna PEI_PO transporta el Id del registro (no un PEI real) -> se omite esta validación
+                bool v3 = true;
+                if (process.TipoDocente != "FAC")
+                {
+                    var pei = connB1.getCostCenter(B1Connection.Dimension.PEI).Cast<string>().ToList();
+                    // Verifica existencia PEI
+                    v3 = VerifyColumnValueIn(4, pei, comment: "Este PEI no existe en SAP.");
+                }
                 // Verifica cantidad de caracteres NOMBRE DEL SERVICIO sea menor o igual a 50
                 bool v4 = VerifyLength(5, 50);
                 var periodo = connB1.getCostCenter(B1Connection.Dimension.Periodo).Cast<string>().ToList();
@@ -173,6 +178,11 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 {
                     res = false;
                     paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
+                }
+                if (process.TipoDocente == "FAC" && (IUE > 0 || IT > 0 || IUEExterior > 0))
+                {
+                    res = false;
+                    paintXY(12, i, XLColor.Red, "Un archivo Con Factura no debe tener retenciones (IUE/IT/IUEExterior deben ser 0)");
                 }
             }
             valid = valid && res;

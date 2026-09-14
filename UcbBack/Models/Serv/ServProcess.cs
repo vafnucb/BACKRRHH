@@ -850,6 +850,115 @@ namespace UcbBack.Models.Serv
                             break;
                     }
                     break;
+                case "FAC":
+                    switch (this.FileType)
+                    {
+                        case ServProcess.Serv_FileType.Varios:
+                            query =
+                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"ContractObjective\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\",  " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Varios\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
+                                " union all " +
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"ContractAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"ContractAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Varios\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id;
+                            break;
+                        case ServProcess.Serv_FileType.Carrera:
+                            query =
+                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"AssignedJob\"||' '||sv.\"Carrera\"||' '||sv.\"Student\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Carrera\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
+                                " union all " +
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",null as \"PEI\",null as \"Paralelo\",sv.\"Carrera\" as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"ContractAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"ContractAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Carrera\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id;
+                            break;
+                        case ServProcess.Serv_FileType.Proyectos:
+                            query =
+                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"ProjectCode\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"AssignedJob\" || ' ' || sv.\"ProjectSAPName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
+                                " union all " +
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",sv.\"Periodo\" as \"Periodo\",sv.\"ProjectSAPCode\" as \"ProjectCode\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"ContractAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"ContractAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id;
+                            break;
+                        case ServProcess.Serv_FileType.Paralelo:
+                            query =
+                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"Sigla\" || ' ' || sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
+                                " union all " +
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",null as \"PEI\",sv.\"ParalelSAP\" as \"Paralelo\",null as \"Carrera\",sv.\"Periodo\" as \"Periodo\",null as \"Proyecto\",  " +
+                                " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"ContractAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"ContractAmount\"else 0 end as \"Credit\" " +
+                                " from " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv " +
+                                " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
+                                " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Serv_Process\" sp on sv.\"Serv_ProcessId\" = sp.\"Id\" and cc.\"BranchesId\" = sp.\"BranchesId\" " +
+                                " inner join " + CustomSchema.Schema + ".\"Dependency\" d on sv.\"DependencyId\" = d.\"Id\" " +
+                                " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
+                                " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id;
+                            break;
+                    }
+                    break;
             }
 
         

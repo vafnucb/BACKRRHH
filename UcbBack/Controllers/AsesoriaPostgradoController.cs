@@ -2416,6 +2416,14 @@ namespace UcbBack.Controllers
                 || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
 
+            var docentes = _context.AsesoriaPostgrado
+                .Where(a => data.Ids.Contains(a.Id))
+                .Select(a => (a.TeacherBP ?? "") + "|" + (a.TeacherCUNI ?? ""))
+                .Distinct()
+                .ToList();
+            if (docentes.Count > 1)
+                return BadRequest("Solo se puede asignar factura a registros del mismo docente.");
+
             const string serviceType = "PROYECTOS";
 
             foreach (var recordId in data.Ids)

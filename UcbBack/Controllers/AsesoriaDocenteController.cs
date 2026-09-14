@@ -1583,6 +1583,14 @@ namespace UcbBack.Controllers
                 || string.IsNullOrWhiteSpace(data.CodigoAutorizacion)
                 || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
+            // Validar mismo docente por TeacherBP/TeacherCUNI (autoritativo)
+            var docentes = _context.AsesoriaDocente
+                .Where(a => data.Ids.Contains(a.Id))
+                .Select(a => (a.TeacherBP ?? "") + "|" + (a.TeacherCUNI ?? ""))
+                .Distinct()
+                .ToList();
+            if (docentes.Count > 1)
+                return BadRequest("Solo se puede asignar factura a registros del mismo docente.");
 
             const string serviceType = "CARRERA";
 

@@ -1105,7 +1105,10 @@ namespace UcbBack.Controllers
 
                 List<Serv_Voucher> dist1 = ppagar.Union(rest).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
                 Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process);
-                B1.addServVoucher(user.Id, dist1.ToList(), process);
+                if (process.TipoDocente == "FAC")
+                    B1.addServVoucherFAC(user.Id, dist1.ToList(), process);
+                else
+                    B1.addServVoucher(user.Id, dist1.ToList(), process);
             }
 
             if (memos.Count() > 1)
