@@ -1212,6 +1212,9 @@ namespace UcbBack.Logic.B1
                     businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
                     businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
 
+                    // U_TIPODOC siempre 'COMPRA' en todas las líneas
+                    businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "COMPRA";
+
                     // Solo las líneas PPAGAR llevan el Id del registro en line.PEI -> buscar factura y setear UDFs
                     int recordId;
                     if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
