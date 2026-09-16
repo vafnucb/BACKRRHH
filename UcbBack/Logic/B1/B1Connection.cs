@@ -1212,23 +1212,30 @@ namespace UcbBack.Logic.B1
                     businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
                     businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
 
-                    // U_TIPODOC siempre 'COMPRA' -> el UDF tiene lista de valores válidos; el código de 'COMPRA' es '1'
-                    businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
-
-                    // Solo las líneas PPAGAR llevan el Id del registro en line.PEI -> buscar factura y setear UDFs
-                    int recordId;
-                    if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
+                    if (line.Concept == "RCIVA")
                     {
-                        var factura = _context.Facturas
-                            .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
-                        if (factura != null)
+                        // Línea RCIVA: U_TIPODOC = COMPRA (código '1') + datos de factura
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
+
+                        int recordId;
+                        if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
                         {
-                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = factura.RazonSocial ?? "";
-                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = factura.NIT ?? "";
-                            if (factura.FechaFactura.HasValue)
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = factura.FechaFactura.Value;
-                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = factura.NumeroFactura ?? "";
+                            var factura = _context.Facturas
+                                .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
+                            if (factura != null)
+                            {
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = factura.RazonSocial ?? "";
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = factura.NIT ?? "";
+                                if (factura.FechaFactura.HasValue)
+                                    businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = factura.FechaFactura.Value;
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = factura.NumeroFactura ?? "";
+                            }
                         }
+                    }
+                    else
+                    {
+                        // Demás líneas (CONTRATO, PPAGAR): U_TIPODOC = SIN ASIGNAR (código '10')
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "10";
                     }
 
                     businessObject.JournalEntries.Lines.Add();

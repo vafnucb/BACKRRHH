@@ -745,7 +745,7 @@ namespace UcbBack.Models.Serv
                             break;
                         case ServProcess.Serv_FileType.Paralelo:
                             query =
-                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                           " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                             " sv.\"ServiceName\" as \"Memo\", sv.\"Sigla\" || \' \' || sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                             " CASE WHEN cc.\"Indicator\"=\'D\' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
                             " CASE WHEN cc.\"Indicator\"=\'H\' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
