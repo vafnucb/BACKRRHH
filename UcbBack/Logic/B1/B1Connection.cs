@@ -1204,11 +1204,15 @@ namespace UcbBack.Logic.B1
                     businessObject.JournalEntries.Lines.Debit = (double)line.Debit;
                     if (line.CardCode != null)
                         businessObject.JournalEntries.Lines.ShortName = line.CardCode;
-                    businessObject.JournalEntries.Lines.CostingCode = line.OU;
-                    businessObject.JournalEntries.Lines.CostingCode2 = "PO";   // FAC: PEI_PO lleva el Id, se fuerza "PO"
-                    businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
-                    businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
-                    businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
+                    // Las líneas de socio de negocio (control) no aceptan dimensiones -> solo en las demás
+                    if (line.CardCode == null)
+                    {
+                        businessObject.JournalEntries.Lines.CostingCode = line.OU;
+                        businessObject.JournalEntries.Lines.CostingCode2 = "PO";
+                        businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
+                        businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
+                        businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
+                    }
                     businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
                     businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
 
