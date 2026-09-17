@@ -963,8 +963,8 @@ namespace UcbBack.Models.Serv
                             break;
                         case ServProcess.Serv_FileType.Paralelo:
                             query =
-                                // PPAGAR: monto a pagar (sin cambio), lleva el Id en PEI
-                                " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                // PPAGAR: monto a pagar; lleva el Id del registro en PEI (como en la versión que funcionó)
+                                "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"Sigla\" || ' ' || sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                                 " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
                                 " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
@@ -989,7 +989,7 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // RCIVA: 13% del monto a pagar, redondeado a 2 decimales
+                                // RCIVA: 13% del monto a pagar, redondeado a 2 decimales (PEI null)
                                 " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                                 " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
