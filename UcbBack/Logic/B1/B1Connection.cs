@@ -1204,42 +1204,34 @@ namespace UcbBack.Logic.B1
                     businessObject.JournalEntries.Lines.Debit = (double)line.Debit;
                     if (line.CardCode != null)
                         businessObject.JournalEntries.Lines.ShortName = line.CardCode;
-                    // Las líneas de socio de negocio (control) no aceptan dimensiones -> solo en las demás
-                    if (line.CardCode == null)
-                    {
-                        businessObject.JournalEntries.Lines.CostingCode = line.OU;
-                        businessObject.JournalEntries.Lines.CostingCode2 = "PO";
-                        businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
-                        businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
-                        businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
-                    }
+                    businessObject.JournalEntries.Lines.CostingCode = line.OU;
+                    businessObject.JournalEntries.Lines.CostingCode2 = "PO";
+                    businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
+                    businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
+                    businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
                     businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
                     businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
 
+                    // U_TIPODOC: COMPRA ('1') solo en RCIVA, SIN ASIGNAR ('10') en las demás
                     if (line.Concept == "RCIVA")
-                    {
-                        // Línea RCIVA: U_TIPODOC = COMPRA (código '1') + datos de factura
                         businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
-
-                        int recordId;
-                        if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
-                        {
-                            var factura = _context.Facturas
-                                .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
-                            if (factura != null)
-                            {
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = factura.RazonSocial ?? "";
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = factura.NIT ?? "";
-                                if (factura.FechaFactura.HasValue)
-                                    businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = factura.FechaFactura.Value;
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = factura.NumeroFactura ?? "";
-                            }
-                        }
-                    }
                     else
-                    {
-                        // Demás líneas (CONTRATO, PPAGAR): U_TIPODOC = SIN ASIGNAR (código '10')
                         businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "10";
+
+                    // Datos de factura: en la línea PPAGAR (donde line.PEI trae el Id) — como en la versión que funcionó
+                    int recordId;
+                    if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out recordId))
+                    {
+                        var factura = _context.Facturas
+                            .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
+                        if (factura != null)
+                        {
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = factura.RazonSocial ?? "";
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = factura.NIT ?? "";
+                            if (factura.FechaFactura.HasValue)
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = factura.FechaFactura.Value;
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = factura.NumeroFactura ?? "";
+                        }
                     }
 
                     businessObject.JournalEntries.Lines.Add();
