@@ -1070,7 +1070,7 @@ namespace UcbBack.Controllers
                     Debit = g.Debit
                 }).ToList();
 
-                List<Serv_Voucher> rest = data.Where(g => g.Concept != "PPAGAR" && g.Memo == memo).GroupBy(g => new
+                List<Serv_Voucher> rest = data.Where(g => g.Concept != "PPAGAR" && g.Concept != "RCIVA" && g.Memo == memo).GroupBy(g => new
                 {
                     g.CardCode,
                     g.OU,
@@ -1103,7 +1103,28 @@ namespace UcbBack.Controllers
                     Debit = g.Sum(s => s.Debit)
                 }).ToList();
 
-                List<Serv_Voucher> dist1 = ppagar.Union(rest).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
+                // RCIVA por docente (no agregado). Cada línea RCIVA toma el Id del registro (PEI) de su
+                // línea PPAGAR correspondiente, emparejando por CardName (docente), para poder buscar la factura.
+                var rciva = data.Where(g => g.Concept == "RCIVA" && g.Memo == memo).Select(g => new Serv_Voucher()
+                {
+                    CardName = g.CardName,
+                    CardCode = g.CardCode,
+                    OU = g.OU,
+                    // toma el Id del registro desde la línea PPAGAR del mismo docente (misma CardName)
+                    PEI = ppagar.Where(p => p.CardName == g.CardName).Select(p => p.PEI).FirstOrDefault(),
+                    Carrera = g.Carrera,
+                    Paralelo = g.Paralelo,
+                    Periodo = g.Periodo,
+                    ProjectCode = g.ProjectCode,
+                    Memo = g.Memo,
+                    LineMemo = g.LineMemo,
+                    Concept = g.Concept,
+                    Account = g.Account,
+                    Credit = g.Credit,
+                    Debit = g.Debit
+                }).ToList();
+
+                List<Serv_Voucher> dist1 = ppagar.Union(rest).Union(rciva).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
                 Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process);
                 if (process.TipoDocente == "FAC")
                     B1.addServVoucherFAC(user.Id, dist1.ToList(), process);
