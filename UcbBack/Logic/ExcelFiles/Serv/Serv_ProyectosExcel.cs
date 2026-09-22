@@ -136,15 +136,24 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                     {
                         // Verificar si el rango de fecha del proyecto es valida
                         v11 = verifyDates(dependency: 3);
-                        // Verificar si el PEI registrado es correcto con el PEI del Proyecto en SAP
-                        v13 = verifyProjectPei(6, 4);
+                        // Con Factura: PEI_PO transporta el Id del registro -> se omite el cruce PEI-proyecto
+                        if (process.TipoDocente != "FAC")
+                            v13 = verifyProjectPei(6, 4);
+                        else
+                            v13 = true;
                     }
                 }
-                var pei = connB1.getCostCenter(B1Connection.Dimension.PEI).Cast<String>().ToList();
-                // Existencia del PEI
-                bool v3 = VerifyColumnValueIn(4, pei, comment: "Este PEI no existe en SAP.");
-                // Fechas validas para el PEI
-                bool v15 = VerifyColumnValueIn(4, connB1.getCostCenter(B1Connection.Dimension.PEI, mes: DateTime.Now.ToString("MM"), gestion: DateTime.Now.ToString("yyyy")).Cast<string>().ToList(), comment: "Este PEI se encuentra vencido.");
+                // Con Factura: la columna PEI_PO transporta el Id del registro (no un PEI real) -> se omiten las validaciones de PEI
+                bool v3 = true;
+                bool v15 = true;
+                if (process.TipoDocente != "FAC")
+                {
+                    var pei = connB1.getCostCenter(B1Connection.Dimension.PEI).Cast<String>().ToList();
+                    // Existencia del PEI
+                    v3 = VerifyColumnValueIn(4, pei, comment: "Este PEI no existe en SAP.");
+                    // Fechas validas para el PEI
+                    v15 = VerifyColumnValueIn(4, connB1.getCostCenter(B1Connection.Dimension.PEI, mes: DateTime.Now.ToString("MM"), gestion: DateTime.Now.ToString("yyyy")).Cast<string>().ToList(), comment: "Este PEI se encuentra vencido.");
+                }
                 // Verifica que la columna NOMBRE DEL SERVICIO sea menor o igual a 50
                 bool v4 = VerifyLength(5, 50);
                 // Verifica que la columna NOMBRE DEL PROYECTO sea igual o menor a 40
@@ -199,6 +208,11 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 {
                     res = false;
                     paintXY(14, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
+                }
+                if (process.TipoDocente == "FAC" && (IUE > 0 || IT > 0 || IUEExterior > 0))
+                {
+                    res = false;
+                    paintXY(13, i, XLColor.Red, "Un archivo Con Factura no debe tener retenciones (IUE/IT/IUEExterior deben ser 0)");
                 }
             }
             valid = valid && res;
