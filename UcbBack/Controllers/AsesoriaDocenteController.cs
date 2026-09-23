@@ -1584,8 +1584,12 @@ namespace UcbBack.Controllers
                 || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
             // Validar mismo docente por TeacherBP/TeacherCUNI (autoritativo)
-            var docentes = _context.AsesoriaDocente
+            // Traemos los registros primero y comparamos en memoria para evitar problemas de traducción a SQL
+            var registros = _context.AsesoriaDocente
                 .Where(a => data.Ids.Contains(a.Id))
+                .Select(a => new { a.TeacherBP, a.TeacherCUNI })
+                .ToList();
+            var docentes = registros
                 .Select(a => (a.TeacherBP ?? "") + "|" + (a.TeacherCUNI ?? ""))
                 .Distinct()
                 .ToList();
