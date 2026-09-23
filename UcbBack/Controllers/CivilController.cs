@@ -40,21 +40,17 @@ namespace UcbBack.Controllers
         [Route("api/CivilbyBranch/{id}")]
         public IHttpActionResult CivilbyBranch(int id)
         {
-            var B1 = B1Connection.Instance();
+            // var B1 = B1Connection.Instance();
 
             if (id != 0)
             {
-                var query = "select c.\"Id\", ocrd.\"CardName\" \"FullName\"," +
-                            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
-                            " c.\"BranchesId\", c.\"IsEnabled\"" +          // NEW
-                            "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
-                            "\r\n inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
-                            "   on ocrd.\"CardCode\" = c.\"SAPId\"" +
-                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
-                            "   on br.\"Id\" = c.\"BranchesId\"" +
-                            "\r\n where ocrd.\"validFor\" = 'Y'" +
-                            "\r\n   and ocrd.\"frozenFor\" = 'N'" +
-                            "\r\n   and c.\"BranchesId\"=" + id + ";";
+                var query = "select c.\"Id\", c.\"FullName\"," +
+            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
+            " c.\"BranchesId\", c.\"IsEnabled\"" +
+            "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
+            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
+            "   on br.\"Id\" = c.\"BranchesId\"" +
+            "\r\n where c.\"BranchesId\"=" + id + ";";
 
                 var rawresult = _context.Database.SqlQuery<Civil>(query);
                 var user = auth.getUser(Request);
@@ -75,18 +71,14 @@ namespace UcbBack.Controllers
                     StrIds += brid + (i == n ? "" : ", ");
                 }
 
-                var query = "select c.\"Id\", ocrd.\"CardName\" \"FullName\"," +
-                            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
-                            " c.\"BranchesId\", c.\"IsEnabled\"" +          // NEW
-                            "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
-                            "\r\n inner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".ocrd" +
-                            "   on ocrd.\"CardCode\" = c.\"SAPId\"" +
-                            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
-                            "   on br.\"Id\" = c.\"BranchesId\"" +
-                            "\r\n where ocrd.\"validFor\" = 'Y'" +
-                            "\r\n   and ocrd.\"frozenFor\" = 'N'" +
-                            "\r\n   and c.\"BranchesId\" in (" + StrIds + ")" +
-                            " order by c.\"Id\";";
+                var query = "select c.\"Id\", c.\"FullName\"," +
+            " c.\"SAPId\", c.\"NIT\", c.\"Document\", c.\"CreatedBy\"," +
+            " c.\"BranchesId\", c.\"IsEnabled\"" +
+            "\r\nfrom " + CustomSchema.Schema + ".\"Civil\" c" +
+            "\r\n inner join " + CustomSchema.Schema + ".\"Branches\" br" +
+            "   on br.\"Id\" = c.\"BranchesId\"" +
+            "\r\n where c.\"BranchesId\" in (" + StrIds + ")" +
+            " order by c.\"Id\";";
 
                 var rawresult = _context.Database.SqlQuery<Civil>(query)
                     .Select(x => new
