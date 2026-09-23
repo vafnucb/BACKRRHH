@@ -1476,6 +1476,51 @@ namespace UcbBack.Controllers
             return Ok(new { Message = "Datos de factura asignados a " + model.Ids.Count + " pago(s)." });
         }
 
+        public class FacturaSiatResult
+        {
+            public string RazonSocial { get; set; }
+            public string CodigoAutorizacion { get; set; }
+            public DateTime? FechaFactura { get; set; }
+            public decimal? Monto { get; set; }
+        }
+
+        [HttpGet]
+        [Route("BuscarFactura")]
+        public IHttpActionResult BuscarFactura(string nit, string numero)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(nit) || string.IsNullOrWhiteSpace(numero))
+                return BadRequest("Debe enviar NIT y Número de Factura.");
+
+            var sql =
+                "SELECT \"RAZON_SOCIAL_PROVEEDOR\" AS \"RazonSocial\", " +
+                "\"CODIGO_AUTORIZACION\" AS \"CodigoAutorizacion\", " +
+                "\"FECHA_FACTURA_DUI_DIM\" AS \"FechaFactura\", " +
+                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\" " +
+                "FROM ADMNAL.\"T_GEN_SIAT\" " +
+                "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero";
+
+            var result = _context.Database.SqlQuery<FacturaSiatResult>(sql,
+                new Sap.Data.Hana.HanaParameter("nit", nit),
+                new Sap.Data.Hana.HanaParameter("numero", numero)
+            ).FirstOrDefault();
+
+            if (result == null)
+                return Ok(new { Found = false });
+
+            return Ok(new
+            {
+                Found = true,
+                result.RazonSocial,
+                result.CodigoAutorizacion,
+                result.FechaFactura,
+                result.Monto
+            });
+        }
+
 
         [NonAction]
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion, int? branchesId = null)

@@ -1124,7 +1124,22 @@ namespace UcbBack.Controllers
                     Debit = g.Debit
                 }).ToList();
 
-                List<Serv_Voucher> dist1 = ppagar.Union(rest).Union(rciva).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
+                List<Serv_Voucher> dist1;
+                if (process.TipoDocente == "FAC")
+                {
+                    // Orden solicitado por Contabilidad para Con Factura: CONTRATO, RCIVA, PPAGAR
+                    dist1 = ppagar.Union(rest).Union(rciva)
+                        .OrderBy(z => z.Concept == "CONTRATO" ? 0
+                                    : z.Concept == "RCIVA" ? 1
+                                    : z.Concept == "PPAGAR" ? 2
+                                    : 3)
+                        .ThenBy(z => z.Account)
+                        .ToList();
+                }
+                else
+                {
+                    dist1 = ppagar.Union(rest).Union(rciva).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
+                }
                 Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process);
                 if (process.TipoDocente == "FAC")
                     B1.addServVoucherFAC(user.Id, dist1.ToList(), process);

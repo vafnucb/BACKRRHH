@@ -1632,6 +1632,51 @@ namespace UcbBack.Controllers
             return Ok("Datos de factura asignados a " + data.Ids.Count + " registro(s).");
         }
 
+        public class FacturaSiatResult
+        {
+            public string RazonSocial { get; set; }
+            public string CodigoAutorizacion { get; set; }
+            public DateTime? FechaFactura { get; set; }
+            public decimal? Monto { get; set; }
+        }
+
+        [HttpGet]
+        [Route("BuscarFactura")]
+        public IHttpActionResult BuscarFactura(string nit, string numero)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(nit) || string.IsNullOrWhiteSpace(numero))
+                return BadRequest("Debe enviar NIT y Número de Factura.");
+
+            var sql =
+                "SELECT \"RAZON_SOCIAL_PROVEEDOR\" AS \"RazonSocial\", " +
+                "\"CODIGO_AUTORIZACION\" AS \"CodigoAutorizacion\", " +
+                "\"FECHA_FACTURA_DUI_DIM\" AS \"FechaFactura\", " +
+                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\" " +
+                "FROM ADMNAL.\"T_GEN_SIAT\" " +
+                "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero";
+
+            var result = _context.Database.SqlQuery<FacturaSiatResult>(sql,
+                new Sap.Data.Hana.HanaParameter("nit", nit),
+                new Sap.Data.Hana.HanaParameter("numero", numero)
+            ).FirstOrDefault();
+
+            if (result == null)
+                return Ok(new { Found = false });
+
+            return Ok(new
+            {
+                Found = true,
+                result.RazonSocial,
+                result.CodigoAutorizacion,
+                result.FechaFactura,
+                result.Monto
+            });
+        }
+
         [HttpGet]
         [Route("api/FacturasByService/{serviceType}")]
         public IHttpActionResult FacturasByService(string serviceType)
@@ -1669,6 +1714,24 @@ namespace UcbBack.Controllers
                 if (facSinFactura.Any())
                 {
                     return BadRequest("Hay " + facSinFactura.Count + " registro(s) Con Factura sin datos de factura asignados. Asigne la factura antes de enviar a aprobación.");
+                }
+                // Amount-match: factura ELECTRONICA -> importe SAP debe coincidir con el neto del registro
+                var facturasFac = _context.Facturas
+                    .Where(f => f.ServiceType == "CARRERA" && facturaIds.Contains(f.RecordId))
+                    .ToList();
+                var registrosFac = _context.AsesoriaDocente
+                    .Where(a => array.Contains(a.Id) && a.Origen == "FAC")
+                    .ToList();
+                foreach (var reg in registrosFac)
+                {
+                    var fac = facturasFac.FirstOrDefault(f => f.RecordId == reg.Id);
+                    if (fac != null && fac.TipoFactura == "ELECTRONICA")
+                    {
+                        if (fac.Monto == null || fac.Monto.Value != reg.TotalNeto)
+                        {
+                            return BadRequest("El importe de la factura en SAP (" + (fac.Monto ?? 0) + ") no coincide con el monto a pagar (" + reg.TotalNeto + ") del registro " + reg.Id + ". No se puede enviar a aprobación.");
+                        }
+                    }
                 }
                 int[] failedUpdates = new int[array.Length];
                 for (int i = 0; i < array.Length; i++)
