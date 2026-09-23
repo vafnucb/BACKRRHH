@@ -1641,8 +1641,8 @@ namespace UcbBack.Controllers
         }
 
         [HttpGet]
-        [Route("api/BuscarFactura")]
-        public IHttpActionResult BuscarFactura(string nit, string numero)
+        [Route("api/BuscarFacturaCarrera")]
+        public IHttpActionResult BuscarFacturaCarrera(string nit, string numero)
         {
             var user = auth.getUser(Request);
             if (user == null)
