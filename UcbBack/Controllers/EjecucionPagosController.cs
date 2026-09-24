@@ -1436,6 +1436,21 @@ namespace UcbBack.Controllers
             if (cis.Count > 1)
                 return BadRequest("Solo se puede asignar factura a pagos del mismo docente.");
 
+            // Validación de monto: si la factura viene de SAP (Electronica), el importe debe coincidir con el neto del pago
+            if (model.EncontradaEnSap)
+            {
+                var pagosMonto = _context.EjecucionPagos
+                    .Where(ep => model.Ids.Contains(ep.Id))
+                    .ToList();
+                foreach (var pago in pagosMonto)
+                {
+                    if (model.Monto == null || model.Monto.Value != pago.MontoReal)
+                    {
+                        return BadRequest("El importe de la factura en SAP (" + (model.Monto ?? 0) + ") no coincide con el monto a pagar (" + pago.MontoReal + ") del pago " + pago.Id + ". No se puede asignar la factura.");
+                    }
+                }
+            }
+
             const string serviceType = "PARALELO";
 
             foreach (var recordId in model.Ids)
