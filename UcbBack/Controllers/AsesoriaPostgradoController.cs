@@ -2452,7 +2452,7 @@ namespace UcbBack.Controllers
                 var registrosMonto = _context.AsesoriaPostgrado
                     .Where(a => data.Ids.Contains(a.Id))
                     .ToList();
-                decimal sumaNeto = registrosMonto.Sum(a => a.TotalNeto);
+                decimal sumaNeto = registrosMonto.Sum(a => a.TotalNeto ?? 0);
                 if (data.Monto == null || data.Monto.Value != sumaNeto)
                 {
                     return BadRequest("El importe de la factura en SAP (" + (data.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
