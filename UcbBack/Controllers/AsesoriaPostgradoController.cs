@@ -2435,10 +2435,9 @@ namespace UcbBack.Controllers
                 || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
 
-            // Traemos los registros primero y comparamos en memoria para evitar problemas de traducción a SQL
+            // Traemos los registros completos (EF materializa según el modelo) y comparamos en memoria
             var registros = _context.AsesoriaPostgrado
                 .Where(a => data.Ids.Contains(a.Id))
-                .Select(a => new { a.TeacherBP, a.TeacherCUNI })
                 .ToList();
             var docentes = registros
                 .Select(a => (a.TeacherBP ?? "") + "|" + (a.TeacherCUNI ?? ""))
