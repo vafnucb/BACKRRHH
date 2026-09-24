@@ -1442,12 +1442,10 @@ namespace UcbBack.Controllers
                 var pagosMonto = _context.EjecucionPagos
                     .Where(ep => model.Ids.Contains(ep.Id))
                     .ToList();
-                foreach (var pago in pagosMonto)
+                decimal sumaNeto = pagosMonto.Sum(ep => ep.MontoReal);
+                if (model.Monto == null || model.Monto.Value != sumaNeto)
                 {
-                    if (model.Monto == null || model.Monto.Value != pago.MontoReal)
-                    {
-                        return BadRequest("El importe de la factura en SAP (" + (model.Monto ?? 0) + ") no coincide con el monto a pagar (" + pago.MontoReal + ") del pago " + pago.Id + ". No se puede asignar la factura.");
-                    }
+                    return BadRequest("El importe de la factura en SAP (" + (model.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
                 }
             }
 

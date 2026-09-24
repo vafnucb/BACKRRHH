@@ -1596,18 +1596,17 @@ namespace UcbBack.Controllers
             if (docentes.Count > 1)
                 return BadRequest("Solo se puede asignar factura a registros del mismo docente.");
 
-            // Validación de monto: si la factura viene de SAP (Electronica), el importe debe coincidir con el neto del registro
+            // Validación de monto: si la factura viene de SAP (Electronica), el importe SAP debe coincidir
+            // con la SUMA de los netos de todos los registros seleccionados (una factura puede cubrir varios).
             if (data.EncontradaEnSap)
             {
                 var registrosMonto = _context.AsesoriaDocente
                     .Where(a => data.Ids.Contains(a.Id))
                     .ToList();
-                foreach (var reg in registrosMonto)
+                decimal sumaNeto = registrosMonto.Sum(a => a.TotalNeto);
+                if (data.Monto == null || data.Monto.Value != sumaNeto)
                 {
-                    if (data.Monto.Value != reg.TotalNeto)
-                    {
-                        return BadRequest("El importe de la factura en SAP (" + data.Monto.Value + ") no coincide con el monto a pagar (" + reg.TotalNeto + ") del registro " + reg.Id + ". No se puede asignar la factura.");
-                    }
+                    return BadRequest("El importe de la factura en SAP (" + (data.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
                 }
             }
 
