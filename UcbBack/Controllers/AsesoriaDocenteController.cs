@@ -473,7 +473,7 @@ namespace UcbBack.Controllers
             // query para generar todos los datos de cada docente, ordenado por carrera y docente
             if (origin == "FAC")
             {
-                qOrigen = " and a.\"Origen\" = 'INDEP' and a.\"Factura\" = true ";
+                qOrigen = " and a.\"Origen\" = 'FAC' ";
             }
             else
             {
@@ -1733,24 +1733,7 @@ namespace UcbBack.Controllers
                 {
                     return BadRequest("Hay " + facSinFactura.Count + " registro(s) Con Factura sin datos de factura asignados. Asigne la factura antes de enviar a aprobación.");
                 }
-                // Amount-match: factura ELECTRONICA -> importe SAP debe coincidir con el neto del registro
-                var facturasFac = _context.Facturas
-                    .Where(f => f.ServiceType == "CARRERA" && facturaIds.Contains(f.RecordId))
-                    .ToList();
-                var registrosFac = _context.AsesoriaDocente
-                    .Where(a => array.Contains(a.Id) && a.Origen == "FAC")
-                    .ToList();
-                foreach (var reg in registrosFac)
-                {
-                    var fac = facturasFac.FirstOrDefault(f => f.RecordId == reg.Id);
-                    if (fac != null && fac.TipoFactura == "ELECTRONICA")
-                    {
-                        if (fac.Monto == null || fac.Monto.Value != reg.TotalNeto)
-                        {
-                            return BadRequest("El importe de la factura en SAP (" + (fac.Monto ?? 0) + ") no coincide con el monto a pagar (" + reg.TotalNeto + ") del registro " + reg.Id + ". No se puede enviar a aprobación.");
-                        }
-                    }
-                }
+                
                 int[] failedUpdates = new int[array.Length];
                 for (int i = 0; i < array.Length; i++)
                 {
@@ -2055,7 +2038,7 @@ namespace UcbBack.Controllers
             else if (by.Equals("REGISTRADO-FAC"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
-                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Factura\"=true " + orderBy;
+                string customQuery = query + "where a.\"Estado\"='REGISTRADO' " + "and a.\"Origen\"='FAC' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -2121,7 +2104,7 @@ namespace UcbBack.Controllers
             else if (by.Equals("VERIFICADO-FAC"))
             {
                 // para la pantalla de aprobación nos interesan los registrados nada más
-                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"=true " + orderBy;
+                string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Origen\"='FAC' " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
                 var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
@@ -2165,7 +2148,7 @@ namespace UcbBack.Controllers
             string qOrigen = "";
             if (origin == "FAC")
             {
-                qOrigen = " and a.\"Origen\" = 'INDEP' and a.\"Factura\" = true ";
+                qOrigen = " and a.\"Origen\" = 'FAC' ";
             }
             else
             {
