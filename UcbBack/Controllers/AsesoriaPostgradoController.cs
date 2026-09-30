@@ -2397,7 +2397,9 @@ namespace UcbBack.Controllers
             public DateTime? FechaFactura { get; set; }
             public string CodigoAutorizacion { get; set; }
             public decimal? Monto { get; set; }
+            public decimal? CreditoFiscal { get; set; }
             public bool EncontradaEnSap { get; set; }
+            public bool ConfirmarDuplicado { get; set; }
         }
 
         [HttpPost]
@@ -2417,7 +2419,9 @@ namespace UcbBack.Controllers
                 || data.Monto == null || data.Monto <= 0)
                 return BadRequest("Todos los campos de la factura son obligatorios.");
 
-            // Traemos los registros completos (EF materializa según el modelo) y comparamos en memoria
+            const string serviceType = "PROYECTOS";
+
+            // Mismo docente (en memoria, evita el parse '' de HANA)
             var registros = _context.AsesoriaPostgrado
                 .Where(a => data.Ids.Contains(a.Id))
                 .ToList();
@@ -2428,56 +2432,84 @@ namespace UcbBack.Controllers
             if (docentes.Count > 1)
                 return BadRequest("Solo se puede asignar factura a registros del mismo docente.");
 
-            // Validación de monto: si la factura viene de SAP (Electronica), el importe debe coincidir con el neto del registro
+            decimal sumaNeto = registros.Sum(a => a.TotalNeto ?? 0);
+
             if (data.EncontradaEnSap)
             {
-                var registrosMonto = _context.AsesoriaPostgrado
-                    .Where(a => data.Ids.Contains(a.Id))
-                    .ToList();
-                decimal sumaNeto = registrosMonto.Sum(a => a.TotalNeto ?? 0);
                 if (data.Monto == null || data.Monto.Value != sumaNeto)
-                {
                     return BadRequest("El importe de la factura en SAP (" + (data.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
-                }
             }
 
-            const string serviceType = "PROYECTOS";
+            // Crédito Fiscal: SAP si Electronica; si Manual = suma de ROUND(neto de cada registro * 13%)
+            decimal creditoFiscal = data.EncontradaEnSap
+                ? (data.CreditoFiscal ?? 0)
+                : registros.Sum(a => Math.Round((a.TotalNeto ?? 0) * 0.13m, 2, MidpointRounding.AwayFromZero));
+
+            string tipoFactura = data.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
+
+            var invoice = _context.Invoices.FirstOrDefault(inv =>
+                inv.NIT == data.NIT
+                && inv.NumeroFactura == data.NumeroFactura
+                && inv.FechaFactura == data.FechaFactura);
+
+            // Manual + factura ya existente -> advertir (si no confirmó aún)
+            if (!data.EncontradaEnSap && invoice != null && !data.ConfirmarDuplicado)
+            {
+                return Content(HttpStatusCode.Conflict, new
+                {
+                    Duplicado = true,
+                    Message = "Ya existe una factura con el mismo NIT, N° de Factura y Fecha. ¿Desea continuar de todas formas?"
+                });
+            }
+
+            if (invoice == null)
+            {
+                invoice = new Invoice();
+                invoice.Id = Invoice.GetNextId(_context);
+                invoice.NIT = data.NIT;
+                invoice.NumeroFactura = data.NumeroFactura;
+                invoice.FechaFactura = data.FechaFactura;
+                invoice.RazonSocial = data.RazonSocial;
+                invoice.CodigoAutorizacion = data.CodigoAutorizacion;
+                invoice.Monto = data.Monto;
+                invoice.CreditoFiscal = creditoFiscal;
+                invoice.TipoFactura = tipoFactura;
+                invoice.CreatedAt = DateTime.Now;
+                invoice.CreatedBy = user.Id;
+                _context.Invoices.Add(invoice);
+            }
+            else
+            {
+                invoice.RazonSocial = data.RazonSocial;
+                invoice.CodigoAutorizacion = data.CodigoAutorizacion;
+                invoice.Monto = data.Monto;
+                invoice.CreditoFiscal = creditoFiscal;
+                invoice.TipoFactura = tipoFactura;
+            }
+            _context.SaveChanges();
 
             foreach (var recordId in data.Ids)
             {
-                var existing = _context.Facturas
-                    .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
-
-                if (existing != null)
+                var link = _context.RecordInvoices
+                    .FirstOrDefault(l => l.RecordId == recordId && l.ServiceType == serviceType);
+                if (link != null)
                 {
-                    existing.RazonSocial = data.RazonSocial;
-                    existing.NIT = data.NIT;
-                    existing.NumeroFactura = data.NumeroFactura;
-                    existing.FechaFactura = data.FechaFactura;
-                    existing.CodigoAutorizacion = data.CodigoAutorizacion;
-                    existing.Monto = data.Monto;
-                    existing.TipoFactura = data.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
+                    link.InvoiceId = invoice.Id;
                 }
                 else
                 {
-                    var factura = new Factura();
-                    factura.Id = Factura.GetNextId(_context);
-                    factura.RecordId = recordId;
-                    factura.ServiceType = serviceType;
-                    factura.RazonSocial = data.RazonSocial;
-                    factura.NIT = data.NIT;
-                    factura.NumeroFactura = data.NumeroFactura;
-                    factura.FechaFactura = data.FechaFactura;
-                    factura.CreatedAt = DateTime.Now;
-                    factura.CreatedBy = user.Id;
-                    factura.CodigoAutorizacion = data.CodigoAutorizacion;
-                    factura.Monto = data.Monto;
-                    factura.TipoFactura = data.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
-                    _context.Facturas.Add(factura);
+                    var newLink = new RecordInvoice();
+                    newLink.Id = RecordInvoice.GetNextId(_context);
+                    newLink.RecordId = recordId;
+                    newLink.ServiceType = serviceType;
+                    newLink.InvoiceId = invoice.Id;
+                    newLink.CreatedAt = DateTime.Now;
+                    newLink.CreatedBy = user.Id;
+                    _context.RecordInvoices.Add(newLink);
                 }
             }
-
             _context.SaveChanges();
+
             return Ok("Datos de factura asignados a " + data.Ids.Count + " registro(s).");
         }
 
