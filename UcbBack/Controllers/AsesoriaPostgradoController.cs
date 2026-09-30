@@ -2487,6 +2487,7 @@ namespace UcbBack.Controllers
             public string CodigoAutorizacion { get; set; }
             public DateTime? FechaFactura { get; set; }
             public decimal? Monto { get; set; }
+            public decimal? CreditoFiscal { get; set; }
         }
 
         [HttpGet]
@@ -2504,7 +2505,8 @@ namespace UcbBack.Controllers
                 "SELECT \"RAZON_SOCIAL_PROVEEDOR\" AS \"RazonSocial\", " +
                 "\"CODIGO_AUTORIZACION\" AS \"CodigoAutorizacion\", " +
                 "\"FECHA_FACTURA_DUI_DIM\" AS \"FechaFactura\", " +
-                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\" " +
+                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\", " +
+                "\"CREDITO_FISCAL\" AS \"CreditoFiscal\" " +
                 "FROM ADMNAL.\"T_GEN_SIAT\" " +
                 "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero";
 
@@ -2522,7 +2524,8 @@ namespace UcbBack.Controllers
                 result.RazonSocial,
                 result.CodigoAutorizacion,
                 result.FechaFactura,
-                result.Monto
+                result.Monto,
+                result.CreditoFiscal
             });
         }
         public class AsesoriaPostgradoEstadoViewModel

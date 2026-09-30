@@ -1405,7 +1405,9 @@ namespace UcbBack.Controllers
             public DateTime? FechaFactura { get; set; }
             public string CodigoAutorizacion { get; set; }
             public decimal? Monto { get; set; }
+            public decimal? CreditoFiscal { get; set; }
             public bool EncontradaEnSap { get; set; }
+            public bool ConfirmarDuplicado { get; set; }
         }
 
         [HttpPost]
@@ -1420,72 +1422,108 @@ namespace UcbBack.Controllers
                 return BadRequest("No se seleccionó ningún pago.");
 
             if (string.IsNullOrWhiteSpace(model.RazonSocial)
-            || string.IsNullOrWhiteSpace(model.NIT)
-            || string.IsNullOrWhiteSpace(model.NumeroFactura)
-            || model.FechaFactura == null
-            || string.IsNullOrWhiteSpace(model.CodigoAutorizacion)
-            || model.Monto == null || model.Monto <= 0)
-               return BadRequest("Todos los campos de la factura son obligatorios.");
+                || string.IsNullOrWhiteSpace(model.NIT)
+                || string.IsNullOrWhiteSpace(model.NumeroFactura)
+                || model.FechaFactura == null
+                || string.IsNullOrWhiteSpace(model.CodigoAutorizacion)
+                || model.Monto == null || model.Monto <= 0)
+                return BadRequest("Todos los campos de la factura son obligatorios.");
 
-            // Validar que todos los pagos sean del mismo docente
-            var cis = (from pe in _context.EjecucionPagos
-                       join pp in _context.PagosProgramados on pe.PagoProgramadoId equals pp.Id
-                       join a in _context.AsignacionesCarga on pp.AsignacionCargaId equals a.Id
-                       where model.Ids.Contains(pe.Id)
-                       select a.CiDocente).Distinct().ToList();
-            if (cis.Count > 1)
-                return BadRequest("Solo se puede asignar factura a pagos del mismo docente.");
+            const string serviceType = "PARALELO";
 
-            // Validación de monto: si la factura viene de SAP (Electronica), el importe debe coincidir con el neto del pago
+            // Suma de los netos de los pagos seleccionados
+            var pagosMonto = _context.EjecucionPagos
+                .Where(ep => model.Ids.Contains(ep.Id))
+                .ToList();
+            decimal sumaNeto = pagosMonto.Sum(ep => ep.MontoReal);
+
+            // Validación de monto: si viene de SAP (Electronica), el importe debe coincidir con la suma
             if (model.EncontradaEnSap)
             {
-                var pagosMonto = _context.EjecucionPagos
-                    .Where(ep => model.Ids.Contains(ep.Id))
-                    .ToList();
-                decimal sumaNeto = pagosMonto.Sum(ep => ep.MontoReal);
                 if (model.Monto == null || model.Monto.Value != sumaNeto)
                 {
                     return BadRequest("El importe de la factura en SAP (" + (model.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
                 }
             }
 
-            const string serviceType = "PARALELO";
+            // Crédito Fiscal: SAP si Electronica; si Manual = suma de ROUND(neto de cada registro * 13%)
+            decimal creditoFiscal;
+            if (model.EncontradaEnSap)
+            {
+                creditoFiscal = model.CreditoFiscal ?? 0;
+            }
+            else
+            {
+                creditoFiscal = pagosMonto.Sum(ep => Math.Round(ep.MontoReal * 0.13m, 2, MidpointRounding.AwayFromZero));
+            }
 
+            string tipoFactura = model.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
+
+            // Find-or-create Invoice por identidad
+            var invoice = _context.Invoices.FirstOrDefault(inv =>
+                inv.NIT == model.NIT
+                && inv.NumeroFactura == model.NumeroFactura
+                && inv.FechaFactura == model.FechaFactura);
+
+            // Manual + factura ya existente -> advertir (a menos que el usuario ya haya confirmado)
+            if (!model.EncontradaEnSap && invoice != null && !model.ConfirmarDuplicado)
+            {
+                return Content(HttpStatusCode.Conflict, new
+                {
+                    Duplicado = true,
+                    Message = "Ya existe una factura con el mismo NIT, N° de Factura y Fecha. ¿Desea continuar de todas formas?"
+                });
+            }
+
+            if (invoice == null)
+            {
+                invoice = new Invoice();
+                invoice.Id = Invoice.GetNextId(_context);
+                invoice.NIT = model.NIT;
+                invoice.NumeroFactura = model.NumeroFactura;
+                invoice.FechaFactura = model.FechaFactura;
+                invoice.RazonSocial = model.RazonSocial;
+                invoice.CodigoAutorizacion = model.CodigoAutorizacion;
+                invoice.Monto = model.Monto;
+                invoice.CreditoFiscal = creditoFiscal;
+                invoice.TipoFactura = tipoFactura;
+                invoice.CreatedAt = DateTime.Now;
+                invoice.CreatedBy = user.Id;
+                _context.Invoices.Add(invoice);
+            }
+            else
+            {
+                invoice.RazonSocial = model.RazonSocial;
+                invoice.CodigoAutorizacion = model.CodigoAutorizacion;
+                invoice.Monto = model.Monto;
+                invoice.CreditoFiscal = creditoFiscal;
+                invoice.TipoFactura = tipoFactura;
+            }
+            _context.SaveChanges();
+
+            // Link each selected record (upsert RecordInvoice)
             foreach (var recordId in model.Ids)
             {
-                var existing = _context.Facturas
-                    .FirstOrDefault(f => f.RecordId == recordId && f.ServiceType == serviceType);
-
-                if (existing != null)
+                var link = _context.RecordInvoices
+                    .FirstOrDefault(l => l.RecordId == recordId && l.ServiceType == serviceType);
+                if (link != null)
                 {
-                    existing.RazonSocial = model.RazonSocial;
-                    existing.NIT = model.NIT;
-                    existing.NumeroFactura = model.NumeroFactura;
-                    existing.FechaFactura = model.FechaFactura;
-                    existing.CodigoAutorizacion = model.CodigoAutorizacion;
-                    existing.Monto = model.Monto;
-                    existing.TipoFactura = model.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
+                    link.InvoiceId = invoice.Id;
                 }
                 else
                 {
-                    var factura = new Factura();
-                    factura.Id = Factura.GetNextId(_context);
-                    factura.RecordId = recordId;
-                    factura.ServiceType = serviceType;
-                    factura.RazonSocial = model.RazonSocial;
-                    factura.NIT = model.NIT;
-                    factura.NumeroFactura = model.NumeroFactura;
-                    factura.FechaFactura = model.FechaFactura;
-                    factura.CreatedAt = DateTime.Now;
-                    factura.CreatedBy = user.Id;
-                    factura.CodigoAutorizacion = model.CodigoAutorizacion;
-                    factura.Monto = model.Monto;
-                    factura.TipoFactura = model.EncontradaEnSap ? "ELECTRONICA" : "MANUAL";
-                    _context.Facturas.Add(factura);
+                    var newLink = new RecordInvoice();
+                    newLink.Id = RecordInvoice.GetNextId(_context);
+                    newLink.RecordId = recordId;
+                    newLink.ServiceType = serviceType;
+                    newLink.InvoiceId = invoice.Id;
+                    newLink.CreatedAt = DateTime.Now;
+                    newLink.CreatedBy = user.Id;
+                    _context.RecordInvoices.Add(newLink);
                 }
             }
-
             _context.SaveChanges();
+
             return Ok(new { Message = "Datos de factura asignados a " + model.Ids.Count + " pago(s)." });
         }
 
@@ -1495,6 +1533,7 @@ namespace UcbBack.Controllers
             public string CodigoAutorizacion { get; set; }
             public DateTime? FechaFactura { get; set; }
             public decimal? Monto { get; set; }
+            public decimal? CreditoFiscal { get; set; }
         }
 
         [HttpGet]
@@ -1512,7 +1551,8 @@ namespace UcbBack.Controllers
                 "SELECT \"RAZON_SOCIAL_PROVEEDOR\" AS \"RazonSocial\", " +
                 "\"CODIGO_AUTORIZACION\" AS \"CodigoAutorizacion\", " +
                 "\"FECHA_FACTURA_DUI_DIM\" AS \"FechaFactura\", " +
-                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\" " +
+                "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\", " +
+                "\"CREDITO_FISCAL\" AS \"CreditoFiscal\" " +
                 "FROM ADMNAL.\"T_GEN_SIAT\" " +
                 "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero";
 
@@ -1530,7 +1570,8 @@ namespace UcbBack.Controllers
                 result.RazonSocial,
                 result.CodigoAutorizacion,
                 result.FechaFactura,
-                result.Monto
+                result.Monto,
+                result.CreditoFiscal
             });
         }
 
