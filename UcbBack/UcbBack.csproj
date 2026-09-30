@@ -370,10 +370,12 @@
     <Compile Include="Models\Factura.cs" />
     <Compile Include="Models\EjecucionPago.cs" />
     <Compile Include="Models\FechaPago.cs" />
+    <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\PagoProgramado.cs" />
     <Compile Include="Models\ProgramacionPago.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailListadoSalomon.cs" />
     <Compile Include="Models\Not Mapped\ContractDetailForWatch.cs" />
+    <Compile Include="Models\RecordInvoice.cs" />
     <Compile Include="Models\TipoPago.cs" />
     <Compile Include="Models\ValidoListados.cs" />
     <Compile Include="Models\ValidoSalomon.cs" />
