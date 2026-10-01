@@ -881,7 +881,7 @@ namespace UcbBack.Models.Serv
                             break;
                         case ServProcess.Serv_FileType.Carrera:
                             query =
-                                // PPAGAR: monto a pagar (sin cambio), sin PEI
+                                // PPAGAR gross, PEI = InvoiceId
                                 "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"AssignedJob\"||' '||sv.\"Carrera\"||' '||sv.\"Student\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                                 " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
@@ -894,11 +894,11 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // CONTRATO: monto a pagar - RCIVA(13% redondeado)
-                                " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                // CONTRATO gross (ToSAP groups per invoice & subtracts CreditoFiscal), PEI = InvoiceId
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",sv.\"Carrera\" as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Credit\" " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Carrera\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
@@ -907,11 +907,11 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // RCIVA: 13% redondeado, lleva el Id del registro en PEI
+                                // RCIVA: solo para obtener la cuenta; ToSAP pone el monto = CreditoFiscal. PEI = InvoiceId.
                                 " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Credit\" " +
+                                " CASE WHEN cc.\"Indicator\"='D' then 0 else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then 0 else 0 end as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Carrera\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
@@ -922,7 +922,7 @@ namespace UcbBack.Models.Serv
                             break;
                         case ServProcess.Serv_FileType.Proyectos:
                             query =
-                                // PPAGAR
+                                // PPAGAR gross, PEI = InvoiceId
                                 "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"ProjectCode\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"AssignedJob\" || ' ' || sv.\"ProjectSAPName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                                 " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
@@ -935,11 +935,11 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // CONTRATO: monto a pagar - RCIVA
-                                " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"ProjectCode\",  " +
+                                // CONTRATO gross, PEI = InvoiceId
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",sv.\"Periodo\" as \"Periodo\",sv.\"ProjectSAPCode\" as \"ProjectCode\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Credit\" " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
@@ -948,11 +948,10 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // RCIVA: 13% redondeado, lleva el Id en PEI
+                                // RCIVA: solo cuenta (monto 0; ToSAP = CreditoFiscal), PEI = InvoiceId
                                 " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"ProjectCode\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Credit\" " +
+                                " 0 as \"Debit\", 0 as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Proyectos\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
@@ -963,7 +962,7 @@ namespace UcbBack.Models.Serv
                             break;
                         case ServProcess.Serv_FileType.Paralelo:
                             query =
-                                // PPAGAR: monto a pagar; lleva el Id del registro en PEI (como en la versión que funcionó)
+                                // PPAGAR gross, PEI = InvoiceId
                                 "select sv.\"CardCode\",sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"Sigla\" || ' ' || sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
                                 " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
@@ -976,11 +975,11 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'PPAGAR' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // CONTRATO: monto a pagar - RCIVA(13% redondeado)
-                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",null as \"PEI\",sv.\"ParalelSAP\" as \"Paralelo\",null as \"Carrera\",sv.\"Periodo\" as \"Periodo\",null as \"Proyecto\",  " +
+                                // CONTRATO gross, PEI = InvoiceId
+                                " select null as \"CardCode\", sv.\"CardName\", ou.\"Cod\" as \"OU\",sv.\"PEI\" as \"PEI\",sv.\"ParalelSAP\" as \"Paralelo\",null as \"Carrera\",sv.\"Periodo\" as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then (sv.\"TotalAmount\" - ROUND(sv.\"TotalAmount\" * 0.13, 2)) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then (sv.\"TotalAmount\" - ROUND(sv.\"TotalAmount\" * 0.13, 2)) else 0 end as \"Credit\" " +
+                                " CASE WHEN cc.\"Indicator\"='D' then sv.\"TotalAmount\" else 0 end as \"Debit\", " +
+                                " CASE WHEN cc.\"Indicator\"='H' then sv.\"TotalAmount\"else 0 end as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
@@ -989,11 +988,10 @@ namespace UcbBack.Models.Serv
                                 " inner join " + CustomSchema.Schema + ".\"OrganizationalUnit\" ou on d.\"OrganizationalUnitId\" = ou.\"Id\" " +
                                 " where gc.\"Id\">11 and \"Concept\" = 'CONTRATO' and \"Serv_ProcessId\" = " + this.Id +
                                 " union all " +
-                                // RCIVA: 13% del monto a pagar, redondeado a 2 decimales (PEI null)
-                                " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",null as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
+                                // RCIVA: solo cuenta (monto 0; ToSAP lo pone = CreditoFiscal), PEI = InvoiceId
+                                " select null as \"CardCode\", sv.\"CardName\", null as \"OU\",sv.\"PEI\" as \"PEI\",null as \"Paralelo\",null as \"Carrera\",null as \"Periodo\",null as \"Proyecto\",  " +
                                 " sv.\"ServiceName\" as \"Memo\", sv.\"ServiceName\" as \"LineMemo\",sv.\"AssignedAccount\",\"Concept\",cc.\"Name\" as \"Account\", " +
-                                " CASE WHEN cc.\"Indicator\"='D' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Debit\", " +
-                                " CASE WHEN cc.\"Indicator\"='H' then ROUND(sv.\"TotalAmount\" * 0.13, 2) else 0 end as \"Credit\" " +
+                                " 0 as \"Debit\", 0 as \"Credit\" " +
                                 " from " + CustomSchema.Schema + ".\"Serv_Paralelo\" sv " +
                                 " inner join " + CustomSchema.Schema + ".\"GrupoContable\" gc on sv.\"AssignedAccount\"= gc.\"Name\" " +
                                 " inner join " + CustomSchema.Schema + ".\"CuentasContables\" cc on cc.\"GrupoContableId\" = gc.\"Id\" " +
