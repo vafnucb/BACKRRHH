@@ -194,7 +194,7 @@ namespace UcbBack.Controllers
             var pagos = filteredQuery.ToList();
 
             // Ids con factura asignada (para el flag)
-            var facturaIds = _context.Facturas
+            var facturaIds = _context.RecordInvoices
                 .Where(f => f.ServiceType == "PARALELO")
                 .Select(f => f.RecordId)
                 .ToList();
@@ -1438,13 +1438,12 @@ namespace UcbBack.Controllers
             decimal sumaNeto = pagosMonto.Sum(ep => ep.MontoReal);
 
             // Validación de monto: si viene de SAP (Electronica), el importe debe coincidir con la suma
-            if (model.EncontradaEnSap)
-            {
+         
                 if (model.Monto == null || model.Monto.Value != sumaNeto)
                 {
-                    return BadRequest("El importe de la factura en SAP (" + (model.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
+                    return BadRequest("El importe de la factura (" + (model.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
                 }
-            }
+            
 
             // Crédito Fiscal: SAP si Electronica; si Manual = suma de ROUND(neto de cada registro * 13%)
             decimal creditoFiscal;

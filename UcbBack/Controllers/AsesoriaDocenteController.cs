@@ -321,7 +321,7 @@ namespace UcbBack.Controllers
                 rawresult = _context.Database.SqlQuery<AsesoriaDocenteViewModel>(customQuery).ToList();
 
                 // Ids que ya tienen datos de factura asignados (para el flag/filtro)
-                var facturaIds = _context.Facturas
+                var facturaIds = _context.RecordInvoices
                     .Where(f => f.ServiceType == "CARRERA")
                     .Select(f => f.RecordId)
                     .ToList();
@@ -1601,11 +1601,10 @@ namespace UcbBack.Controllers
 
             decimal sumaNeto = registros.Sum(a => a.TotalNeto);
 
-            if (data.EncontradaEnSap)
-            {
+            
                 if (data.Monto == null || data.Monto.Value != sumaNeto)
-                    return BadRequest("El importe de la factura en SAP (" + (data.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
-            }
+                    return BadRequest("El importe de la factura (" + (data.Monto ?? 0) + ") no coincide con la suma de los montos a pagar seleccionados (" + sumaNeto + "). No se puede asignar la factura.");
+            
 
             // Crédito Fiscal: SAP si Electronica; si Manual = suma de ROUND(neto de cada registro * 13%)
             decimal creditoFiscal = data.EncontradaEnSap
