@@ -616,9 +616,8 @@ namespace UcbBack.Controllers
             return response;
         }
 
-        // ---------------------------
         //  7) Generate Excel Helper Method
-        // ---------------------------
+
         [NonAction]
         private MemoryStream GenerarExcelPagos(List<EjecucionPago> pagos)
         {
@@ -699,10 +698,16 @@ namespace UcbBack.Controllers
                     worksheet.Cell(row, 3).Value = codDependencia;
 
                     // D - PEI_PO : Con Factura lleva el Id del registro (para que Saraí busque la factura); el resto "PO"
-                    worksheet.Cell(row, 4).Value =
-                        (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA")
-                            ? pago.Id.ToString()
-                            : "PO";
+                    if (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA")
+                    {
+                        var ri = _context.RecordInvoices
+                            .FirstOrDefault(r => r.RecordId == pago.Id && r.ServiceType == "PARALELO");
+                        worksheet.Cell(row, 4).Value = ri != null ? ri.InvoiceId.ToString() : "";
+                    }
+                    else
+                    {
+                        worksheet.Cell(row, 4).Value = "PO";
+                    }
 
                     // E - Nombre_del_Servicio (NombrePlantilla from programacion)
                     worksheet.Cell(row, 5).Value = programacion?.NombrePlantilla ?? "";

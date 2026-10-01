@@ -1149,7 +1149,7 @@ namespace UcbBack.Controllers
             {
                 string query =
                 "select a.\"TeacherBP\" as \"Codigo_Socio\", case when fn.\"FullName\" is null then cr.\"CardName\" when cr.\"CardName\" is null then fn.\"FullName\" end as \"Nombre_Socio\", " +
-                "\r\na.\"DependencyCod\" as \"Cod_Dependencia\", cast(a.\"Id\" as varchar) as \"PEI_PO\", \r\nprj.\"NameModule\" \"Nombre_del_Servicio\", \r\no.\"PrjCode\" \"Código_Proyecto_SAP\"," +
+                "\r\na.\"DependencyCod\" as \"Cod_Dependencia\", cast(ri.\"InvoiceId\" as varchar) as \"PEI_PO\", \r\nprj.\"NameModule\" \"Nombre_del_Servicio\", \r\no.\"PrjCode\" \"Código_Proyecto_SAP\"," +
                 "\r\n\r\ncase \r\nwhen a.\"Modulo\" = '0' then substring(concat ('', concat (concat(substring(a.\"StudentFullName\",1,20), ' '),  substring(prj.\"NameModule\",1,20))),1,40)\r\nelse substring(concat ('', concat (concat(a.\"Modulo\", ' '), concat ('', prj.\"NameModule\"))),1,40)\r\nend as \"Nombre_del_Proyecto\",\r\n'' \"Versión\", '' \"PeriodoAcadémico\", " +
                 "t.\"Abr\" as \"Tipo_Tarea_Asignada\", \r\ncase when o.\"U_Tipo\" = 'E' then 'CC_EC'\r\nwhen o.\"U_Tipo\" = 'F' then 'CC_FC'\r\nwhen o.\"U_Tipo\" = 'P' then 'CC_POST'" +
                 "\r\nwhen o.\"U_Tipo\" = 'S' then 'CC_SA'\r\nwhen o.\"U_Tipo\" = 'V' then 'CC_INV'\r\nelse '' end as  \"Cuenta_Asignada\",\r\na.\"TotalBruto\" as \"Monto_Contrato\", " +
@@ -1162,6 +1162,8 @@ namespace UcbBack.Controllers
                 "\r\non a.\"TipoTareaId\"=t.\"Id\" " +
                 "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br " +
                 "\r\non a.\"BranchesId\"=br.\"Id\" " +
+                "\r\ninner join " + CustomSchema.Schema + ".\"RecordInvoice\" ri " +
+                "\r\non ri.\"RecordId\" = a.\"Id\" and ri.\"ServiceType\" = 'PROYECTOS' " +
                 "\r\ninner join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".oprj o " +
                 "\r\non a.\"Proyecto\"=o.\"PrjCode\" " +
                 "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\"  " +

@@ -1209,7 +1209,7 @@ namespace UcbBack.Controllers
             string query =
                 "select " +
                     "a.\"TeacherBP\" as \"Codigo_Socio\", a.\"TeacherFullName\" as \"Nombre_Socio\", " +
-                    "a.\"DependencyCod\" as \"Cod_Dependencia\", cast(a.\"Id\" as varchar) as \"PEI_PO\", " +
+                    "a.\"DependencyCod\" as \"Cod_Dependencia\", cast(ri.\"InvoiceId\" as varchar) as \"PEI_PO\", " +
                     "'Servicios de Tutoria Relatoria en Pregrado' \"Nombre_del_Servicio\", a.\"Carrera\" as \"Codigo_Carrera\" ,a.\"Acta\" as \"Documento_Base\", " +
                     "a.\"StudentFullName\" as \"Postulante\", t.\"Abr\" as \"Tipo_Tarea_Asignada\", 'CC_TEMPORAL' as \"Cuenta_Asignada\", " +
                     "a.\"TotalBruto\" as \"Monto_Contrato\", 0 as \"Monto_IUE\", 0 as \"Monto_IT\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  " +
@@ -1223,6 +1223,8 @@ namespace UcbBack.Controllers
                     "on a.\"TipoTareaId\"=t.\"Id\" " +
                     "inner join " + CustomSchema.Schema + ".\"Branches\" br " +
                     "on a.\"BranchesId\"=br.\"Id\" " +
+                    "inner join " + CustomSchema.Schema + ".\"RecordInvoice\" ri " +
+                    "on ri.\"RecordId\" = a.\"Id\" and ri.\"ServiceType\" = 'CARRERA' " +
                 "where " +
                    "a.\"Estado\"='PRE-APROBADO' " +
                    "and br.\"Abr\" ='" + segmento + "' " +
