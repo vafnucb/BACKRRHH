@@ -1222,6 +1222,22 @@ namespace UcbBack.Controllers
                     dist1 = ppagar.Union(rest).Union(rciva).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
                 }
 
+                // DIAGNÓSTICO: volcar dist1 para ver cada línea
+                foreach (var l in dist1)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        "LINEA -> Concept=" + (l.Concept ?? "NULL") +
+                        " | Account=" + (l.Account ?? "NULL") +
+                        " | PEI=" + (l.PEI ?? "NULL") +
+                        " | CardCode=" + (l.CardCode ?? "NULL") +
+                        " | Debit=" + l.Debit +
+                        " | Credit=" + l.Credit);
+                }
+                System.Diagnostics.Debug.WriteLine("TOTAL LINEAS dist1 = " + dist1.Count);
+
+                if (process.TipoDocente == "FAC")
+                    B1.addServVoucherFAC(user.Id, dist1.ToList(), process);
+
                 Console.WriteLine("La conexión a SAP B1 falló. No se puede continuar.", dist1.ToList(), user.Id, process);
                 if (process.TipoDocente == "FAC")
                     B1.addServVoucherFAC(user.Id, dist1.ToList(), process);
