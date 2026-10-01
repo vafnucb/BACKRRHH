@@ -1171,9 +1171,11 @@ namespace UcbBack.Logic.B1
                 var haber = voucher.Sum(x => x.Credit);
                 if (debe != haber)
                 {
+                    var detalle = string.Join(" || ", voucher.Select(v => v.Concept + ":" + v.Debit + "/" + v.Credit + " acc=" + (v.Account ?? "NULL") + " pei=" + (v.PEI ?? "NULL")));
                     log.Success = false;
                     log.ErrorCode = errorCode.ToString();
-                    log.ErrorMessage = "System: Diferencia entre deba y haber. Debe(" + debe + ") - Haber(" + haber + ")";
+                    log.ErrorMessage = ("DIF Debe(" + debe + ") Haber(" + haber + ") :: " + detalle);
+                    if (log.ErrorMessage.Length > 250) log.ErrorMessage = log.ErrorMessage.Substring(0, 250);
                     _context.SdkErrorLogs.Add(log);
                     _context.SaveChanges();
                     return "ERROR";
