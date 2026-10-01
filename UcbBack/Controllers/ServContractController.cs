@@ -1037,23 +1037,26 @@ namespace UcbBack.Controllers
                 var goodMemo = Regex.Replace(memo, "[^\\w\\._]", "");
                 goodMemo = Regex.Replace(goodMemo, @"\t|\n|\r", "");
 
-                var ppagar = data.Where(g => g.Concept == "PPAGAR" && g.Memo == memo).Select(g => new Serv_Voucher()
-                {
-                    CardName = g.CardName,
-                    CardCode = g.CardCode,
-                    OU = g.OU,
-                    PEI = g.PEI,
-                    Carrera = g.Carrera,
-                    Paralelo = g.Paralelo,
-                    Periodo = g.Periodo,
-                    ProjectCode = g.ProjectCode,
-                    Memo = g.Memo,
-                    LineMemo = g.LineMemo,
-                    Concept = g.Concept,
-                    Account = g.Account,
-                    Credit = g.Credit,
-                    Debit = g.Debit
-                }).ToList();
+                // PPAGAR: per record para no-FAC; para FAC se arma por invoice abajo
+                var ppagar = process.TipoDocente == "FAC"
+                    ? new List<Serv_Voucher>()
+                    : data.Where(g => g.Concept == "PPAGAR" && g.Memo == memo).Select(g => new Serv_Voucher()
+                    {
+                        CardName = g.CardName,
+                        CardCode = g.CardCode,
+                        OU = g.OU,
+                        PEI = g.PEI,
+                        Carrera = g.Carrera,
+                        Paralelo = g.Paralelo,
+                        Periodo = g.Periodo,
+                        ProjectCode = g.ProjectCode,
+                        Memo = g.Memo,
+                        LineMemo = g.LineMemo,
+                        Concept = g.Concept,
+                        Account = g.Account,
+                        Credit = g.Credit,
+                        Debit = g.Debit
+                    }).ToList();
 
                 // rest: para FAC excluye CONTRATO y RCIVA (se arman por invoice abajo); para el resto, todo menos PPAGAR
                 List<Serv_Voucher> rest = data.Where(g => g.Concept != "PPAGAR" && g.Memo == memo
@@ -1110,74 +1113,114 @@ namespace UcbBack.Controllers
                         Debit = g.Debit
                     }).ToList();
 
-                // FAC: CONTRATO y RCIVA por invoice (PEI = InvoiceId). D/H fijo: ambos van en Debe.
+                // FAC: CONTRATO por registro (bruto - parte del CreditoFiscal), RCIVA por invoice (CF), PPAGAR por invoice (Σbruto)
                 List<Serv_Voucher> contratoFac = new List<Serv_Voucher>();
                 List<Serv_Voucher> rcivaFac = new List<Serv_Voucher>();
+                List<Serv_Voucher> ppagarFac = new List<Serv_Voucher>();
                 if (process.TipoDocente == "FAC")
                 {
-                    // CONTRATO por invoice = Σ(bruto) - CreditoFiscal  (Debe)
-                    contratoFac = data.Where(g => g.Concept == "CONTRATO" && g.Memo == memo)
-                        .GroupBy(g => new { g.PEI, g.Account })
-                        .Select(grp =>
+                    // Agrupar los registros CONTRATO por invoice (PEI = InvoiceId)
+                    var contratoPorInvoice = data.Where(g => g.Concept == "CONTRATO" && g.Memo == memo)
+                        .GroupBy(g => g.PEI)
+                        .ToList();
+
+                    foreach (var grpInv in contratoPorInvoice)
+                    {
+                        int invId;
+                        decimal cf = 0;
+                        if (Int32.TryParse(grpInv.Key, out invId))
+                            cf = _context.Invoices.Where(i => i.Id == invId).Select(i => i.CreditoFiscal).FirstOrDefault() ?? 0;
+
+                        var registros = grpInv.ToList();
+                        decimal grossTotal = registros.Sum(r => r.Debit); // CONTRATO llega como Debit (bruto)
+
+                        // CONTRATO por registro = bruto_i - parte_i del CreditoFiscal (proporcional). Resto al último.
+                        decimal sumShares = 0;
+                        for (int idx = 0; idx < registros.Count; idx++)
                         {
-                            int invId;
-                            decimal cf = 0;
-                            if (Int32.TryParse(grp.Key.PEI, out invId))
-                                cf = _context.Invoices.Where(i => i.Id == invId).Select(i => i.CreditoFiscal).FirstOrDefault() ?? 0;
-                            decimal gross = grp.Sum(s => s.Debit);
-                            return new Serv_Voucher()
+                            var r = registros[idx];
+                            decimal grossI = r.Debit;
+                            decimal shareI;
+                            if (idx == registros.Count - 1)
+                            {
+                                shareI = cf - sumShares; // el último absorbe el resto para cuadrar exacto
+                            }
+                            else
+                            {
+                                shareI = grossTotal > 0
+                                    ? Math.Round(cf * (grossI / grossTotal), 2, MidpointRounding.AwayFromZero)
+                                    : 0;
+                                sumShares += shareI;
+                            }
+
+                            contratoFac.Add(new Serv_Voucher()
                             {
                                 CardName = "",
                                 CardCode = null,
-                                OU = grp.Select(x => x.OU).FirstOrDefault(),
-                                PEI = grp.Key.PEI,
-                                Carrera = grp.Select(x => x.Carrera).FirstOrDefault(),
-                                Paralelo = grp.Select(x => x.Paralelo).FirstOrDefault(),
-                                Periodo = grp.Select(x => x.Periodo).FirstOrDefault(),
-                                ProjectCode = grp.Select(x => x.ProjectCode).FirstOrDefault(),
-                                Memo = grp.Select(x => x.Memo).FirstOrDefault(),
-                                LineMemo = grp.Select(x => x.LineMemo).FirstOrDefault(),
+                                OU = r.OU,
+                                PEI = r.PEI,
+                                Carrera = r.Carrera,
+                                Paralelo = r.Paralelo,
+                                Periodo = r.Periodo,
+                                ProjectCode = r.ProjectCode,
+                                Memo = r.Memo,
+                                LineMemo = r.LineMemo,
                                 Concept = "CONTRATO",
-                                Account = grp.Key.Account,
-                                Debit = gross - cf,
+                                Account = r.Account,
+                                Debit = grossI - shareI,
                                 Credit = 0
-                            };
-                        }).ToList();
+                            });
+                        }
 
-                    // RCIVA por invoice = CreditoFiscal (Debe)
-                    rcivaFac = data.Where(g => g.Concept == "RCIVA" && g.Memo == memo)
-                        .GroupBy(g => new { g.PEI, g.Account })
-                        .Select(grp =>
+                        // RCIVA por invoice = CreditoFiscal (Debe), una línea
+                        var rcivaAccount = data.Where(g => g.Concept == "RCIVA" && g.Memo == memo && g.PEI == grpInv.Key)
+                            .Select(g => g.Account).FirstOrDefault();
+                        rcivaFac.Add(new Serv_Voucher()
                         {
-                            int invId;
-                            decimal cf = 0;
-                            if (Int32.TryParse(grp.Key.PEI, out invId))
-                                cf = _context.Invoices.Where(i => i.Id == invId).Select(i => i.CreditoFiscal).FirstOrDefault() ?? 0;
-                            return new Serv_Voucher()
-                            {
-                                CardName = grp.Select(x => x.CardName).FirstOrDefault(),
-                                CardCode = null,
-                                OU = null,
-                                PEI = grp.Key.PEI,
-                                Carrera = null,
-                                Paralelo = null,
-                                Periodo = null,
-                                ProjectCode = null,
-                                Memo = grp.Select(x => x.Memo).FirstOrDefault(),
-                                LineMemo = grp.Select(x => x.LineMemo).FirstOrDefault(),
-                                Concept = "RCIVA",
-                                Account = grp.Key.Account,
-                                Debit = cf,
-                                Credit = 0
-                            };
-                        }).ToList();
+                            CardName = registros.Select(x => x.CardName).FirstOrDefault(),
+                            CardCode = null,
+                            OU = null,
+                            PEI = grpInv.Key,
+                            Carrera = null,
+                            Paralelo = null,
+                            Periodo = null,
+                            ProjectCode = null,
+                            Memo = registros.Select(x => x.Memo).FirstOrDefault(),
+                            LineMemo = registros.Select(x => x.LineMemo).FirstOrDefault(),
+                            Concept = "RCIVA",
+                            Account = rcivaAccount,
+                            Debit = cf,
+                            Credit = 0
+                        });
+
+                        // PPAGAR por invoice = Σbruto (Haber), una línea
+                        var ppagarRows = data.Where(g => g.Concept == "PPAGAR" && g.Memo == memo && g.PEI == grpInv.Key).ToList();
+                        decimal ppagarTotal = ppagarRows.Sum(p => p.Credit);
+                        ppagarFac.Add(new Serv_Voucher()
+                        {
+                            CardName = ppagarRows.Select(x => x.CardName).FirstOrDefault(),
+                            CardCode = ppagarRows.Select(x => x.CardCode).FirstOrDefault(),
+                            OU = null,
+                            PEI = grpInv.Key,
+                            Carrera = null,
+                            Paralelo = null,
+                            Periodo = null,
+                            ProjectCode = null,
+                            Memo = ppagarRows.Select(x => x.Memo).FirstOrDefault(),
+                            LineMemo = ppagarRows.Select(x => x.LineMemo).FirstOrDefault(),
+                            Concept = "PPAGAR",
+                            Account = ppagarRows.Select(x => x.Account).FirstOrDefault(),
+                            Debit = 0,
+                            Credit = ppagarTotal
+                        });
+                    }
                 }
 
                 List<Serv_Voucher> dist1;
                 if (process.TipoDocente == "FAC")
                 {
-                    // Orden: CONTRATO, RCIVA, PPAGAR
-                    dist1 = ppagar.Union(rest).Union(contratoFac).Union(rcivaFac)
+                    // Orden: CONTRATO, RCIVA, PPAGAR. Concat (no Union) para no colapsar líneas CONTRATO idénticas.
+                    dist1 = contratoFac.Concat(rcivaFac).Concat(ppagarFac)
                         .OrderBy(z => z.Concept == "CONTRATO" ? 0
                                     : z.Concept == "RCIVA" ? 1
                                     : z.Concept == "PPAGAR" ? 2
