@@ -1754,7 +1754,7 @@ namespace UcbBack.Controllers
                 var countRegister = 0;
                 int[] array = Array.ConvertAll(myArray.Split(','), int.Parse);
                 // Con Factura: no se puede enviar a aprobación sin datos de factura
-                var facturaIds = _context.Facturas
+                var facturaIds = _context.RecordInvoices
                     .Where(f => f.ServiceType == "CARRERA")
                     .Select(f => f.RecordId)
                     .ToList();
