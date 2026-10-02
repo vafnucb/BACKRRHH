@@ -1187,25 +1187,24 @@ namespace UcbBack.Controllers
                             };
                         }).ToList();
 
-                    // PPAGAR por invoice (una línea por PEI), monto = Σbruto
+                    // PPAGAR por registro (una línea por registro), monto = bruto del registro
                     ppagarFac = data.Where(g => g.Concept == "PPAGAR" && g.Memo == memo)
-                        .GroupBy(g => g.PEI)
-                        .Select(grp => new Serv_Voucher()
+                        .Select(g => new Serv_Voucher()
                         {
-                            CardName = grp.Select(x => x.CardName).FirstOrDefault(),
-                            CardCode = grp.Select(x => x.CardCode).FirstOrDefault(),
-                            OU = null,
-                            PEI = grp.Key,
-                            Carrera = null,
-                            Paralelo = null,
-                            Periodo = null,
-                            ProjectCode = null,
-                            Memo = grp.Select(x => x.Memo).FirstOrDefault(),
-                            LineMemo = grp.Select(x => x.LineMemo).FirstOrDefault(),
+                            CardName = g.CardName,
+                            CardCode = g.CardCode,
+                            OU = g.OU,
+                            PEI = g.PEI,
+                            Carrera = g.Carrera,
+                            Paralelo = g.Paralelo,
+                            Periodo = g.Periodo,
+                            ProjectCode = g.ProjectCode,
+                            Memo = g.Memo,
+                            LineMemo = g.LineMemo,
                             Concept = "PPAGAR",
-                            Account = grp.Select(x => x.Account).FirstOrDefault(),
-                            Debit = 0,
-                            Credit = grp.Sum(s => s.Credit)
+                            Account = g.Account,
+                            Debit = g.Debit,
+                            Credit = g.Credit
                         }).ToList();
                 }
 
