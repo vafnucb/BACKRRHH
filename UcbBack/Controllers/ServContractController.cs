@@ -1117,28 +1117,12 @@ namespace UcbBack.Controllers
                 List<Serv_Voucher> contratoFac = new List<Serv_Voucher>();
                 List<Serv_Voucher> rcivaFac = new List<Serv_Voucher>();
                 List<Serv_Voucher> ppagarFac = new List<Serv_Voucher>();
+
+
                 if (process.TipoDocente == "FAC")
                 {
 
-                    // ===== DIAGNÓSTICO TEMPORAL =====
-                    var rcivaEnData = data.Where(g => g.Concept == "RCIVA" && g.Memo == memo).ToList();
-                    if (rcivaEnData.Count == 0)
-                    {
-                        return Content(HttpStatusCode.BadRequest, new
-                        {
-                            Message = "DIAG: getVoucherData NO devolvió filas RCIVA para memo=" + memo
-                        });
-                    }
-                    else
-                    {
-                        return Content(HttpStatusCode.BadRequest, new
-                        {
-                            Message = "DIAG: RCIVA en data = " + rcivaEnData.Count + " filas. Primera: acc=" +
-                                (rcivaEnData[0].Account ?? "NULL") + " pei=" + (rcivaEnData[0].PEI ?? "NULL") +
-                                " debit=" + rcivaEnData[0].Debit + " credit=" + rcivaEnData[0].Credit
-                        });
-                    }
-                    // ===== FIN DIAGNÓSTICO (el código real sigue abajo) =====
+                    
                     // CONTRATO por registro (bruto - parte CF, resto al último), agrupado por invoice
                     var contratoPorInvoice = data.Where(g => g.Concept == "CONTRATO" && g.Memo == memo)
                         .GroupBy(g => g.PEI).ToList();
@@ -1226,6 +1210,8 @@ namespace UcbBack.Controllers
                 }
 
                 List<Serv_Voucher> dist1;
+
+
                 if (process.TipoDocente == "FAC")
                 {
                     // Orden: CONTRATO, RCIVA, PPAGAR. Concat (no Union) para no colapsar líneas CONTRATO idénticas.
@@ -1240,6 +1226,19 @@ namespace UcbBack.Controllers
                 else
                 {
                     dist1 = ppagar.Union(rest).Union(rciva).OrderBy(z => z.Debit == 0.00M ? 1 : 0).ThenBy(z => z.Account).ToList();
+                }
+
+                string sapResult;
+                if (process.TipoDocente == "FAC")
+                    sapResult = B1.addServVoucherFAC(user.Id, dist1.ToList(), process);
+                else
+                    sapResult = B1.addServVoucher(user.Id, dist1.ToList(), process);
+
+                if (sapResult == "ERROR")
+                {
+                    // Surface the last logged error so we can see it on screen
+                    var lastErr = _context.SdkErrorLogs.OrderByDescending(x => x.Id).Select(x => x.ErrorMessage).FirstOrDefault();
+                    return Content(HttpStatusCode.BadRequest, new { Message = "SAP ERROR: " + (lastErr ?? "sin detalle") });
                 }
 
                 // DIAGNÓSTICO: volcar dist1 para ver cada línea
