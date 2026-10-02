@@ -1243,9 +1243,10 @@ namespace UcbBack.Logic.B1
                 company.GetLastError(out errorCode, out errorMessage);
                 if (errorCode != 0)
                 {
+                    var sapMsg = "SDK[" + errorCode + "]: " + errorMessage;
                     log.Success = false;
                     log.ErrorCode = errorCode.ToString();
-                    log.ErrorMessage = "SDK: " + errorMessage;
+                    log.ErrorMessage = sapMsg.Length > 250 ? sapMsg.Substring(0, 250) : sapMsg;
                     _context.SdkErrorLogs.Add(log);
                     _context.SaveChanges();
                     return "ERROR";
@@ -1265,8 +1266,9 @@ namespace UcbBack.Logic.B1
             }
             catch (Exception ex)
             {
+                var full = "Catch: " + ex.Message + (ex.InnerException != null ? " | INNER: " + ex.InnerException.Message : "");
                 log.Success = false;
-                log.ErrorMessage = "Catch: " + ex.Message;
+                log.ErrorMessage = full.Length > 250 ? full.Substring(0, 250) : full;
                 _context.SdkErrorLogs.Add(log);
                 _context.SaveChanges();
                 return "ERROR";
