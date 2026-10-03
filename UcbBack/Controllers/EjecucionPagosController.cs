@@ -570,7 +570,7 @@ namespace UcbBack.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, new { Message = "No hay pagos pendientes para aprobar con los IDs proporcionados" });
 
             // Con Factura: no se puede aprobar sin datos de factura asignados
-            var facturaIds = _context.Facturas
+            var facturaIds = _context.RecordInvoices
                 .Where(f => f.ServiceType == "PARALELO")
                 .Select(f => f.RecordId)
                 .ToList();

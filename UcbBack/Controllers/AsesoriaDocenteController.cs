@@ -1733,7 +1733,7 @@ namespace UcbBack.Controllers
         [Route("api/FacturasByService/{serviceType}")]
         public IHttpActionResult FacturasByService(string serviceType)
         {
-            var ids = _context.Facturas
+            var ids = _context.RecordInvoices
                 .Where(f => f.ServiceType == serviceType)
                 .Select(f => f.RecordId)
                 .ToList();
