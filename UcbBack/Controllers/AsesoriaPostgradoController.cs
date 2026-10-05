@@ -110,7 +110,7 @@ namespace UcbBack.Controllers
                            "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br \r\non a.\"BranchesId\"=br.\"Id\" " +
                            "\r\nleft join " + CustomSchema.Schema + ".\"FullName\" fn \r\non a.\"TeacherCUNI\"=fn.\"CUNI\" " +
                            "\r\nleft join " + ConfigurationManager.AppSettings["B1CompanyDB"] + ".\"OCRD\" c\r\non a.\"TeacherBP\"=c.\"CardCode\"";
-            string orderBy = "order by a.\"Gestion\" desc, a.\"Mes\" desc, a.\"Id\" asc, a.\"Proyecto\" asc, a.\"TeacherCUNI\" asc ";
+            string orderBy = "order by a.\"Id\" desc ";
             var rawresult = new List<AsesoriaPostgradoViewModel>();
             var user = auth.getUser(Request);
 

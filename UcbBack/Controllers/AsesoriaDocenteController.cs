@@ -108,7 +108,7 @@ namespace UcbBack.Controllers
                                 "on a.\"ModalidadId\"=tm.\"Id\" " +
                                 "inner join " + CustomSchema.Schema + ".\"Branches\" br " +
                                 "on a.\"BranchesId\"=br.\"Id\" ";
-            string orderBy = "order by a.\"Gestion\" desc, a.\"Mes\" desc, a.\"Id\" asc, a.\"Carrera\" asc, a.\"TeacherCUNI\" asc ";
+            string orderBy = "order by a.\"Id\" desc ";
             var rawresult = new List<AsesoriaDocenteViewModel>();
             var user = auth.getUser(Request);
 
