@@ -1030,7 +1030,7 @@ namespace UcbBack.Controllers
             process.InSAPAt = date;
 
             var data = process.getVoucherData(_context);
-            var memos = data.Select(x => x.Memo.Trim()).Distinct().ToList();
+            var memos = data.Select(x => x.Memo).Distinct().ToList();
 
             foreach (var memo in memos)
             {
