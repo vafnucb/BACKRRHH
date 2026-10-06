@@ -1032,14 +1032,6 @@ namespace UcbBack.Controllers
             var data = process.getVoucherData(_context);
             var memos = data.Select(x => x.Memo).Distinct().ToList();
 
-            // DIAG TEMPORAL: registrar cuántos memos hay, sin detener el método
-            var diagLog = new B1SDKLog();   // ajustar al nombre real de tu entidad de log
-            diagLog.Success = false;
-            diagLog.ErrorMessage = ("DIAG memos=" + memos.Count() + " :: " + string.Join(" | ", memos));
-            if (diagLog.ErrorMessage.Length > 250) diagLog.ErrorMessage = diagLog.ErrorMessage.Substring(0, 250);
-            _context.SdkErrorLogs.Add(diagLog);
-            _context.SaveChanges();
-
             foreach (var memo in memos)
             {
                 var goodMemo = Regex.Replace(memo, "[^\\w\\._]", "");
