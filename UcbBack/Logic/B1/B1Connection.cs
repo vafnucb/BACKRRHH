@@ -1227,7 +1227,8 @@ namespace UcbBack.Logic.B1
                                 businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = invoice.NIT ?? "";
                                 if (invoice.FechaFactura.HasValue)
                                     businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = invoice.FechaFactura.Value;
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = invoice.NumeroFactura ?? "";
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUM_FACT").Value = invoice.NumeroFactura ?? "";
+                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = invoice.CodigoAutorizacion ?? "";
                             }
                         }
                     }
