@@ -1246,6 +1246,11 @@ namespace UcbBack.Controllers
             public string UnidadOrganizacional { get; set; }
             public int MesPago { get; set; }
             public int AnioPago { get; set; }
+            // Invoice (solo FAC con factura asignada)
+            public string FacturaNIT { get; set; }
+            public string FacturaNumero { get; set; }
+            public string FacturaInvoiceId { get; set; }
+            public string FacturaTipo { get; set; }   // "E" / "M" / ""
         }
 
         [HttpGet]
@@ -1359,6 +1364,26 @@ namespace UcbBack.Controllers
                 var montoIT = RoundTo2Decimals(CalculateMontoIT(pago.MontoContrato, pago.TipoDocente));
                 var iueExterior = RoundTo2Decimals(CalculateIUEExterior(pago.MontoContrato, pago.TipoDocente));
 
+                // Invoice (solo para FAC con factura asignada)
+                string facNit = "", facNum = "", facInvId = "", facTipo = "";
+                if (pago.TipoDocente == "INDEPENDIENTE_CON_FACTURA")
+                {
+                    var link = _context.RecordInvoices
+                        .FirstOrDefault(r => r.RecordId == pago.Id && r.ServiceType == "PARALELO");
+                    if (link != null)
+                    {
+                        var invoice = _context.Invoices.FirstOrDefault(i => i.Id == link.InvoiceId);
+                        if (invoice != null)
+                        {
+                            facNit = invoice.NIT ?? "";
+                            facNum = invoice.NumeroFactura ?? "";
+                            facInvId = invoice.Id.ToString();
+                            facTipo = invoice.TipoFactura == "ELECTRONICA" ? "E"
+                                    : invoice.TipoFactura == "MANUAL" ? "M" : "";
+                        }
+                    }
+                }
+
                 result.Add(new ExcelValoresResponse
                 {
                     CodigoSocio = codigoSocio,
@@ -1380,6 +1405,10 @@ namespace UcbBack.Controllers
                     NombreMateria = GetNombreMateria(asignacion?.CodigoParalelo),
                     MesPago = pagoProgramado != null ? pagoProgramado.MesPago : 0,
                     AnioPago = pagoProgramado != null ? pagoProgramado.AnioPago : 0,
+                    FacturaNIT = facNit,
+                    FacturaNumero = facNum,
+                    FacturaInvoiceId = facInvId,
+                    FacturaTipo = facTipo,
                     UnidadOrganizacional = asignacion != null && !string.IsNullOrWhiteSpace(asignacion.UnidadOrganizacional)
                         ? (_context.OrganizationalUnits.Where(ou => ou.Cod == asignacion.UnidadOrganizacional).Select(ou => ou.Name).FirstOrDefault() ?? asignacion.UnidadOrganizacional)
                         : ""
