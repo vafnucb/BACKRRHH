@@ -1214,11 +1214,8 @@ namespace UcbBack.Controllers
                     "a.\"StudentFullName\" as \"Postulante\", t.\"Abr\" as \"Tipo_Tarea_Asignada\", 'CC_TEMPORAL' as \"Cuenta_Asignada\", " +
                     "a.\"TotalBruto\" as \"Monto_Contrato\", 0 as \"Monto_IUE\", 0 as \"Monto_IT\", a.\"TotalNeto\" as \"Monto_a_Pagar\",  " +
                     "a.\"Observaciones\" " +
-                "from " +
+                                "from " +
                     CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
-                    "inner join " + CustomSchema.Schema + ".\"Civil\" c " +
-                    "ON a.\"TeacherBP\" = c.\"SAPId\" " +
-                    "AND a.\"BranchesId\" = c.\"BranchesId\" " +
                     "inner join " + CustomSchema.Schema + ".\"TipoTarea\" t " +
                     "on a.\"TipoTareaId\"=t.\"Id\" " +
                     "inner join " + CustomSchema.Schema + ".\"Branches\" br " +
