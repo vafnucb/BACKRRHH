@@ -234,9 +234,8 @@ namespace UcbBack.Controllers
             return Ok(result);
         }
 
-        // ---------------------------
+
         //  3) Get EjecucionPago Detail
-        // ---------------------------
         [HttpGet]
         [Route("GetDetalle/{pagoEjecutadoId}")]
         public IHttpActionResult GetDetalle(int pagoEjecutadoId)
@@ -304,7 +303,12 @@ namespace UcbBack.Controllers
 
             if (pago == null)
                 return NotFound();
-
+            // Datos de factura (si el registro tiene factura asignada)
+            var link = _context.RecordInvoices
+                .FirstOrDefault(r => r.RecordId == pagoEjecutadoId && r.ServiceType == "PARALELO");
+            Invoice invoice = link != null
+                ? _context.Invoices.FirstOrDefault(i => i.Id == link.InvoiceId)
+                : null;
             // Get all scheduled payments for this assignment
             var todosLosPagos = _context.PagosProgramados
                 .Where(p => p.AsignacionCargaId == pago.AsignacionCargaId)
@@ -374,7 +378,19 @@ namespace UcbBack.Controllers
                 pago.PeriodoId,
 
                 // Payment schedule for entire assignment
-                CalendarioPagos = todosLosPagos
+                CalendarioPagos = todosLosPagos,
+
+                // Datos de factura (null si no tiene)
+                TieneFactura = invoice != null,
+                FacturaInvoiceId = invoice != null ? invoice.Id.ToString() : null,
+                FacturaRazonSocial = invoice != null ? invoice.RazonSocial : null,
+                FacturaNIT = invoice != null ? invoice.NIT : null,
+                FacturaNumero = invoice != null ? invoice.NumeroFactura : null,
+                FacturaFecha = invoice != null ? invoice.FechaFactura : (DateTime?)null,
+                FacturaCodigoAutorizacion = invoice != null ? invoice.CodigoAutorizacion : null,
+                FacturaMonto = invoice != null ? invoice.Monto : (decimal?)null,
+                FacturaCreditoFiscal = invoice != null ? invoice.CreditoFiscal : (decimal?)null,
+                FacturaTipo = invoice != null ? invoice.TipoFactura : null
             };
 
             return Ok(result);
