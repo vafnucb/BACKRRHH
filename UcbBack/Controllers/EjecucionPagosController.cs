@@ -1608,6 +1608,58 @@ namespace UcbBack.Controllers
             });
         }
 
+        public class EliminarFacturaParaleloRequest
+        {
+            public List<int> Ids { get; set; }
+        }
+
+        [HttpPost]
+        [Route("EliminarFacturaParalelo")]
+        public IHttpActionResult EliminarFacturaParalelo([FromBody] EliminarFacturaParaleloRequest model)
+        {
+            var user = auth.getUser(Request);
+            if (user == null)
+                return Unauthorized();
+
+            if (model == null || model.Ids == null || !model.Ids.Any())
+                return BadRequest("No se seleccionó ningún pago.");
+
+            const string serviceType = "PARALELO";
+
+            // Guard de estado: no permitir si algún pago ya está APROBADO
+            var aprobados = _context.EjecucionPagos
+                .Where(ep => model.Ids.Contains(ep.Id) && ep.Estado == "APROBADO")
+                .Select(ep => ep.Id)
+                .ToList();
+            if (aprobados.Any())
+                return BadRequest("No se pueden eliminar datos de factura de pagos ya aprobados.");
+
+            // Recolectar los InvoiceId afectados y borrar los links
+            var links = _context.RecordInvoices
+                .Where(r => model.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
+                .ToList();
+
+            var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
+
+            _context.RecordInvoices.RemoveRange(links);
+            _context.SaveChanges();
+
+            // Borrar las Invoice que quedaron huérfanas (sin ningún RecordInvoice)
+            foreach (var invId in invoiceIds)
+            {
+                bool stillUsed = _context.RecordInvoices.Any(r => r.InvoiceId == invId);
+                if (!stillUsed)
+                {
+                    var invoice = _context.Invoices.FirstOrDefault(i => i.Id == invId);
+                    if (invoice != null)
+                        _context.Invoices.Remove(invoice);
+                }
+            }
+            _context.SaveChanges();
+
+            return Ok(new { Message = "Datos de factura eliminados de " + model.Ids.Count + " pago(s)." });
+        }
+
 
         [NonAction]
         private string GetObservacionesWithBankInfo(string observaciones, AsignacionCarga asignacion, int? branchesId = null)

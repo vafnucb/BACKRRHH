@@ -2561,6 +2561,52 @@ namespace UcbBack.Controllers
                 result.CreditoFiscal
             });
         }
+
+        public class EliminarFacturaDTO
+        {
+            public List<int> Ids { get; set; }
+        }
+
+        [HttpPost]
+        [Route("api/EliminarFacturaProyectos")]
+        public IHttpActionResult EliminarFacturaProyectos([FromBody] EliminarFacturaDTO data)
+        {
+            var user = auth.getUser(Request);
+            if (data == null || data.Ids == null || data.Ids.Count == 0)
+                return BadRequest("No se seleccionó ningún registro.");
+
+            const string serviceType = "PROYECTOS";
+
+            // Guard de estado: no permitir si algún registro ya está APROBADO
+            var aprobados = _context.AsesoriaPostgrado
+                .Where(a => data.Ids.Contains(a.Id) && a.Estado == "APROBADO")
+                .Select(a => a.Id)
+                .ToList();
+            if (aprobados.Any())
+                return BadRequest("No se pueden eliminar datos de factura de registros ya aprobados.");
+
+            var links = _context.RecordInvoices
+                .Where(r => data.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
+                .ToList();
+            var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
+
+            _context.RecordInvoices.RemoveRange(links);
+            _context.SaveChanges();
+
+            foreach (var invId in invoiceIds)
+            {
+                bool stillUsed = _context.RecordInvoices.Any(r => r.InvoiceId == invId);
+                if (!stillUsed)
+                {
+                    var invoice = _context.Invoices.FirstOrDefault(i => i.Id == invId);
+                    if (invoice != null)
+                        _context.Invoices.Remove(invoice);
+                }
+            }
+            _context.SaveChanges();
+
+            return Ok("Datos de factura eliminados de " + data.Ids.Count + " registro(s).");
+        }
         public class AsesoriaPostgradoEstadoViewModel
         {
             public int Id { get; set; }
