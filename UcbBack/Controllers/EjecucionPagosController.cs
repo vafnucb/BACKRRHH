@@ -1634,27 +1634,33 @@ namespace UcbBack.Controllers
             if (aprobados.Any())
                 return BadRequest("No se pueden eliminar datos de factura de pagos ya aprobados.");
 
-            // Recolectar los InvoiceId afectados y borrar los links
+            // Links de los registros seleccionados
             var links = _context.RecordInvoices
                 .Where(r => model.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
                 .ToList();
-
             var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
 
-            _context.RecordInvoices.RemoveRange(links);
-            _context.SaveChanges();
-
-            // Borrar las Invoice que quedaron huérfanas (sin ningún RecordInvoice)
+            // Para cada invoice afectada, ver si quedará huérfana:
+            // total de links que apuntan a esa invoice, menos los que vamos a borrar
+            var invoicesAEliminar = new List<int>();
             foreach (var invId in invoiceIds)
             {
-                bool stillUsed = _context.RecordInvoices.Any(r => r.InvoiceId == invId);
-                if (!stillUsed)
-                {
-                    var invoice = _context.Invoices.FirstOrDefault(i => i.Id == invId);
-                    if (invoice != null)
-                        _context.Invoices.Remove(invoice);
-                }
+                int totalLinks = _context.RecordInvoices.Count(r => r.InvoiceId == invId);
+                int borrando = links.Count(l => l.InvoiceId == invId);
+                if (totalLinks - borrando <= 0)
+                    invoicesAEliminar.Add(invId);
             }
+
+            // Borrar links
+            _context.RecordInvoices.RemoveRange(links);
+
+            // Borrar invoices que quedarán huérfanas
+            if (invoicesAEliminar.Any())
+            {
+                var invoices = _context.Invoices.Where(i => invoicesAEliminar.Contains(i.Id)).ToList();
+                _context.Invoices.RemoveRange(invoices);
+            }
+
             _context.SaveChanges();
 
             return Ok(new { Message = "Datos de factura eliminados de " + model.Ids.Count + " pago(s)." });

@@ -2577,32 +2577,41 @@ namespace UcbBack.Controllers
 
             const string serviceType = "PROYECTOS";
 
-            // Guard de estado: no permitir si algún registro ya está APROBADO
+            // Guard de estado: no permitir si algún pago ya está APROBADO
             var aprobados = _context.AsesoriaPostgrado
                 .Where(a => data.Ids.Contains(a.Id) && a.Estado == "APROBADO")
                 .Select(a => a.Id)
                 .ToList();
             if (aprobados.Any())
-                return BadRequest("No se pueden eliminar datos de factura de registros ya aprobados.");
+                return BadRequest("No se pueden eliminar datos de factura de pagos ya aprobados.");
 
+            // Links de los registros seleccionados
             var links = _context.RecordInvoices
                 .Where(r => data.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
                 .ToList();
             var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
 
-            _context.RecordInvoices.RemoveRange(links);
-            _context.SaveChanges();
-
+            // Para cada invoice afectada, ver si quedará huérfana:
+            // total de links que apuntan a esa invoice, menos los que vamos a borrar
+            var invoicesAEliminar = new List<int>();
             foreach (var invId in invoiceIds)
             {
-                bool stillUsed = _context.RecordInvoices.Any(r => r.InvoiceId == invId);
-                if (!stillUsed)
-                {
-                    var invoice = _context.Invoices.FirstOrDefault(i => i.Id == invId);
-                    if (invoice != null)
-                        _context.Invoices.Remove(invoice);
-                }
+                int totalLinks = _context.RecordInvoices.Count(r => r.InvoiceId == invId);
+                int borrando = links.Count(l => l.InvoiceId == invId);
+                if (totalLinks - borrando <= 0)
+                    invoicesAEliminar.Add(invId);
             }
+
+            // Borrar links
+            _context.RecordInvoices.RemoveRange(links);
+
+            // Borrar invoices que quedarán huérfanas
+            if (invoicesAEliminar.Any())
+            {
+                var invoices = _context.Invoices.Where(i => invoicesAEliminar.Contains(i.Id)).ToList();
+                _context.Invoices.RemoveRange(invoices);
+            }
+
             _context.SaveChanges();
 
             return Ok("Datos de factura eliminados de " + data.Ids.Count + " registro(s).");
