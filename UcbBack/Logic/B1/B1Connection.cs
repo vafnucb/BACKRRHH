@@ -1165,6 +1165,14 @@ namespace UcbBack.Logic.B1
         public string addServVoucherFAC(int UserId, List<Serv_Voucher> voucher, ServProcess process)
         {
             var log = initLog(UserId, BusinessObjectType.Voucher, voucher.FirstOrDefault().Memo);
+
+            // DIAG: marcar cada invocación
+            var diagLog = initLog(UserId, BusinessObjectType.Voucher, "DIAG addServVoucherFAC llamado - memo: " + voucher.FirstOrDefault().Memo);
+            diagLog.Success = true;
+            diagLog.ErrorMessage = "DIAG CALL addServVoucherFAC";
+            _context.SdkErrorLogs.Add(diagLog);
+            _context.SaveChanges();
+
             try
             {
                 var debe = voucher.Sum(x => x.Debit);
