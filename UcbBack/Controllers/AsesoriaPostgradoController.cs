@@ -2713,11 +2713,15 @@ namespace UcbBack.Controllers
 
                 // Mapa RecordId -> Invoice (PROYECTOS)
                 var recordIds = queryResult.Select(a => a.Id).ToList();
-                var links = _context.RecordInvoices
-                    .Where(r => r.ServiceType == "PROYECTOS" && recordIds.Contains(r.RecordId))
-                    .ToList();
+                var links = recordIds.Any()
+                    ? _context.RecordInvoices
+                        .Where(r => r.ServiceType == "PROYECTOS" && recordIds.Contains(r.RecordId))
+                        .ToList()
+                    : new List<RecordInvoice>();
                 var invIds = links.Select(l => l.InvoiceId).Distinct().ToList();
-                var invoices = _context.Invoices.Where(i => invIds.Contains(i.Id)).ToList();
+                var invoices = invIds.Any()
+                    ? _context.Invoices.Where(i => invIds.Contains(i.Id)).ToList()
+                    : new List<Invoice>();
                 var recordToInvoice = links.ToDictionary(
                     l => l.RecordId,
                     l => invoices.FirstOrDefault(i => i.Id == l.InvoiceId));

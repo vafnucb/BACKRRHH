@@ -2880,14 +2880,15 @@ namespace UcbBack.Controllers
 
             // Mapa RecordId -> Invoice (para CARRERA)
             var recordIds = listaBase.Select(a => a.Id).ToList();
-            var links = _context.RecordInvoices
-                .Where(r => r.ServiceType == "CARRERA" && recordIds.Contains(r.RecordId))
-                .ToList();
+            var links = recordIds.Any()
+                ? _context.RecordInvoices
+                    .Where(r => r.ServiceType == "CARRERA" && recordIds.Contains(r.RecordId))
+                    .ToList()
+                : new List<RecordInvoice>();
             var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
-            var invoices = _context.Invoices
-                .Where(i => invoiceIds.Contains(i.Id))
-                .ToList();
-            // RecordId -> Invoice
+            var invoices = invoiceIds.Any()
+                ? _context.Invoices.Where(i => invoiceIds.Contains(i.Id)).ToList()
+                : new List<Invoice>();
             var recordToInvoice = links.ToDictionary(
                 l => l.RecordId,
                 l => invoices.FirstOrDefault(i => i.Id == l.InvoiceId));
