@@ -2711,6 +2711,17 @@ namespace UcbBack.Controllers
                     .SqlQuery<AsesoriaPostgradoEstadoViewModel>(baseQuery)
                     .ToList();
 
+                // Mapa RecordId -> Invoice (PROYECTOS)
+                var recordIds = queryResult.Select(a => a.Id).ToList();
+                var links = _context.RecordInvoices
+                    .Where(r => r.ServiceType == "PROYECTOS" && recordIds.Contains(r.RecordId))
+                    .ToList();
+                var invIds = links.Select(l => l.InvoiceId).Distinct().ToList();
+                var invoices = _context.Invoices.Where(i => invIds.Contains(i.Id)).ToList();
+                var recordToInvoice = links.ToDictionary(
+                    l => l.RecordId,
+                    l => invoices.FirstOrDefault(i => i.Id == l.InvoiceId));
+
                 // Get distinct project codes from the results
                 var projectCodes = queryResult.Select(a => a.Proyecto).Distinct().ToList();
 
@@ -2813,7 +2824,16 @@ namespace UcbBack.Controllers
                                         : null,
                         UserUpdateName = a.UserUpdate.HasValue && usersDict.ContainsKey(a.UserUpdate.Value)
                                         ? usersDict[a.UserUpdate.Value]
-                                        : null
+                                        : null,
+                        TieneFacturaFlag = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? "Con Factura" : "Sin Factura",
+                        FacturaRazonSocial = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].RazonSocial : null,
+                        FacturaNIT = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].NIT : null,
+                        FacturaNumero = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].NumeroFactura : null,
+                        FacturaFecha = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null && recordToInvoice[a.Id].FechaFactura.HasValue ? recordToInvoice[a.Id].FechaFactura.Value.ToString("dd/MM/yyyy") : null,
+                        FacturaCodigoAutorizacion = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].CodigoAutorizacion : null,
+                        FacturaMonto = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].Monto : (decimal?)null,
+                        FacturaCreditoFiscal = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].CreditoFiscal : (decimal?)null,
+                        FacturaTipo = recordToInvoice.ContainsKey(a.Id) && recordToInvoice[a.Id] != null ? recordToInvoice[a.Id].TipoFactura : null
                     });
 
                 // Return single object if ID was provided
