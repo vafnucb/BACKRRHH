@@ -501,9 +501,14 @@ namespace UcbBack.Controllers
                             "case when \"IUEExterior\" is null then 0 else \"IUEExterior\" end as \"IUEExterior\", " +
                             "\"TotalNeto\" , " +
                             "\"Observaciones\", \"BranchesId\", " +
-                            "case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\" " +
+                                                        "case when a.\"Ignore\" = true then 'D' when a.\"Ignore\" = false then '' end as \"Ignore\", " +
+                            "inv.\"NIT\" as \"FacturaNIT\", inv.\"NumeroFactura\" as \"FacturaNumero\", inv.\"TipoFactura\" as \"FacturaTipo\" " +
                         "from " +
                             CustomSchema.Schema + ".\"AsesoriaDocente\" a " +
+                        "left join " + CustomSchema.Schema + ".\"RecordInvoice\" ri " +
+                            "on ri.\"RecordId\" = a.\"Id\" and ri.\"ServiceType\" = 'CARRERA' " +
+                        "left join " + CustomSchema.Schema + ".\"Invoice\" inv " +
+                            "on inv.\"Id\" = ri.\"InvoiceId\" " +
                         "inner join " +
                             CustomSchema.Schema + ".\"TipoTarea\" t " +
                             "on a.\"TipoTareaId\"=t.\"Id\" " +
@@ -599,7 +604,10 @@ namespace UcbBack.Controllers
                     IUEExt = x.IUEExterior,
                     Total_Neto = x.TotalNeto,
                     Observaciones = x.Observaciones,
-                    Dup = x.Ignore
+                    Dup = x.Ignore,
+                    FacturaNIT = x.FacturaNIT ?? "",
+                    FacturaNumero = x.FacturaNumero ?? "",
+                    FacturaTipo = x.FacturaTipo == "ELECTRONICA" ? "E" : (x.FacturaTipo == "MANUAL" ? "M" : "")
                 });
 
                 return Ok(filteredListBody);

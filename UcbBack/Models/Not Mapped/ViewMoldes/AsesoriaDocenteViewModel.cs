@@ -46,6 +46,10 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string Cod { get; set; }
         public string Ignore { get; set; }
 
+        public string FacturaNIT { get; set; }
+        public string FacturaNumero { get; set; }
+        public string FacturaTipo { get; set; }
+
         // Agregando nuevo campo para extranjero
         // public bool Extranjero { get; set; }
 

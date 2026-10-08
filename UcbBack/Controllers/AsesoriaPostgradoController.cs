@@ -502,8 +502,11 @@ namespace UcbBack.Controllers
                             "\r\na.\"TotalNeto\", " +
                             "\r\na.\"Observaciones\", " +
                             "\r\ncase when a.\"StudentFullName\" is null then 'ND' else a.\"StudentFullName\" end as \"StudentFullName\", " +
-                            "\r\ncase when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\"" +
+                                                        "\r\ncase when a.\"Ignore\" = true then 'D' else '' end as \"Ignored\", " +
+                            "inv.\"NIT\" as \"FacturaNIT\", inv.\"NumeroFactura\" as \"FacturaNumero\", inv.\"TipoFactura\" as \"FacturaTipo\" " +
                             "\r\nfrom " + CustomSchema.Schema + ".\"AsesoriaPostgrado\" a " +
+                            "\r\nleft join " + CustomSchema.Schema + ".\"RecordInvoice\" ri on ri.\"RecordId\" = a.\"Id\" and ri.\"ServiceType\" = 'PROYECTOS' " +
+                            "\r\nleft join " + CustomSchema.Schema + ".\"Invoice\" inv on inv.\"Id\" = ri.\"InvoiceId\" " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"ProjectModules\" pm on pm.\"CodModule\"=a.\"Modulo\" and pm.\"CodProject\" = a.\"Proyecto\" " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"TipoTarea\" t on a.\"TipoTareaId\"=t.\"Id\" " +
                             "\r\ninner join " + CustomSchema.Schema + ".\"Branches\" br on a.\"BranchesId\"=br.\"Id\" " +
@@ -590,7 +593,10 @@ namespace UcbBack.Controllers
                     Total_Neto = x.TotalNeto,
                     x.Observaciones,
                     Dup = x.Ignored,
-                    x.BranchesId
+                    x.BranchesId,
+                    FacturaNIT = x.FacturaNIT ?? "",
+                    FacturaNumero = x.FacturaNumero ?? "",
+                    FacturaTipo = x.FacturaTipo == "ELECTRONICA" ? "E" : (x.FacturaTipo == "MANUAL" ? "M" : "")
                 });
 
                 return Ok(filteredListBody);

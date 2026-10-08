@@ -45,6 +45,9 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public DateTime? UpdatedAt { get; set; }
         public string Ignored { get; set; }
         public string Cod { get; set; }
+        public string FacturaNIT { get; set; }
+        public string FacturaNumero { get; set; }
+        public string FacturaTipo { get; set; }
 
 
         public DataTable CreateDataTable<T>(IEnumerable<T> list)
