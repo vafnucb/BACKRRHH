@@ -1163,12 +1163,14 @@ namespace UcbBack.Controllers
 
                     // RCIVA por invoice (una línea por PEI), monto = CreditoFiscal
                     rcivaFac = data.Where(g => g.Concept == "RCIVA" && g.Memo == memo)
-                        .GroupBy(g => g.PEI)
-                        .Select(grp => {
-                            int invId; decimal cf = 0;
-                            if (Int32.TryParse(grp.Key, out invId))
-                                cf = _context.Invoices.Where(i => i.Id == invId).Select(i => i.CreditoFiscal).FirstOrDefault() ?? 0;
-                            return new Serv_Voucher()
+    .GroupBy(g => g.PEI)
+    .Select(grp => {
+        int invId; decimal cf = 0;
+        Invoice inv = null;
+        if (Int32.TryParse(grp.Key, out invId))
+            inv = _context.Invoices.FirstOrDefault(i => i.Id == invId);
+        cf = inv != null ? (inv.CreditoFiscal ?? 0) : 0;
+        return new Serv_Voucher()
                             {
                                 CardName = grp.Select(x => x.CardName).FirstOrDefault(),
                                 CardCode = null,
@@ -1183,8 +1185,15 @@ namespace UcbBack.Controllers
                                 Concept = "RCIVA",
                                 Account = grp.Select(x => x.Account).FirstOrDefault(),
                                 Debit = cf,
-                                Credit = 0
-                            };
+                                Credit = 0,
+            // Attach invoice data for the UDFs (so addServVoucherFAC does NO DB query)
+            FacRazonSocial = inv != null ? inv.RazonSocial : null,
+            FacNIT = inv != null ? inv.NIT : null,
+            FacFechaFactura = inv != null ? inv.FechaFactura : (DateTime?)null,
+            FacNumeroFactura = inv != null ? inv.NumeroFactura : null,
+            FacCodigoAutorizacion = inv != null ? inv.CodigoAutorizacion : null,
+            FacMonto = inv != null ? inv.Monto : (decimal?)null
+        };
                         }).ToList();
 
                     // PPAGAR por registro (una línea por registro), monto = bruto del registro

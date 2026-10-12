@@ -29,5 +29,13 @@ namespace UcbBack.Models.Not_Mapped.ViewMoldes
         public string Account { get; set; }
         public decimal Debit { get; set; }
         public decimal Credit { get; set; }
+
+        // in Serv_Voucher class
+        public string FacRazonSocial { get; set; }
+        public string FacNIT { get; set; }
+        public DateTime? FacFechaFactura { get; set; }
+        public string FacNumeroFactura { get; set; }
+        public string FacCodigoAutorizacion { get; set; }
+        public decimal? FacMonto { get; set; }
     }
 }

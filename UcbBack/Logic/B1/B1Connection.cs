@@ -1225,22 +1225,13 @@ namespace UcbBack.Logic.B1
                     if (line.Concept == "RCIVA")
                     {
                         businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
-                        int invoiceId;
-                        if (!string.IsNullOrWhiteSpace(line.PEI) && Int32.TryParse(line.PEI, out invoiceId))
-                        {
-                            var invoice = _context.Invoices.FirstOrDefault(inv => inv.Id == invoiceId);
-                            if (invoice != null)
-                            {
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = invoice.RazonSocial ?? "";
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = invoice.NIT ?? "";
-                                if (invoice.FechaFactura.HasValue)
-                                    businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = invoice.FechaFactura.Value;
-                                // Nro Factura -> U_NUM_FACT ; Nro Autorización (CodigoAutorizacion) -> U_NUMORDEN ; Importe -> U_IMPORTE
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUM_FACT").Value = invoice.NumeroFactura ?? "";
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = invoice.CodigoAutorizacion ?? "";
-                                businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_IMPORTE").Value = invoice.Monto.HasValue ? (double)invoice.Monto.Value : 0;
-                            }
-                        }
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = line.FacRazonSocial ?? "";
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = line.FacNIT ?? "";
+                        if (line.FacFechaFactura.HasValue)
+                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = line.FacFechaFactura.Value;
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUM_FACT").Value = line.FacNumeroFactura ?? "";
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = line.FacCodigoAutorizacion ?? "";
+                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_IMPORTE").Value = line.FacMonto.HasValue ? (double)line.FacMonto.Value : 0;
                     }
                     else
                     {
