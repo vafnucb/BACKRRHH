@@ -1164,6 +1164,10 @@ namespace UcbBack.Logic.B1
 
         public string addServVoucherFAC(int UserId, List<Serv_Voucher> voucher, ServProcess process)
         {
+
+            if (!string.IsNullOrWhiteSpace(process.SAPId) && process.SAPId != "Multiples.")
+                return process.SAPId;
+
             var log = initLog(UserId, BusinessObjectType.Voucher, voucher.FirstOrDefault().Memo);
 
             // DIAG: marcar cada invocación
