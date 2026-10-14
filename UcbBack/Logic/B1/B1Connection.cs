@@ -1164,7 +1164,6 @@ namespace UcbBack.Logic.B1
 
         public string addServVoucherFAC(int UserId, List<Serv_Voucher> voucher, ServProcess process)
         {
-
             if (!string.IsNullOrWhiteSpace(process.SAPId) && process.SAPId != "Multiples.")
                 return process.SAPId;
 
@@ -1195,54 +1194,53 @@ namespace UcbBack.Logic.B1
 
                 DateTime date = process.InSAPAt == null ? DateTime.Now : process.InSAPAt.Value;
 
-                // PRELIMINAR: JournalVouchers (borrador). Para producción cambiar a JournalEntries (oJournalEntries).
-                JournalVouchers businessObject =
-                    (JournalVouchers)company.GetBusinessObject(BoObjectTypes.oJournalVouchers);
+                // POSTEADO: JournalEntries (comprobante real)
+                JournalEntries businessObject =
+                    (JournalEntries)company.GetBusinessObject(BoObjectTypes.oJournalEntries);
 
-                // header (anidado bajo .JournalEntries)
-                businessObject.JournalEntries.ReferenceDate = date;
-                businessObject.JournalEntries.Memo = voucher.FirstOrDefault().Memo;
-                businessObject.JournalEntries.TaxDate = date;
-                businessObject.JournalEntries.Series = Int32.Parse(process.Branches.SerieComprobanteContalbeSAP);
-                businessObject.JournalEntries.DueDate = date;
-                businessObject.JournalEntries.Reference = "SARAI LOTE N. " + process.Id;
+                businessObject.ReferenceDate = date;
+                businessObject.Memo = voucher.FirstOrDefault().Memo;
+                businessObject.TaxDate = date;
+                businessObject.Series = Int32.Parse(process.Branches.SerieComprobanteContalbeSAP);
+                businessObject.DueDate = date;
+                businessObject.Reference = "SARAI LOTE N. " + process.Id;
 
-                string serviceType = process.FileType;  // 'PARALELO' / 'CARRERA' / 'PROYECTOS' / 'VARIOS'
+                string serviceType = process.FileType;
 
-                businessObject.JournalEntries.Lines.SetCurrentLine(0);
+                businessObject.Lines.SetCurrentLine(0);
                 foreach (var line in voucher)
                 {
-                    businessObject.JournalEntries.Lines.LineMemo = line.LineMemo;
-                    businessObject.JournalEntries.Lines.AccountCode = this.getAccountId(line.Account);
-                    businessObject.JournalEntries.Lines.Credit = (double)line.Credit;
-                    businessObject.JournalEntries.Lines.Debit = (double)line.Debit;
+                    businessObject.Lines.LineMemo = line.LineMemo;
+                    businessObject.Lines.AccountCode = this.getAccountId(line.Account);
+                    businessObject.Lines.Credit = (double)line.Credit;
+                    businessObject.Lines.Debit = (double)line.Debit;
                     if (line.CardCode != null)
-                        businessObject.JournalEntries.Lines.ShortName = line.CardCode;
-                    businessObject.JournalEntries.Lines.CostingCode = line.OU;
-                    businessObject.JournalEntries.Lines.CostingCode2 = "PO";
-                    businessObject.JournalEntries.Lines.CostingCode3 = line.Carrera;
-                    businessObject.JournalEntries.Lines.CostingCode4 = line.Paralelo;
-                    businessObject.JournalEntries.Lines.CostingCode5 = line.Periodo;
-                    businessObject.JournalEntries.Lines.ProjectCode = line.ProjectCode;
-                    businessObject.JournalEntries.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
+                        businessObject.Lines.ShortName = line.CardCode;
+                    businessObject.Lines.CostingCode = line.OU;
+                    businessObject.Lines.CostingCode2 = "PO";
+                    businessObject.Lines.CostingCode3 = line.Carrera;
+                    businessObject.Lines.CostingCode4 = line.Paralelo;
+                    businessObject.Lines.CostingCode5 = line.Periodo;
+                    businessObject.Lines.ProjectCode = line.ProjectCode;
+                    businessObject.Lines.BPLID = Int32.Parse(process.Branches.CodigoSAP);
 
                     if (line.Concept == "RCIVA")
                     {
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_CARDNAME").Value = line.FacRazonSocial ?? "";
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_RUC").Value = line.FacNIT ?? "";
+                        businessObject.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "1";
+                        businessObject.Lines.UserFields.Fields.Item("U_CARDNAME").Value = line.FacRazonSocial ?? "";
+                        businessObject.Lines.UserFields.Fields.Item("U_RUC").Value = line.FacNIT ?? "";
                         if (line.FacFechaFactura.HasValue)
-                            businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = line.FacFechaFactura.Value;
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUM_FACT").Value = line.FacNumeroFactura ?? "";
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = line.FacCodigoAutorizacion ?? "";
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_IMPORTE").Value = line.FacMonto.HasValue ? (double)line.FacMonto.Value : 0;
+                            businessObject.Lines.UserFields.Fields.Item("U_FECHAFAC").Value = line.FacFechaFactura.Value;
+                        businessObject.Lines.UserFields.Fields.Item("U_NUM_FACT").Value = line.FacNumeroFactura ?? "";
+                        businessObject.Lines.UserFields.Fields.Item("U_NUMORDEN").Value = line.FacCodigoAutorizacion ?? "";
+                        businessObject.Lines.UserFields.Fields.Item("U_IMPORTE").Value = line.FacMonto.HasValue ? (double)line.FacMonto.Value : 0;
                     }
                     else
                     {
-                        businessObject.JournalEntries.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "10";
+                        businessObject.Lines.UserFields.Fields.Item("U_TIPODOC").Value = "10";
                     }
 
-                    businessObject.JournalEntries.Lines.Add();
+                    businessObject.Lines.Add();
                 }
 
                 businessObject.Add();
@@ -1283,6 +1281,9 @@ namespace UcbBack.Logic.B1
 
         public string addServVoucher(int UserId, List<Serv_Voucher> voucher, ServProcess process)
         {
+            if (!string.IsNullOrWhiteSpace(process.SAPId) && process.SAPId != "Multiples.")
+                return process.SAPId;
+
             var log = initLog(UserId, BusinessObjectType.Voucher, voucher.FirstOrDefault().Memo);
             bool approved = true;
             try
