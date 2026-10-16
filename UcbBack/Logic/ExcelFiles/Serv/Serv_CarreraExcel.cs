@@ -173,20 +173,23 @@ namespace UcbBack.Logic.ExcelFiles.Serv
                 decimal IT = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 13).Value.ToString()), 2);
                 decimal IUEExterior = TruncateDecimal(Decimal.Parse(wb.Worksheet(sheet).Cell(i, 14).Value.ToString()), 2);
 
-                if (IUEExterior > 0 && process.TipoDocente == "INDEP")
+                if (process.TipoDocente == "INDEP")
                 {
-                    res = false;
-                    paintXY(14, i, XLColor.Red, "Subió un archivo de extranjero como tipo de docente independiente");
+                    if (!(IUE > 0)) { res = false; paintXY(12, i, XLColor.Red, "Independiente: el IUE debe ser mayor a 0"); }
+                    if (!(IT > 0)) { res = false; paintXY(13, i, XLColor.Red, "Independiente: el IT debe ser mayor a 0"); }
+                    if (IUEExterior != 0) { res = false; paintXY(14, i, XLColor.Red, "Independiente: el IUEExterior debe ser 0"); }
                 }
-                if (IUE > 0 && IT > 0 && process.TipoDocente == "EXT")
+                else if (process.TipoDocente == "EXT")
                 {
-                    res = false;
-                    paintXY(13, i, XLColor.Red, "Subió un archivo de independiente como tipo de docente extranjero");
+                    if (!(IUEExterior > 0)) { res = false; paintXY(14, i, XLColor.Red, "Extranjero: el IUEExterior debe ser mayor a 0"); }
+                    if (IUE != 0) { res = false; paintXY(12, i, XLColor.Red, "Extranjero: el IUE debe ser 0"); }
+                    if (IT != 0) { res = false; paintXY(13, i, XLColor.Red, "Extranjero: el IT debe ser 0"); }
                 }
-                if (process.TipoDocente == "FAC" && (IUE > 0 || IT > 0 || IUEExterior > 0))
+                else if (process.TipoDocente == "FAC")
                 {
-                    res = false;
-                    paintXY(12, i, XLColor.Red, "Un archivo Con Factura no debe tener retenciones (IUE/IT/IUEExterior deben ser 0)");
+                    if (IUE != 0) { res = false; paintXY(12, i, XLColor.Red, "Con Factura: el IUE debe ser 0"); }
+                    if (IT != 0) { res = false; paintXY(13, i, XLColor.Red, "Con Factura: el IT debe ser 0"); }
+                    if (IUEExterior != 0) { res = false; paintXY(14, i, XLColor.Red, "Con Factura: el IUEExterior debe ser 0"); }
                 }
             }
             valid = valid && res;
