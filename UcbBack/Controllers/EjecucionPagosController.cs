@@ -1642,44 +1642,38 @@ namespace UcbBack.Controllers
 
             const string serviceType = "PARALELO";
 
-            // Guard de estado: no permitir si algún pago ya está APROBADO
+            // Links de los registros seleccionados
+            var selectedLinks = _context.RecordInvoices
+                .Where(r => model.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
+                .ToList();
+
+            if (!selectedLinks.Any())
+                return BadRequest("Los pagos seleccionados no tienen datos de factura asignados.");
+
+            var invoiceIds = selectedLinks.Select(l => l.InvoiceId).Distinct().ToList();
+
+            // Expandir: TODOS los links de esas facturas (incluye hermanos no seleccionados)
+            var allLinks = _context.RecordInvoices
+                .Where(r => invoiceIds.Contains(r.InvoiceId))
+                .ToList();
+
+            // Guard de estado sobre el conjunto completo (incluye hermanos)
+            var allRecordIds = allLinks.Select(l => l.RecordId).Distinct().ToList();
             var aprobados = _context.EjecucionPagos
-                .Where(ep => model.Ids.Contains(ep.Id) && ep.Estado == "APROBADO")
+                .Where(ep => allRecordIds.Contains(ep.Id) && ep.Estado == "APROBADO")
                 .Select(ep => ep.Id)
                 .ToList();
             if (aprobados.Any())
-                return BadRequest("No se pueden eliminar datos de factura de pagos ya aprobados.");
+                return BadRequest("No se pueden eliminar: la factura está asignada a un pago ya aprobado.");
 
-            // Links de los registros seleccionados
-            var links = _context.RecordInvoices
-                .Where(r => model.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
-                .ToList();
-            var invoiceIds = links.Select(l => l.InvoiceId).Distinct().ToList();
-
-            // Para cada invoice afectada, ver si quedará huérfana:
-            // total de links que apuntan a esa invoice, menos los que vamos a borrar
-            var invoicesAEliminar = new List<int>();
-            foreach (var invId in invoiceIds)
-            {
-                int totalLinks = _context.RecordInvoices.Count(r => r.InvoiceId == invId);
-                int borrando = links.Count(l => l.InvoiceId == invId);
-                if (totalLinks - borrando <= 0)
-                    invoicesAEliminar.Add(invId);
-            }
-
-            // Borrar links
-            _context.RecordInvoices.RemoveRange(links);
-
-            // Borrar invoices que quedarán huérfanas
-            if (invoicesAEliminar.Any())
-            {
-                var invoices = _context.Invoices.Where(i => invoicesAEliminar.Contains(i.Id)).ToList();
-                _context.Invoices.RemoveRange(invoices);
-            }
+            // Borrar TODOS los links de esas facturas y las facturas completas
+            _context.RecordInvoices.RemoveRange(allLinks);
+            var invoices = _context.Invoices.Where(i => invoiceIds.Contains(i.Id)).ToList();
+            _context.Invoices.RemoveRange(invoices);
 
             _context.SaveChanges();
 
-            return Ok(new { Message = "Datos de factura eliminados de " + model.Ids.Count + " pago(s)." });
+            return Ok(new { Message = "Datos de factura eliminados de " + allLinks.Count + " pago(s)." });
         }
 
 
