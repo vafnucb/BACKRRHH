@@ -1481,6 +1481,32 @@ namespace UcbBack.Controllers
 
             const string serviceType = "PARALELO";
 
+            // --- Guard: no reasignar un pago que pertenece a una factura COMPARTIDA
+            var existingLinksGuard = _context.RecordInvoices
+                .Where(r => model.Ids.Contains(r.RecordId) && r.ServiceType == serviceType)
+                .ToList();
+            if (existingLinksGuard.Any())
+            {
+                var existingInvoiceIds = existingLinksGuard.Select(l => l.InvoiceId).Distinct().ToList();
+                var allLinksOfThose = _context.RecordInvoices
+                    .Where(r => existingInvoiceIds.Contains(r.InvoiceId))
+                    .ToList();
+                var sharedInvoiceIds = allLinksOfThose
+                    .GroupBy(l => l.InvoiceId)
+                    .Where(g => g.Any(l => !model.Ids.Contains(l.RecordId)))
+                    .Select(g => g.Key)
+                    .ToList();
+                if (sharedInvoiceIds.Any())
+                {
+                    var conflictRecordIds = existingLinksGuard
+                        .Where(l => sharedInvoiceIds.Contains(l.InvoiceId))
+                        .Select(l => l.RecordId).Distinct().OrderBy(x => x).ToList();
+                    return BadRequest(
+                        "No se puede reasignar. El/los pago(s) " + string.Join(", ", conflictRecordIds) +
+                        " ya pertenecen a una factura compartida con otros pagos. Primero elimine los datos de factura de todo el grupo y luego asigne la nueva factura.");
+                }
+            }
+
             // Suma de los netos de los pagos seleccionados
             var pagosMonto = _context.EjecucionPagos
                 .Where(ep => model.Ids.Contains(ep.Id))
@@ -1550,7 +1576,13 @@ namespace UcbBack.Controllers
             }
             _context.SaveChanges();
 
-            // Link each selected record (upsert RecordInvoice)
+            // Capturar facturas viejas antes de repuntar, para limpiar huérfanas
+            var oldInvoiceIds = _context.RecordInvoices
+                .Where(l => model.Ids.Contains(l.RecordId) && l.ServiceType == serviceType)
+                .Select(l => l.InvoiceId)
+                .Distinct()
+                .ToList();
+
             foreach (var recordId in model.Ids)
             {
                 var link = _context.RecordInvoices
@@ -1572,6 +1604,17 @@ namespace UcbBack.Controllers
                 }
             }
             _context.SaveChanges();
+
+            // Limpieza de facturas viejas que quedaron sin ningún link (excepto la recién asignada)
+            var huerfanas = oldInvoiceIds
+                .Where(id => id != invoice.Id && !_context.RecordInvoices.Any(l => l.InvoiceId == id))
+                .ToList();
+            if (huerfanas.Any())
+            {
+                var invsHuerfanas = _context.Invoices.Where(i => huerfanas.Contains(i.Id)).ToList();
+                _context.Invoices.RemoveRange(invsHuerfanas);
+                _context.SaveChanges();
+            }
 
             return Ok(new { Message = "Datos de factura asignados a " + model.Ids.Count + " pago(s)." });
         }
