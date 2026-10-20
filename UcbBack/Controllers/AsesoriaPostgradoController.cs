@@ -97,7 +97,7 @@ namespace UcbBack.Controllers
         // obtener registros de tutorias segun su estado
         [HttpGet]
         [Route("api/AsesoriaPostgrado")]
-        public IHttpActionResult getAsesoriaPostgrado([FromUri] string by)
+        public IHttpActionResult getAsesoriaPostgrado([FromUri] string by, [FromUri] string factura = null)
         {
             // datos para la tabla histórica
             string query = "select a.\"Id\", a.\"TeacherCUNI\", a.\"TeacherBP\", \r\na.\"BranchesId\", br.\"Abr\" as \"Regional\", a.\"Proyecto\"," +
@@ -326,13 +326,24 @@ namespace UcbBack.Controllers
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"= true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
 
-                // Ids que ya tienen datos de factura asignados (para el flag/búsqueda)
+                // Ids que ya tienen datos de factura asignados (para el flag/filtro)
                 var facturaIds = _context.RecordInvoices
                     .Where(f => f.ServiceType == "PROYECTOS")
                     .Select(f => f.RecordId)
                     .ToList();
 
-                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                var listaBase = auth.filerByRegional(rawresult.AsQueryable(), user).ToList();
+
+                // Filtro opcional Con/Sin Factura (en memoria, sobre la lista ya materializada)
+                if (!string.IsNullOrEmpty(factura))
+                {
+                    if (factura == "CON")
+                        listaBase = listaBase.Where(x => facturaIds.Contains(x.Id)).ToList();
+                    else if (factura == "SIN")
+                        listaBase = listaBase.Where(x => !facturaIds.Contains(x.Id)).ToList();
+                }
+
+                var filteredList = listaBase
                     .Select(x => new
                     {
                         x.Id,

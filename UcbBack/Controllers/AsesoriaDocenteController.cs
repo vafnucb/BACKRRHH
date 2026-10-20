@@ -93,7 +93,7 @@ namespace UcbBack.Controllers
         // obtener registros de tutorias segun su estado
         [HttpGet]
         [Route("api/AsesoriaDocente")]
-        public IHttpActionResult getAsesoria([FromUri] string by)
+        public IHttpActionResult getAsesoria([FromUri] string by, [FromUri] string factura = null)
         {
             // datos para la tabla histórica
             string query = "select a.\"Id\",a.\"TeacherFullName\", a.\"TeacherCUNI\", a.\"TeacherBP\", a.\"Categoría\", " +
@@ -326,7 +326,18 @@ namespace UcbBack.Controllers
                     .Select(f => f.RecordId)
                     .ToList();
 
-                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
+                var listaBase = auth.filerByRegional(rawresult.AsQueryable(), user).ToList();
+
+                // Filtro opcional Con/Sin Factura (en memoria, sobre la lista ya materializada)
+                if (!string.IsNullOrEmpty(factura))
+                {
+                    if (factura == "CON")
+                        listaBase = listaBase.Where(x => facturaIds.Contains(x.Id)).ToList();
+                    else if (factura == "SIN")
+                        listaBase = listaBase.Where(x => !facturaIds.Contains(x.Id)).ToList();
+                }
+
+                var filteredList = listaBase
                     .Select(x => new
                     {
                         x.Id,
