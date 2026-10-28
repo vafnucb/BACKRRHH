@@ -1276,6 +1276,7 @@ namespace UcbBack.Controllers
 
             return Ok(result);
         }
+
         //registro de la tutoria
         [HttpPost]
         [Route("api/AsesoriaPostgrado")]
@@ -1303,11 +1304,24 @@ namespace UcbBack.Controllers
             }
             if (asesoria.Origen.Equals("DEPEN"))
             {
-                if (!Equals(ProyReg, PeopleRegCUNI))
+                // El docente DEPEN puede estar identificado por CUNI o por BP.
+                // Validamos la sede contra el identificador que realmente tenga.
+                var proyReg = (ProyReg ?? "").Trim();
+                var regCUNI = (PeopleRegCUNI ?? "").Trim();
+                var regBP = (PeopleRegBP ?? "").Trim();
+
+                bool coincideCUNI = !string.IsNullOrEmpty(regCUNI) &&
+                                    string.Equals(proyReg, regCUNI, StringComparison.OrdinalIgnoreCase);
+                bool coincideBP = !string.IsNullOrEmpty(regBP) &&
+                                  string.Equals(proyReg, regBP, StringComparison.OrdinalIgnoreCase);
+
+                if (!coincideCUNI && !coincideBP)
                 {
                     return BadRequest("El docente seleccionado no pertenece a la Sede del proyecto. No es posible realizar el registro.");
                 }
-                if (string.IsNullOrEmpty(asesoria.TeacherCUNI))
+
+                // Debe tener al menos un identificador (CUNI o BP)
+                if (string.IsNullOrEmpty(asesoria.TeacherCUNI) && string.IsNullOrEmpty(asesoria.TeacherBP))
                 {
                     return BadRequest("No se pueden ingresar datos con valores vacios o iguales a 0.");
                 }
