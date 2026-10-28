@@ -326,24 +326,13 @@ namespace UcbBack.Controllers
                 string customQuery = query + "where a.\"Estado\"='VERIFICADO' " + "and a.\"Factura\"= true " + orderBy;
                 rawresult = _context.Database.SqlQuery<AsesoriaPostgradoViewModel>(customQuery).ToList();
 
-                // Ids que ya tienen datos de factura asignados (para el flag/filtro)
+                // Ids que ya tienen datos de factura asignados (para el flag/búsqueda)
                 var facturaIds = _context.RecordInvoices
                     .Where(f => f.ServiceType == "PROYECTOS")
                     .Select(f => f.RecordId)
                     .ToList();
 
-                var listaBase = auth.filerByRegional(rawresult.AsQueryable(), user).ToList();
-
-                // Filtro opcional Con/Sin Factura (en memoria, sobre la lista ya materializada)
-                if (!string.IsNullOrEmpty(factura))
-                {
-                    if (factura == "CON")
-                        listaBase = listaBase.Where(x => facturaIds.Contains(x.Id)).ToList();
-                    else if (factura == "SIN")
-                        listaBase = listaBase.Where(x => !facturaIds.Contains(x.Id)).ToList();
-                }
-
-                var filteredList = listaBase
+                var filteredList = auth.filerByRegional(rawresult.AsQueryable(), user).ToList()
                     .Select(x => new
                     {
                         x.Id,
@@ -1276,7 +1265,6 @@ namespace UcbBack.Controllers
 
             return Ok(result);
         }
-
         //registro de la tutoria
         [HttpPost]
         [Route("api/AsesoriaPostgrado")]
@@ -1304,24 +1292,11 @@ namespace UcbBack.Controllers
             }
             if (asesoria.Origen.Equals("DEPEN"))
             {
-                // El docente DEPEN puede estar identificado por CUNI o por BP.
-                // Validamos la sede contra el identificador que realmente tenga.
-                var proyReg = (ProyReg ?? "").Trim();
-                var regCUNI = (PeopleRegCUNI ?? "").Trim();
-                var regBP = (PeopleRegBP ?? "").Trim();
-
-                bool coincideCUNI = !string.IsNullOrEmpty(regCUNI) &&
-                                    string.Equals(proyReg, regCUNI, StringComparison.OrdinalIgnoreCase);
-                bool coincideBP = !string.IsNullOrEmpty(regBP) &&
-                                  string.Equals(proyReg, regBP, StringComparison.OrdinalIgnoreCase);
-
-                if (!coincideCUNI && !coincideBP)
+                if (!Equals(ProyReg, PeopleRegCUNI))
                 {
                     return BadRequest("El docente seleccionado no pertenece a la Sede del proyecto. No es posible realizar el registro.");
                 }
-
-                // Debe tener al menos un identificador (CUNI o BP)
-                if (string.IsNullOrEmpty(asesoria.TeacherCUNI) && string.IsNullOrEmpty(asesoria.TeacherBP))
+                if (string.IsNullOrEmpty(asesoria.TeacherCUNI))
                 {
                     return BadRequest("No se pueden ingresar datos con valores vacios o iguales a 0.");
                 }
