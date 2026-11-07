@@ -2248,7 +2248,7 @@ namespace UcbBack.Controllers
                     // obtiene el cuerpo de la tabla para el PDF
                     // join para el nombre de la carrera
                     query =
-                        "select \r\ncase when a.\"Origen\" = 'INDEP' or a.\"Origen\" = 'EXT' then ocrd.\"CardName\" else fn.\"FullName\" end as \"TeacherFullName\"," +
+                        "select \r\ncase when a.\"Origen\" = 'INDEP' or a.\"Origen\" = 'EXT' or a.\"Origen\" = 'FAC' then ocrd.\"CardName\" else fn.\"FullName\" end as \"TeacherFullName\"," +
                         "\r\nt.\"Abr\" as \"TipoTarea\", " +
                         "\r\na.\"Proyecto\" || '-' || op.\"PrjName\" as \"Proyecto\" , " +
                         "\r\na.\"Modulo\" || ' ' || pm.\"NameModule\" as \"Modulo\"," +
