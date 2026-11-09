@@ -601,6 +601,52 @@ namespace UcbBack.Controllers
                 });
             }
 
+            // Validación de Codigo_Socio por sede (antes de aprobar: si falla, no se modifica nada)
+            var sinCodigo = new List<string>();
+            foreach (var pago in pagos)
+            {
+                var pp = _context.PagosProgramados.FirstOrDefault(p => p.Id == pago.PagoProgramadoId);
+                var asig = pp != null
+                    ? _context.AsignacionesCarga.FirstOrDefault(a => a.Id == pp.AsignacionCargaId)
+                    : null;
+                var proc = asig != null
+                    ? _context.AsigProcesos.FirstOrDefault(ap => ap.Id == asig.AsigProcesoId)
+                    : null;
+
+                string nombre = asig != null
+                    ? string.Join(" ", new[] { asig.PrimerApellido, asig.SegundoApellido, asig.TercerApellido, asig.Nombres }
+                        .Where(s => !string.IsNullOrWhiteSpace(s)))
+                    : "Pago " + pago.Id;
+
+                int? branchId = proc != null ? (int?)proc.BranchesId : null;
+
+                if (!branchId.HasValue || branchId.Value == 0)
+                {
+                    sinCodigo.Add(nombre + " (no se pudo determinar la sede del pago)");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(GetCodigoSocio(asig, branchId)))
+                {
+                    var sede = _context.Database.SqlQuery<string>(
+                        "SELECT \"Abr\" FROM ADMNALRRHH.\"Branches\" WHERE \"Id\" = :id",
+                        new Sap.Data.Hana.HanaParameter("id", branchId.Value)
+                    ).FirstOrDefault() ?? branchId.Value.ToString();
+
+                    sinCodigo.Add(nombre + " (sin Código de Socio en la sede " + sede + ")");
+                }
+            }
+
+            if (sinCodigo.Any())
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, new
+                {
+                    Message = "No se puede aprobar. Los siguientes docentes no tienen Código de Socio válido para la sede del pago: "
+                              + string.Join("; ", sinCodigo.Distinct())
+                              + ". Habilítelos en Saraí para esa sede y vuelva a intentar."
+                });
+            }
+
             // Approve all
             foreach (var pago in pagos)
             {
@@ -822,90 +868,47 @@ namespace UcbBack.Controllers
         {
             if (asignacion == null)
                 return "";
-            // Try 1: Search by CI (NIT in Civil) + Branch
-            CivilRow civilPorCI = null;
-            if (branchesId.HasValue)
-            {
-                civilPorCI = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci AND \"BranchesId\" = :branchId",
-                    new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? ""),
-                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
-                ).FirstOrDefault();
-            }
-            // Fallback: Search by CI without branch
-            if (civilPorCI == null)
-            {
-                civilPorCI = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci",
-                    new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? "")
-                ).FirstOrDefault();
-            }
 
+            // Sin sede no se puede garantizar el código correcto (puede variar por sede)
+            if (!branchesId.HasValue || branchesId.Value == 0)
+                return "";
+
+            // Try 1: CI (NIT en Civil) + Sede
+            var civilPorCI = _context.Database.SqlQuery<CivilRow>(
+                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE \"NIT\" = :ci AND \"BranchesId\" = :branchId",
+                new Sap.Data.Hana.HanaParameter("ci", asignacion.CiDocente ?? ""),
+                new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+            ).FirstOrDefault();
             if (civilPorCI != null && !string.IsNullOrWhiteSpace(civilPorCI.SAPId))
-            {
                 return civilPorCI.SAPId;
-            }
 
-            // Build full name variations
             var nombreCompleto1 = string.Join(" ", new[] {
-        asignacion.PrimerApellido,
-        asignacion.SegundoApellido,
-        asignacion.TercerApellido,
-        asignacion.Nombres
-    }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim().ToUpper();
+                asignacion.PrimerApellido, asignacion.SegundoApellido, asignacion.TercerApellido, asignacion.Nombres
+            }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim().ToUpper();
 
             var nombreCompleto2 = string.Join(" ", new[] {
-        asignacion.Nombres,
-        asignacion.PrimerApellido,
-        asignacion.SegundoApellido,
-        asignacion.TercerApellido
-    }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim().ToUpper();
+                asignacion.Nombres, asignacion.PrimerApellido, asignacion.SegundoApellido, asignacion.TercerApellido
+            }.Where(s => !string.IsNullOrWhiteSpace(s))).Trim().ToUpper();
 
-            // Try 2: Search by FullName (variation 1) + Branch
-            CivilRow civilPorNombre1 = null;
-            if (branchesId.HasValue)
-            {
-                civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
-                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1),
-                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
-                ).FirstOrDefault();
-            }
-            if (civilPorNombre1 == null)
-            {
-                civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
-                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1)
-                ).FirstOrDefault();
-            }
+            // Try 2: FullName (apellidos + nombres) + Sede
+            var civilPorNombre1 = _context.Database.SqlQuery<CivilRow>(
+                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
+                new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto1),
+                new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+            ).FirstOrDefault();
             if (civilPorNombre1 != null && !string.IsNullOrWhiteSpace(civilPorNombre1.SAPId))
-            {
                 return civilPorNombre1.SAPId;
-            }
-            // Try 3: Search by FullName (variation 2) + Branch
-            CivilRow civilPorNombre2 = null;
-            if (branchesId.HasValue)
-            {
-                civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
-                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2),
-                    new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
-                ).FirstOrDefault();
-            }
-            if (civilPorNombre2 == null)
-            {
-                civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
-                    "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre",
-                    new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2)
-                ).FirstOrDefault();
-            }
 
+            // Try 3: FullName (nombres + apellidos) + Sede
+            var civilPorNombre2 = _context.Database.SqlQuery<CivilRow>(
+                "SELECT \"SAPId\", \"NIT\", \"FullName\" FROM ADMNALRRHH.\"Civil\" WHERE UPPER(\"FullName\") = :nombre AND \"BranchesId\" = :branchId",
+                new Sap.Data.Hana.HanaParameter("nombre", nombreCompleto2),
+                new Sap.Data.Hana.HanaParameter("branchId", branchesId.Value)
+            ).FirstOrDefault();
             if (civilPorNombre2 != null && !string.IsNullOrWhiteSpace(civilPorNombre2.SAPId))
-            {
                 return civilPorNombre2.SAPId;
-            }
 
-            // Not found
+            // No existe en la sede
             return "";
         }
 
