@@ -2573,6 +2573,12 @@ namespace UcbBack.Controllers
             public decimal? CreditoFiscal { get; set; }
         }
 
+        private static string FechaIso(object fecha)
+        {
+            if (fecha == null) return null;
+            return Convert.ToDateTime(fecha).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         [HttpGet]
         [Route("api/BuscarFacturaProyectos")]
         public IHttpActionResult BuscarFacturaProyectos(string nit, string numero)
@@ -2591,25 +2597,27 @@ namespace UcbBack.Controllers
                 "\"IMPORTE_TOTAL_COMPRA\" AS \"Monto\", " +
                 "\"CREDITO_FISCAL\" AS \"CreditoFiscal\" " +
                 "FROM ADMNAL.\"T_GEN_SIAT\" " +
-                "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero";
+                "WHERE \"NIT_PROVEEDOR\" = :nit AND \"NUMERO_FACTURA\" = :numero " +
+                "ORDER BY \"FECHA_FACTURA_DUI_DIM\"";
 
-            var result = _context.Database.SqlQuery<FacturaSiatResult>(sql,
+            var resultados = _context.Database.SqlQuery<FacturaSiatResult>(sql,
                 new Sap.Data.Hana.HanaParameter("nit", nit),
                 new Sap.Data.Hana.HanaParameter("numero", numero)
-            ).FirstOrDefault();
+            ).ToList();
 
-            if (result == null)
+            if (!resultados.Any())
                 return Ok(new { Found = false });
 
-            return Ok(new
+            var facturas = resultados.Select(r => new
             {
-                Found = true,
-                result.RazonSocial,
-                result.CodigoAutorizacion,
-                result.FechaFactura,
-                result.Monto,
-                result.CreditoFiscal
-            });
+                r.RazonSocial,
+                r.CodigoAutorizacion,
+                FechaFactura = FechaIso(r.FechaFactura),
+                r.Monto,
+                r.CreditoFiscal
+            }).ToList();
+
+            return Ok(new { Found = true, Facturas = facturas });
         }
 
         public class EliminarFacturaDTO
